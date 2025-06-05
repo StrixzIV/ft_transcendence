@@ -1,2 +1,6 @@
 *.log
 .env
+
+node_modules
+
+backend/prisma/db
