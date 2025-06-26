@@ -10,6 +10,7 @@ services:
     volumes:
       - ./services/nginx/config/default.conf:/etc/nginx/conf.d/default.conf
       - ./services/nginx/routes/:/etc/nginx/routes
+      - ./frontend/dist/:/var/www/html
     secrets:
       - ssl_key
       - ssl_certificate
