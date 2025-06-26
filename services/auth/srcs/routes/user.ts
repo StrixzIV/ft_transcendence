@@ -1,9 +1,11 @@
+import bcrypt from 'bcrypt';
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
 interface UserInfo {
     name: string;
     mail: string;
+    password?: string;
 }
 
 const user_schema = {
@@ -12,7 +14,8 @@ const user_schema = {
         required: ['name', 'mail'],
         properties: {
             name: { type: 'string', minLength: 1 },
-            mail: { type: 'string', format: 'email' }
+            mail: { type: 'string', format: 'email' },
+            password: { type: 'string', minLength: 6 }
         }
     }
 }
@@ -27,22 +30,29 @@ export async function userRoute(fastify: FastifyInstance) {
 
         // User creation logic
 
-        const { name, mail } = request.body as UserInfo
+        const { name, mail, password } = request.body as UserInfo
 
         const user_existed = await prisma.users.findFirst({
             where: {
-                username: name
+                OR: [{ username: name }, { email: mail }]
             }
         })
 
         if (user_existed) {
-            return response.code(409).send({ error: 'Username already exists' });
+            return response.code(409).send({ error: 'Username or email already exists' });
+        }
+        
+        let hashed_password: string | undefined = undefined;
+
+        if (password) {
+            hashed_password = await bcrypt.hash(password, 10)
         }
 
         const user_data = await prisma.users.create({ 
             data: { 
-                username: name, 
-                email: mail 
+                username: name,
+                email: mail,
+                pasword_hash: hashed_password
             } 
         })
 
