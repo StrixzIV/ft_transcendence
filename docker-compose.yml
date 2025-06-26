@@ -10,8 +10,8 @@ services:
     environment: 
       - discovery.type=single-node
       - xpack.security.enabled=false
-    ports:
-      - "9200:9200"
+    expose:
+      - 9200
 
   logstash:
     container_name: logstash
@@ -25,8 +25,8 @@ services:
       - "./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf"
     depends_on:
       - elasticsearch
-    ports: 
-      - "5044:5044"
+    expose: 
+      - 5044
 
   kibana:
     container_name: kibana
