@@ -4,6 +4,7 @@ all: setup up
 
 setup:
 	@mkdir -p $(VOLUMES_DIRS)
+	@bash scripts/generate_ssl.sh
 
 up:
 	@echo "Starting docker-compose..."
