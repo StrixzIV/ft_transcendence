@@ -14,7 +14,8 @@
 
     "dependencies": {
         "@prisma/client": "^6.9.0",
-        "fastify": "^4.0.0"
+        "fastify": "^4.0.0",
+        "bcrypt": "^6.0.0"
     },
 
     "devDependencies": {
