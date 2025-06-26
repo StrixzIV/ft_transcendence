@@ -23,20 +23,27 @@ export function mainPage() {
             Click on the Vite and TypeScript logos to learn more
             </p>
 
-            <button id="login" class="hover:bg-green-400 mt-1">Login</button>
+            <button id="logout" class="hover:bg-red-400 mt-1">Login</button>
 
 
         </div>
     `
 
-    const loginBtn = document.getElementById('login') as HTMLButtonElement;
+    const loginBtn = document.getElementById('logout') as HTMLButtonElement;
 
     loginBtn.addEventListener('click', () => {
-        loginPage();
+        localStorage.removeItem('is_login')
+        window.location.reload();
     })
 
     setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
 
 }
 
-mainPage();
+if (localStorage.getItem('is_login') === 'true') {
+    mainPage();
+}
+
+else {
+    loginPage();
+}

@@ -29,13 +29,18 @@ export function loginPage() {
     // Handle email login
     const form = document.getElementById('login-form') as HTMLFormElement;
     form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = (document.getElementById('email') as HTMLInputElement).value;
-      const password = (document.getElementById('password') as HTMLInputElement).value;
-  
-      // Normally you'd send this to your backend
-      console.log('Login with', { email, password });
-      alert(`Logged in as ${email}`);
+        
+        e.preventDefault();
+        const email = (document.getElementById('email') as HTMLInputElement).value;
+        const password = (document.getElementById('password') as HTMLInputElement).value;
+    
+        // Normally you'd send this to your backend
+        console.log('Login with', { email, password });
+        alert(`Logged in as ${email}`);
+
+        localStorage.setItem('is_login', 'true');
+        window.location.reload();
+
     });
 
     const homeBtn = document.getElementById('home') as HTMLButtonElement;
