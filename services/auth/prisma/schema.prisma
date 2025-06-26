@@ -10,13 +10,21 @@ generator client {
 
 datasource db {
     provider = "sqlite"
-    url      = "file:db/ft-transendence.db"
+    url      = "file:db/auth.db"
 }
 
-model User {
-    id          Int         @id @default(autoincrement())
-    name        String
-    createdAt   DateTime    @default(now())
+model Users {
+
+    id           String   @id @default(uuid())
+    username     String
+    email        String
+    pasword_hash String?
+    google_id    String?  @unique
+    profile_url  String?
+    created_at   DateTime
+
+    @@map("users")
+
 }
 
 model Match {
