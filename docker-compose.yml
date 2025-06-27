@@ -10,12 +10,24 @@ services:
     volumes:
       - ./services/nginx/config/:/etc/nginx/conf.d/
       - ./services/nginx/routes/:/etc/nginx/routes.d/
+      - ./services/nginx/rules/:/etc/nginx/rules.d/
       - ./frontend/dist/:/var/www/html/
     secrets:
       - ssl_key
       - ssl_certificate
     ports:
       - "8443:443"
+
+  # Auth (Placeholder)
+  # TODO: replace these lines with proper container
+  auth:
+    container_name: auth
+    image: nginx:1.29-alpine-slim
+    restart: always
+    networks:
+      - mainnet
+    expose:
+      - 3000
 
   # ELK
   elasticsearch:
