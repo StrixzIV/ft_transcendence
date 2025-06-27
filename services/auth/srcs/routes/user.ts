@@ -30,7 +30,12 @@ export async function userRoute(fastify: FastifyInstance) {
 
         // User creation logic
 
+        const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/
         const { name, mail, password } = request.body as UserInfo
+
+        if (forbidden_regex.test(name)) {
+            return response.code(400).send({ error: 'Username contains special characters' });
+        }
 
         const user_existed = await prisma.users.findFirst({
             where: {
