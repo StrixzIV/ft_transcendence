@@ -1,8 +1,13 @@
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 
 import { userRoute } from './routes/user';
 
 const app = Fastify({ logger: true });
+
+app.register(cors, {
+    origin: '*'
+});
 
 app.register(userRoute);
 
