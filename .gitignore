@@ -1,6 +1,16 @@
-*.log
-.env
+# env
+/**/*.env*
 
-node_modules
+# Logs
+/**/*.log
 
-**/db
+# Nodejs
+/**/node_modules
+
+# Database
+/**/db
+/**/*.sqlite
+/**/*.sqlite3
+/**/*.db
+/**/*.db3
+/**/*.s3db

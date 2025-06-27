@@ -29,6 +29,22 @@ services:
     expose:
       - 3000
 
+  # RabbitMQ
+  broker:
+    container_name: broker
+    image: rabbitmq:4.1.1-management-alpine
+    restart: always
+    networks:
+      - mainnet
+    volumes:
+      - rabbitmq-lib:/var/lib/rabbitmq
+      - rabbitmq-log:/var/log/rabbitmq
+    env_file:
+      - ".env"
+    expose:
+      - 5672
+      - 15672
+
   # ELK
   elasticsearch:
     container_name: elasticsearch
@@ -67,12 +83,17 @@ services:
       - 5601
 
 networks:
-
   mainnet:
     driver: bridge
 
-secrets:
+volumes:
+  rabbitmq-lib:
+    driver: local
 
+  rabbitmq-log:
+    driver: local
+
+secrets:
   ssl_key:
     file: ./secrets/ssl/nginx-selfsigned.key
 
