@@ -54,6 +54,21 @@ services:
     ports: 
       - "5601:5601"
 
+  # HashiCorp Vault
+  vault:
+    image: hashicorp/vault:1.16
+    container_name: vault
+    restart: always
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    entrypoint: "vault server -config=/vault/config/vault.hcl"
+    volumes:
+      - ./services/vault/config:/vault/config
+      - ./services/vault/data:/vault/data
+      - ./logs:/vault/logs
+
 networks:
 
   mainnet:
