@@ -103,7 +103,7 @@ services:
       - mainnet
     volumes:
       - ./logs:/logs
-      - ./services/auth/prisma/db:/app/prisma/db
+      - ./services/auth/prisma/db:/prisma/db
     environment:
       NODE_ENV: production
     depends_on:
