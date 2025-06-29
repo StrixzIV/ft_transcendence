@@ -17,6 +17,6 @@ echo "[vault-init] Vault is ready."
 echo "[vault-init] Generated random JWT key."
 
 # Store in Vault KV
-vault kv put secret/jwt jwt_secret="$JWT_SECRETS" algorithm="HS256"
+vault kv put secret/jwt access_secret="$JWT_ACCESS_TOKEN_SECRETS" refresh_secret="$JWT_REFRESH_TOKEN_SECRETS" algorithm="HS256"
 
 echo "[vault-init] Secret stored successfully!"
