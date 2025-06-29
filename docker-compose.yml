@@ -17,6 +17,9 @@ services:
       - ssl_certificate
     ports:
       - "8443:443"
+    depends_on:
+      - auth
+      - kibana
 
   # Auth (Placeholder)
   # TODO: replace these lines with proper container
@@ -57,6 +60,8 @@ services:
       - xpack.security.enabled=false
     expose:
       - 9200
+    depends_on:
+      - logstash
 
   logstash:
     container_name: logstash
@@ -81,6 +86,8 @@ services:
       - mainnet
     ports: 
       - 5601
+    depends_on:
+      - elasticsearch
 
 networks:
   mainnet:
