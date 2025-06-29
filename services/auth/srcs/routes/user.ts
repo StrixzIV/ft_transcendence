@@ -23,7 +23,14 @@ const user_schema = {
 export async function userRoute(fastify: FastifyInstance) {
 
     fastify.get('/user', async () => {
-        return prisma.users.findMany()
+        return prisma.users.findMany({
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                created_at: true
+            }
+        })
     })
 
     fastify.post('/user', {schema: user_schema}, async (request, response) => {
@@ -61,7 +68,21 @@ export async function userRoute(fastify: FastifyInstance) {
             } 
         })
 
-        return response.code(201).send(user_data)
+        const token = fastify.jwt.sign({
+            id: user_data.id,
+            username: user_data.username
+        })
+
+        return response.code(201).send({
+            data: {
+                id: user_data.id,
+                username: user_data.username,
+                email: user_data.email,
+                profile_url: user_data.profile_url,
+                created_at: user_data.created_at
+            }, 
+            jwt_token: token
+        })
 
     })
 
@@ -72,6 +93,12 @@ export async function userRoute(fastify: FastifyInstance) {
         try {
 
             const deletedUser = await prisma.users.delete({
+                select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                    created_at: true
+                },
                 where: {
                     id: id
                 }
