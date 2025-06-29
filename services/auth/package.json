@@ -24,6 +24,7 @@
 
     "devDependencies": {
         "@types/bcrypt": "^5.0.2",
+        "@types/fastify-jwt": "^0.4.3",
         "@types/request": "^2.48.12",
         "prisma": "^6.9.0",
         "ts-node-dev": "^2.0.0",
