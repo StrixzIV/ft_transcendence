@@ -90,6 +90,27 @@ services:
     depends_on:
       - vault
 
+  # Backend
+  auth-backend:
+    container_name: auth-backend
+    env_file:
+      - .env
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - mainnet
+    volumes:
+      - ./logs:/logs
+      - ./prisma/db:/app/prisma/db
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - vault
+    ports:
+      - "3000:3000"
+
 networks:
 
   mainnet:
