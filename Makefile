@@ -1,10 +1,19 @@
-VOLUMES_DIRS = data
+# Shell
+SHELL := /usr/bin/env bash
 
+# Directories
+VOLUMES_DIRS	:= ./data
+SCRIPTS_DIRS	:= ./scripts
+SECRET_DIRS		:= ./secrets
+SSL_DIRS		:= $(SECRET_DIRS)/ssl
+
+# Rules
 all: setup up
 
 setup:
 	@mkdir -p $(VOLUMES_DIRS)
-	@bash scripts/generate_ssl.sh
+	@$(SHELL) $(SCRIPTS_DIRS)/generate_env.sh
+	@$(SHELL) $(SCRIPTS_DIRS)/generate_ssl.sh
 
 up:
 	@echo "Starting docker-compose..."
@@ -27,7 +36,7 @@ list:
 
 fclean: down prune
 	@echo "Cleaning..."
-	@rm -rf secrets/ssl
+	@rm -rf $(SSL_DIRS)
 	@docker stop $(docker ps -qa) 2>/dev/null || true
 	@docker rm $(docker ps -qa) 2>/dev/null || true
 	@docker rmi -f $(docker images -qa) 2>/dev/null || true
