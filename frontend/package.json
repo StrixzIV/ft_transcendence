@@ -16,6 +16,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.10"
+    "@tailwindcss/vite": "^4.1.10",
+    "jwt-decode": "^4.0.0"
   }
 }

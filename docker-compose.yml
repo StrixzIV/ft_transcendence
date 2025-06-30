@@ -54,6 +54,63 @@ services:
     ports: 
       - "5601:5601"
 
+  # HashiCorp Vault
+  vault:
+    image: hashicorp/vault:1.16
+    container_name: vault
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - mainnet
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_API_ADDR=http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    entrypoint: vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id="$VAULT_DEV_ROOT_TOKEN_ID"
+    volumes:
+      - ./services/vault/config:/vault/config
+      - ./services/vault/data:/vault/data
+      - ./logs:/vault/logs
+    ports:
+      - "8200:8200"
+
+  vault-init:
+    image: hashicorp/vault:1.16
+    env_file:
+      - .env
+    networks:
+      - mainnet
+    volumes:
+      - ./scripts/jwt_vault.sh:/jwt_vault.sh
+    environment:
+      VAULT_ADDR: "http://vault:8200"
+    entrypoint: /jwt_vault.sh
+    depends_on:
+      - vault
+
+  # Backend
+  auth-backend:
+    container_name: auth-backend
+    env_file:
+      - .env
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - mainnet
+    volumes:
+      - ./logs:/logs
+      - ./services/auth/prisma/db:/prisma/db
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - vault
+    ports:
+      - "3000:3000"
+
 networks:
 
   mainnet:
