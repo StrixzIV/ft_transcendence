@@ -97,7 +97,7 @@ services:
       - ./services/vault/data:/vault/data
       - ./logs:/vault/logs
     ports:
-      - "8200:8200"
+      - 8200
 
   vault-init:
     image: hashicorp/vault:1.16
