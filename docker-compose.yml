@@ -18,19 +18,8 @@ services:
     ports:
       - "8443:443"
     depends_on:
-      - auth
+      - auth-backend
       - kibana
-
-  # Auth (Placeholder)
-  # TODO: replace these lines with proper container
-  auth:
-    container_name: auth
-    image: nginx:1.29-alpine-slim
-    restart: always
-    networks:
-      - mainnet
-    expose:
-      - 3000
 
   # RabbitMQ
   broker:
@@ -73,8 +62,6 @@ services:
       - "./logs:/var/log/services"
       - "./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml"
       - "./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf"
-    depends_on:
-      - elasticsearch
     expose: 
       - 5044
 
@@ -143,8 +130,8 @@ services:
       NODE_ENV: production
     depends_on:
       - vault
-    ports:
-      - "3000:3000"
+    expose:
+      - 3000
 
 networks:
   mainnet:
