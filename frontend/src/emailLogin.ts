@@ -1,4 +1,5 @@
 import { mainPage } from "./main";
+import { registerPage } from "./register";
 
 export function loginPage() {
 
@@ -10,13 +11,14 @@ export function loginPage() {
 
           <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
 
-          <input type="email" id="email" placeholder="Email" required class="w-full p-2 rounded bg-gray-700 text-white"/>
+          <input type="text" id="username" placeholder="Username" required class="w-full p-2 rounded bg-gray-700 text-white"/>
           <input type="password" id="password" placeholder="Password" required class="w-full p-2 rounded bg-gray-700 text-white"/>
           
           <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Login</button>
           
           <div class="text-center my-2">or</div>
           <button id="google-login" type="button" class="w-full bg-red-500 hover:bg-red-600 p-2 rounded">Login with Google</button>
+          <button id="register" type="button" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Register</button>
         
           <button id="home" class="hover:bg-green-400">Return to homepage</button>
 
@@ -28,17 +30,31 @@ export function loginPage() {
   
     // Handle email login
     const form = document.getElementById('login-form') as HTMLFormElement;
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         
         e.preventDefault();
-        const email = (document.getElementById('email') as HTMLInputElement).value;
+        const username = (document.getElementById('username') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
     
-        // Normally you'd send this to your backend
-        console.log('Login with', { email, password });
-        alert(`Logged in as ${email}`);
-
-        localStorage.setItem('is_login', 'true');
+        const response = await fetch('http://localhost:3000/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                password
+            })
+        });
+    
+        if (!response.ok) {
+            const errorText = await response.text();
+            alert(`Login failed: ${errorText}`);
+            return;
+        }
+    
+        const json = await response.json();
+        localStorage.setItem('jwt_token', json.jwt_token);
         window.location.reload();
 
     });
@@ -47,6 +63,12 @@ export function loginPage() {
 
     homeBtn.addEventListener('click', () => {
         mainPage();
+    })
+
+    const registerBtn = document.getElementById('register') as HTMLButtonElement;
+
+    registerBtn.addEventListener('click', () => {
+        registerPage();
     })
   
     // Handle Google login
