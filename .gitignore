@@ -2,6 +2,7 @@
 /**/*.env*
 
 # Logs
+logs/*
 /**/*.log
 
 # Nodejs
