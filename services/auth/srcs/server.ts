@@ -11,6 +11,7 @@ import { loginRoute } from './routes/login';
 import { get_JWT_secret } from './utils/jwt';
 
 const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' })
+const endpoint_prefix = '/auth'
 
 async function initialize_server() {
 
@@ -42,8 +43,13 @@ async function initialize_server() {
 
     })
 
-    app.register(userRoute)
-    app.register(loginRoute)
+    // API register point
+    app.register(userRoute, {
+        prefix: endpoint_prefix
+    });
+    app.register(loginRoute, {
+        prefix: endpoint_prefix
+    });
 
     return app
 
