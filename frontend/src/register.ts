@@ -68,7 +68,8 @@ export function registerPage() {
                 return;
             }
         
-            localStorage.setItem('is_login', 'true');
+            const response_data = await response.json()
+            localStorage.setItem('jwt_token', response_data.jwt_token);
             window.location.reload();
         
         }
