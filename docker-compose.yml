@@ -44,7 +44,8 @@ services:
     restart: always
     networks:
       - mainnet
-    environment: 
+    environment:
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
       - discovery.type=single-node
       - xpack.security.enabled=false
     expose:
