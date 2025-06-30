@@ -106,7 +106,7 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./scripts/jwt_vault.sh:/jwt_vault.sh
+      - ./services/vault/scripts/jwt_vault.sh:/jwt_vault.sh
     environment:
       VAULT_ADDR: "http://vault:8200"
     entrypoint: /jwt_vault.sh
