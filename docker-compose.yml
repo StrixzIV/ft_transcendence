@@ -1,8 +1,8 @@
 services:
 
   # Gateway
-  nginx:
-    container_name: nginx
+  nginx-gateway:
+    container_name: nginx-gateway
     image: nginx:1.29-alpine-slim
     restart: always
     networks:
@@ -11,15 +11,30 @@ services:
       - ./services/nginx/config/:/etc/nginx/conf.d/
       - ./services/nginx/routes/:/etc/nginx/routes.d/
       - ./services/nginx/rules/:/etc/nginx/rules.d/
-      - ./frontend/dist/:/var/www/html/
+      - ./logs/:/var/log/nginx/
     secrets:
       - ssl_key
       - ssl_certificate
     ports:
       - "8443:443"
     depends_on:
-      - auth-backend
+      - frontend
       - kibana
+      - auth-backend
+
+  # Frontend
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - mainnet
+    volumes:
+      - ./logs/:/var/log/nginx/
+    expose:
+      - 80
 
   # RabbitMQ
   broker:
@@ -60,9 +75,9 @@ services:
     networks:
       - mainnet
     volumes: 
-      - "./logs:/var/log/services"
-      - "./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml"
-      - "./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf"
+      - ./logs/:/var/log/services/
+      - ./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     expose: 
       - 5044
 
@@ -95,7 +110,7 @@ services:
     volumes:
       - ./services/vault/config:/vault/config
       - ./services/vault/data:/vault/data
-      - ./logs:/vault/logs
+      - ./logs/:/vault/logs/
     ports:
       - 8200
 
@@ -116,11 +131,11 @@ services:
   # Backend
   auth-backend:
     container_name: auth-backend
-    env_file:
-      - .env
     build:
       context: ./services/auth
       dockerfile: Dockerfile
+    env_file:
+      - .env
     restart: always
     networks:
       - mainnet
