@@ -36,7 +36,7 @@ export function loginPage() {
         const username = (document.getElementById('username') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
     
-        const response = await fetch('http://localhost:3000/login', {
+        const response = await fetch('https://localhost:8443/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

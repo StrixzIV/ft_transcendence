@@ -50,7 +50,7 @@ export function registerPage() {
 
         try {
 
-            const response = await fetch('http://localhost:3000/user', {
+            const response = await fetch('https://localhost:8443/auth/user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
