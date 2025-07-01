@@ -17,7 +17,7 @@ setup:
 
 up:
 	@echo "Starting docker-compose..."
-	@docker-compose up -d --build
+	@docker-compose up -d --build --remove-orphans
 
 down:
 	@echo "Stopping docker-compose..."
