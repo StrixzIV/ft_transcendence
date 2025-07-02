@@ -68,15 +68,26 @@ export async function googleRoute(fastify: FastifyInstance) {
         })
 
         if (!user) {
+
+            const basename = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+            let username = basename;
+            let counter = 1;
+
+            while (await prisma.users.findUnique({ where: { username: username } })) {
+                username = `${basename}${counter}`;
+                counter++;
+            }
+
             user = await prisma.users.create({
                 data: {
-                    username: name,
+                    username: username,
                     email,
                     google_id: googleId,
                     profile_url: picture,
                     pasword_hash: null,
                 }
             })
+            
         }
 
         const token = fastify.jwt.sign({
