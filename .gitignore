@@ -9,6 +9,7 @@ logs/*
 /**/node_modules
 
 # Database
+data/
 /**/db
 /**/*.sqlite
 /**/*.sqlite3
