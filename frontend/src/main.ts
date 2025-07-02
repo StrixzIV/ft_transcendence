@@ -13,6 +13,27 @@ export interface JWTMetadata {
     email?: string;
 }
 
+function on_startup() {
+
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('token')
+
+    if (token) {
+        localStorage.setItem('jwt_token', token);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        mainPage();
+    }
+
+    else if (localStorage.getItem('jwt_token') != null) {
+        mainPage();
+    }
+
+    else {
+        loginPage();
+    }
+
+}
+
 export function mainPage() {
 
     const token = localStorage.getItem('jwt_token');
@@ -74,10 +95,4 @@ export function mainPage() {
 
 }
 
-if (localStorage.getItem('jwt_token') != null) {
-    mainPage();
-}
-
-else {
-    loginPage();
-}
+on_startup();
