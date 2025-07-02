@@ -26,8 +26,3 @@ model Users {
     @@map("users")
 
 }
-
-model Match {
-    id  Int @id @default(autoincrement())
-    createdAt   DateTime    @default(now())
-}
