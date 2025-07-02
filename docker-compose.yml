@@ -11,7 +11,7 @@ services:
       - ./services/nginx/config/:/etc/nginx/conf.d/
       - ./services/nginx/routes/:/etc/nginx/routes.d/
       - ./services/nginx/rules/:/etc/nginx/rules.d/
-      - ./logs/:/var/log/nginx/
+      - ./logs/nginx-gateway/:/var/log/nginx/
     secrets:
       - ssl_key
       - ssl_certificate
@@ -32,7 +32,7 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./logs/:/var/log/nginx/
+      - ./logs/frontend/:/var/log/nginx/
     expose:
       - 80
 
@@ -110,7 +110,7 @@ services:
     volumes:
       - ./services/vault/config:/vault/config
       - ./services/vault/data:/vault/data
-      - ./logs/:/vault/logs/
+      - ./logs/vault/:/vault/logs/
     ports:
       - 8200
 
@@ -140,7 +140,7 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./logs:/logs
+      - ./logs/auth-backend/:/logs
       - ./data/auth:/prisma/db
     environment:
       NODE_ENV: production
