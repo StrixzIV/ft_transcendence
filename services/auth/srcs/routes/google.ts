@@ -1,0 +1,91 @@
+import { prisma } from '../db';
+import { FastifyInstance } from 'fastify';
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? "";
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
+const REDIRECT_URI = "https://localhost:8443/auth/google/callback";
+
+export async function googleRoute(fastify: FastifyInstance) {
+
+    fastify.get('/google', async (request, response) => {
+    
+        const random_state = crypto.randomUUID()
+        const auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams({
+            client_id: GOOGLE_CLIENT_ID,
+            redirect_uri: REDIRECT_URI,
+            response_type: "code",
+            scope: "openid email profile",
+            access_type: "offline",
+            prompt: "consent",
+            random_state
+        });
+
+        response.redirect(auth_url)
+
+    });
+    
+    fastify.get('/google/callback', async (request, response) => {
+    
+        const { code } = request.query as { code: string };
+
+        if (!code) {
+            return response.code(400).send({ error: "Missing code parameter" })
+        }
+
+        const token_callback = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/x-www-form-urlencoded" 
+            },
+            body: new URLSearchParams({
+                code,
+                client_id: GOOGLE_CLIENT_ID,
+                client_secret: GOOGLE_CLIENT_SECRET,
+                redirect_uri: REDIRECT_URI,
+                grant_type: "authorization_code",
+            })
+        })
+
+        const token_data = await token_callback.json()
+
+        if (token_data.error) {
+            fastify.log.error(token_data)
+            return response.code(500).send({ error: "Failed to excahgne code for tokens" })
+        }
+
+        const id_token = token_data.id_token;
+
+        const base64_data = id_token.split(".")[1];
+        const buffer = Buffer.from(base64_data, "base64");
+        const user_data = JSON.parse(buffer.toString());
+
+        const { email, name, picture, sub: googleId } = user_data
+
+        let user = await prisma.users.findUnique({
+            where: {
+                google_id: googleId,
+            }
+        })
+
+        if (!user) {
+            user = await prisma.users.create({
+                data: {
+                    username: name,
+                    email,
+                    google_id: googleId,
+                    profile_url: picture,
+                    pasword_hash: null,
+                }
+            })
+        }
+
+        const token = fastify.jwt.sign({
+            id: user.id,
+            username: user.username
+        })
+
+        response.redirect(`https://localhost:8443/?token=${token}`)
+
+    });
+
+}
