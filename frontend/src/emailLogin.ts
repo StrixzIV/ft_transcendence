@@ -72,7 +72,11 @@ export function loginPage() {
     })
   
     // Handle Google login
-    // const googleBtn = document.getElementById('google-login')!;
-    // googleBtn.addEventListener('click', handleGoogleLogin);
+    const googleBtn = document.getElementById('google-login') as HTMLButtonElement;
+
+    googleBtn.addEventListener('click', () => {
+        window.location.href = 'https://localhost:8443/auth/google'
+    });
+
 }
   
