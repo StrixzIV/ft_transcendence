@@ -8,10 +8,10 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./services/nginx/config/:/etc/nginx/conf.d/
-      - ./services/nginx/routes/:/etc/nginx/routes.d/
-      - ./services/nginx/rules/:/etc/nginx/rules.d/
-      - ./logs/nginx-gateway/:/var/log/nginx/
+      - ./services/nginx_gateway/config/:/etc/nginx/conf.d/
+      - ./services/nginx_gateway/routes/:/etc/nginx/routes.d/
+      - ./services/nginx_gateway/rules/:/etc/nginx/rules.d/
+      - ./logs/nginx_gateway/:/var/log/nginx/
     secrets:
       - ssl_key
       - ssl_certificate
@@ -109,7 +109,7 @@ services:
     entrypoint: vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id="$VAULT_DEV_ROOT_TOKEN_ID"
     volumes:
       - ./services/vault/config:/vault/config
-      - ./services/vault/data:/vault/data
+      - ./data/vault/:/vault/data/
       - ./logs/vault/:/vault/logs/
     ports:
       - 8200
