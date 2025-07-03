@@ -29,7 +29,10 @@ async function initialize_server() {
     const jwt_secrets = await get_JWT_secret()
 
     await app.register(jwt, {
-        secret: jwt_secrets.access_secret
+        secret: jwt_secrets.access_secret,
+        sign: {
+            expiresIn: '1d'
+        }
     })
 
     app.decorate('authenticate', async (request: FastifyRequest, response: FastifyReply) => {
@@ -39,7 +42,14 @@ async function initialize_server() {
         }
         
         catch (err) {
+
+            if ((err as { name: string } ).name == "TokenExpiredError") {
+                response.code(401).send({ error: 'Token expired' })
+                return
+            }
+ 
             response.code(401).send({ error: 'Invalid or missing token' })
+        
         }
 
     })
