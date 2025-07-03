@@ -6,12 +6,7 @@ import viteLogo from '/vite.svg'
 import typescriptLogo from './typescript.svg'
 
 import { loginPage } from './emailLogin.ts'
-
-export interface JWTMetadata {
-    id: string;
-    username: string;
-    email?: string;
-}
+import { type JWTMetadata } from './interfaces/jwt.ts'
 
 function on_startup() {
 
@@ -46,6 +41,12 @@ export function mainPage() {
         try {
 
             const decoded = jwtDecode<JWTMetadata>(token);
+
+            if (decoded.exp < Math.floor(Date.now() / 1000)) {
+                localStorage.removeItem('jwt_token');
+                window.location.reload();
+                return
+            }
 
             username = decoded.username;
             uid = decoded.id;
