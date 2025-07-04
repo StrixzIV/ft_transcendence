@@ -2,11 +2,7 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
-interface UserInfo {
-    name: string;
-    mail: string;
-    password?: string;
-}
+import { type UserInfo } from '../interfaces/request_data'
 
 const user_schema = {
     body: {
