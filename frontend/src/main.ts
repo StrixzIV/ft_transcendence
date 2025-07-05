@@ -8,7 +8,7 @@ import typescriptLogo from './typescript.svg'
 import { loginPage } from './emailLogin.ts'
 import { type JWTMetadata } from './interfaces/jwt.ts'
 
-function on_startup() {
+async function on_startup() {
 
     const params = new URLSearchParams(window.location.search)
     const token = params.get('token')
@@ -16,11 +16,11 @@ function on_startup() {
     if (token) {
         localStorage.setItem('jwt_token', token);
         window.history.replaceState({}, document.title, window.location.pathname);
-        mainPage();
+        await mainPage();
     }
 
     else if (localStorage.getItem('jwt_token') != null) {
-        mainPage();
+        await mainPage();
     }
 
     else {
@@ -29,7 +29,7 @@ function on_startup() {
 
 }
 
-export function mainPage() {
+export async function mainPage() {
 
     const token = localStorage.getItem('jwt_token');
 
@@ -43,9 +43,36 @@ export function mainPage() {
             const decoded = jwtDecode<JWTMetadata>(token);
 
             if (decoded.exp < Math.floor(Date.now() / 1000)) {
-                localStorage.removeItem('jwt_token');
-                window.location.reload();
-                return
+
+                console.log('Access token expired. Attempting refresh...');
+
+                try {
+
+                    const res = await fetch('https://localhost:8443/auth/refresh', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    if (!res.ok) {
+                        throw new Error('Refresh failed');
+                    }
+
+                    const json = await res.json();
+
+                    localStorage.setItem('jwt_token', json.access_token);
+                    window.location.reload();
+
+                    return;
+
+                }
+                
+                catch (err) {
+                    console.error('Refresh error:', err);
+                    localStorage.removeItem('jwt_token');
+                    window.location.reload();
+                    return;
+                }
+
             }
 
             username = decoded.username;
@@ -55,6 +82,9 @@ export function mainPage() {
         
         catch (err) {
             console.error('Invalid token:', err);
+            localStorage.removeItem('jwt_token');
+            window.location.reload();
+            return;
         }
 
     }

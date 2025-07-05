@@ -1,6 +1,10 @@
 import bcrypt from 'bcrypt';
+import jwtLib from 'jsonwebtoken';
+
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
+
+import { get_JWT_secret } from '../utils/jwt';
 
 interface LoginInfo {
     username: string;
@@ -47,9 +51,38 @@ export async function loginRoute(fastify: FastifyInstance) {
                 return response.code(401).send({ error: 'Invalid username or password' });
             }
 
+            const secrets = await get_JWT_secret()
+
             const token = fastify.jwt.sign({
                 id: user.id,
                 username: user.username
+            });
+            
+            const raw_refresh_token = jwtLib.sign(
+                { id: user.id },
+                secrets.refresh_secret,
+                { expiresIn: '30d' }
+            );
+
+            const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
+
+            const expires_at = new Date();
+            expires_at.setDate(expires_at.getDate() + 30);
+
+            await prisma.refreshToken.create({
+                data: {
+                    user_id: user.id,
+                    token_hash: hashed_refresh_token,
+                    expires_at: expires_at
+                }
+            });
+
+            response.setCookie('refresh_token', raw_refresh_token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 30 * 24 * 60 * 60
             });
 
             return response.code(200).send({

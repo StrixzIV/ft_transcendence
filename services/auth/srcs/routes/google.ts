@@ -1,5 +1,10 @@
+import bcrypt from 'bcrypt';
+import jwtLib from 'jsonwebtoken';
+
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
+
+import { get_JWT_secret } from '../utils/jwt';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
@@ -90,10 +95,39 @@ export async function googleRoute(fastify: FastifyInstance) {
             
         }
 
+        const secrets = await get_JWT_secret()
+
         const token = fastify.jwt.sign({
             id: user.id,
             username: user.username
         })
+
+        const raw_refresh_token = jwtLib.sign(
+            { id: user.id },
+            secrets.refresh_secret,
+            { expiresIn: '30d' }
+        );
+
+        const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
+
+        const expires_at = new Date();
+        expires_at.setDate(expires_at.getDate() + 30);
+
+        await prisma.refreshToken.create({
+            data: {
+                user_id: user.id,
+                token_hash: hashed_refresh_token,
+                expires_at: expires_at
+            }
+        });
+
+        response.setCookie('refresh_token', raw_refresh_token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 30 * 24 * 60 * 60
+        });
 
         response.redirect(`https://localhost:8443/?token=${token}`)
 
