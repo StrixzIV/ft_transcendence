@@ -20,6 +20,7 @@ model Users {
     email        String
     pasword_hash String?
     google_id    String?  @unique
+    totp_secret  String?
     profile_url  String?
     created_at   DateTime @default(now())
 
