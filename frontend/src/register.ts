@@ -56,7 +56,7 @@ export function registerPage() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    name: username,
+                    username: username,
                     mail: email,
                     password: password
                 })
