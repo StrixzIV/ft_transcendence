@@ -3,7 +3,7 @@ import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
 interface UserInfo {
-    name: string;
+    username: string;
     mail: string;
     password?: string;
 }
@@ -11,9 +11,9 @@ interface UserInfo {
 const user_schema = {
     body: {
         type: 'object',
-        required: ['name', 'mail'],
+        required: ['username', 'mail'],
         properties: {
-            name: { type: 'string', minLength: 1 },
+            username: { type: 'string', minLength: 1 },
             mail: { type: 'string', format: 'email' },
             password: { type: 'string', minLength: 6 }
         }
@@ -22,6 +22,7 @@ const user_schema = {
 
 export async function userRoute(fastify: FastifyInstance) {
 
+    // FOR TESTING ONLY! REMOVE BEFORE EVALUATON
     fastify.get('/user', async () => {
         return prisma.users.findMany({
             select: {
@@ -32,21 +33,22 @@ export async function userRoute(fastify: FastifyInstance) {
             }
         })
     })
+    // -----------------------------------------
 
     fastify.post('/user', {schema: user_schema}, async (request, response) => {
 
         // User creation logic
 
         const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/
-        const { name, mail, password } = request.body as UserInfo
+        const { username, mail, password } = request.body as UserInfo
 
-        if (forbidden_regex.test(name)) {
+        if (forbidden_regex.test(username)) {
             return response.code(400).send({ error: 'Username contains special characters' });
         }
 
         const user_existed = await prisma.users.findFirst({
             where: {
-                OR: [{ username: name }, { email: mail }]
+                OR: [{ username: username }, { email: mail }]
             }
         })
 
@@ -62,7 +64,7 @@ export async function userRoute(fastify: FastifyInstance) {
 
         const user_data = await prisma.users.create({ 
             data: { 
-                username: name,
+                username: username,
                 email: mail,
                 pasword_hash: hashed_password
             } 
@@ -77,7 +79,7 @@ export async function userRoute(fastify: FastifyInstance) {
             data: {
                 id: user_data.id,
                 username: user_data.username,
-                email: user_data.email,
+                mail: user_data.email,
                 profile_url: user_data.profile_url,
                 created_at: user_data.created_at
             }, 
