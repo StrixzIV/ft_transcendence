@@ -8,6 +8,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { userRoute } from './routes/user';
 import { loginRoute } from './routes/login';
 import { googleRoute } from './routes/google';
+import { twoFactorRoute } from './routes/2fa';
 
 import { get_JWT_secret } from './utils/jwt';
 
@@ -64,6 +65,10 @@ async function initialize_server() {
     });
     
     app.register(googleRoute, {
+        prefix: endpoint_prefix
+    });
+    
+    app.register(twoFactorRoute, {
         prefix: endpoint_prefix
     });
 
