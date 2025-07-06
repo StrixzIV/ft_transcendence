@@ -14,16 +14,19 @@ until vault status >/dev/null 2>&1; do
 done
 
 echo "[vault-init] Vault is ready."
-
 echo "[vault-init] Storing tokens..."
 
 # Store in Vault KV
 vault kv put secret/jwt \
                 access_secret="$JWT_ACCESS_TOKEN_SECRETS" \
                 refresh_secret="$JWT_REFRESH_TOKEN_SECRETS" \
-                algorithm="HS256"
+                algorithm="HS256" \
+                > /dev/null 2>&1
 
 # Remove vault's token in env after use
 unset VAULT_TOKEN
+unset VAULT_DEV_ROOT_TOKEN_ID
+unset JWT_ACCESS_TOKEN_SECRETS
+unset JWT_REFRESH_TOKEN_SECRETS
 
 echo "[vault-init] Secret stored successfully!"
