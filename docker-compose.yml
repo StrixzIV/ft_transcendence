@@ -121,10 +121,10 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./services/vault/scripts/jwt_vault.sh:/jwt_vault.sh
+      - ./services/vault/scripts/vault_init.sh:/vault_init.sh
     environment:
       VAULT_ADDR: "http://vault:8200"
-    entrypoint: /jwt_vault.sh
+    entrypoint: /vault_init.sh
     depends_on:
       - vault
 
