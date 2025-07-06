@@ -109,12 +109,10 @@ export async function userRoute(fastify: FastifyInstance) {
         });
 
         return response.code(201).send({
-            data: {
+            user: {
                 id: user_data.id,
                 username: user_data.username,
-                mail: user_data.email,
-                profile_url: user_data.profile_url,
-                created_at: user_data.created_at
+                mail: user_data.email
             }, 
             jwt_token: token
         })

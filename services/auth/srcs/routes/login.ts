@@ -89,7 +89,7 @@ export async function loginRoute(fastify: FastifyInstance) {
                 user: {
                     id: user.id,
                     username: user.username,
-                    email: user.email
+                    mail: user.email
                 },
                 jwt_token: token
             });
