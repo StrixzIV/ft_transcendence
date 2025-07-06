@@ -68,8 +68,11 @@ export function registerPage() {
                 return;
             }
         
-            const response_data = await response.json()
-            localStorage.setItem('jwt_token', response_data.jwt_token);
+            const json = await response.json()
+            localStorage.setItem('is_login', 'true');
+            localStorage.setItem('uid', json.user.id);
+            localStorage.setItem('username', json.user.username);
+            localStorage.setItem('expires_at', json.expires_at);
             window.location.reload();
         
         }
