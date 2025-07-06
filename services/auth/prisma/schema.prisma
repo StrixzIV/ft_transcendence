@@ -30,15 +30,14 @@ model Users {
 
 model RefreshToken {
 
-    id                  String   @id @default(uuid())
+    token_hash          String   @id   
     user_id             String
     user                Users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    token_hash          String
-    created_at          DateTime @default(now())
+    created_at          DateTime
     expires_at          DateTime
     revoked             Boolean  @default(false)
     replaced_by_id      String?  @unique
-    replaced_by         RefreshToken? @relation("ReplacedTokens", fields: [replaced_by_id], references: [id])
+    replaced_by         RefreshToken? @relation("ReplacedTokens", fields: [replaced_by_id], references: [token_hash])
     replaces            RefreshToken? @relation("ReplacedTokens")
 
     @@map("refresh_token")
