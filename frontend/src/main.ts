@@ -1,41 +1,55 @@
 import './style.css'
 
-import { jwtDecode } from 'jwt-decode';
-
 import viteLogo from '/vite.svg'
 import typescriptLogo from './typescript.svg'
 
 import { loginPage } from './emailLogin.ts'
 
-export interface JWTMetadata {
-    id: string;
-    username: string;
-    email?: string;
+async function on_startup() {
+
+    const params = new URLSearchParams(window.location.search)
+
+    const uid = params.get('id')
+    const username = params.get('username')
+    const expires_at = params.get('expires_at')
+
+    const has_uid = localStorage.getItem('uid');
+    const has_username = localStorage.getItem('username');
+    const has_expires_at = localStorage.getItem('expires_at');
+
+    if (uid && username && expires_at && !has_uid && !has_username && !has_expires_at) {
+        localStorage.setItem('uid', uid);
+        localStorage.setItem('username', username);
+        localStorage.setItem('expires_at', expires_at);
+        localStorage.setItem('is_login', 'true');
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    if (has_expires_at && parseInt(has_expires_at) < Math.floor(Date.now() / 1000)) {
+        localStorage.removeItem('uid');
+        localStorage.removeItem('username');
+        localStorage.removeItem('is_login');
+        localStorage.removeItem('expires_at');
+        window.location.reload();
+    }
+    
+    const is_login = localStorage.getItem('is_login');
+
+    if (is_login) {
+        await mainPage();
+    }
+
+    else {
+        loginPage();
+    }
+
 }
 
-export function mainPage() {
+export async function mainPage() {
 
-    const token = localStorage.getItem('jwt_token');
-
-    let username = '';
-    let uid = '';
-
-    if (token) {
-
-        try {
-
-            const decoded = jwtDecode<JWTMetadata>(token);
-
-            username = decoded.username;
-            uid = decoded.id;
-        
-        }
-        
-        catch (err) {
-            console.error('Invalid token:', err);
-        }
-
-    }
+    let uid = localStorage.getItem('uid');
+    let username = localStorage.getItem('username');
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <div class="text-white bg-gray-900 min-h-screen flex flex-col items-center justify-center space-y-4">
@@ -62,7 +76,10 @@ export function mainPage() {
     loginBtn.addEventListener('click', () => {
 
         if (username) {
-            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('uid');
+            localStorage.removeItem('username');
+            localStorage.removeItem('is_login');
+            localStorage.removeItem('expires_at');
             window.location.reload();
         }
         
@@ -74,10 +91,4 @@ export function mainPage() {
 
 }
 
-if (localStorage.getItem('jwt_token') != null) {
-    mainPage();
-}
-
-else {
-    loginPage();
-}
+on_startup();
