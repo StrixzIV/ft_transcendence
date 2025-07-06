@@ -54,8 +54,16 @@ export async function refreshRoute(fastify: FastifyInstance) {
                     id: user.id,
                     username: user.username
                 });
-    
-                return response.send({ access_token });
+
+                response.setCookie('access_token', access_token, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'lax',
+                    path: '/',
+                    maxAge: 15 * 60
+                });
+
+                return response.send(200);
             
             }
 

@@ -80,31 +80,36 @@ export async function userRoute(fastify: FastifyInstance) {
             id: user_data.id,
             username: user_data.username
         })
-
-        const decoded = fastify.jwt.decode(token) as { iat: number }
-
-        if (!decoded) {
-            return response.code(500).send({ error: 'Cannot get iat field from JWT' });
-        }
-
+        
         const raw_refresh_token = jwtLib.sign(
             { id: user_data.id },
             secrets.refresh_secret,
             { expiresIn: '30d' }
         );
-
+        
         const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
-
-        const expires_at = new Date();
-        expires_at.setDate(expires_at.getDate() + 30);
+        
+        const decoded = fastify.jwt.decode(raw_refresh_token) as { iat: number, exp: number }
+        
+        if (!decoded) {
+            return response.code(500).send({ error: 'Cannot get iat field from JWT' });
+        }
 
         await prisma.refreshToken.create({
             data: {
                 user_id: user_data.id,
                 token_hash: hashed_refresh_token,
                 created_at: new Date(decoded.iat * 1000),
-                expires_at: expires_at
+                expires_at: new Date(decoded.exp * 1000)
             }
+        });
+
+        response.setCookie('access_token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 15 * 60
         });
 
         response.setCookie('refresh_token', raw_refresh_token, {
@@ -120,8 +125,8 @@ export async function userRoute(fastify: FastifyInstance) {
                 id: user_data.id,
                 username: user_data.username,
                 mail: user_data.email
-            }, 
-            jwt_token: token
+            },
+            expires_at: decoded.exp
         })
 
     })
