@@ -81,6 +81,12 @@ export async function userRoute(fastify: FastifyInstance) {
             username: user_data.username
         })
 
+        const decoded = fastify.jwt.decode(token) as { iat: number }
+
+        if (!decoded) {
+            return response.code(500).send({ error: 'Cannot get iat field from JWT' });
+        }
+
         const raw_refresh_token = jwtLib.sign(
             { id: user_data.id },
             secrets.refresh_secret,
@@ -96,6 +102,7 @@ export async function userRoute(fastify: FastifyInstance) {
             data: {
                 user_id: user_data.id,
                 token_hash: hashed_refresh_token,
+                created_at: new Date(decoded.iat * 1000),
                 expires_at: expires_at
             }
         });
