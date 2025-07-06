@@ -10,11 +10,13 @@
         "generate": "npx prisma generate"
     },
     "dependencies": {
+        "@fastify/cookie": "^11.0.2",
         "@fastify/cors": "^11.0.1",
         "@fastify/jwt": "^9.1.0",
         "@prisma/client": "^6.9.0",
         "bcrypt": "^6.0.0",
         "fastify": "^5.4.0",
+        "jsonwebtoken": "^9.0.2",
         "node-vault": "^0.10.5",
         "qrcode": "^1.5.4",
         "request": "^2.88.2",
@@ -22,6 +24,7 @@
     },
     "devDependencies": {
         "@types/bcrypt": "^5.0.2",
+        "@types/jsonwebtoken": "^9.0.10",
         "@types/qrcode": "^1.5.5",
         "@types/request": "^2.48.12",
         "@types/speakeasy": "^2.0.10",

@@ -51,7 +51,14 @@ export function loginPage() {
         }
     
         const json = await response.json();
-        localStorage.setItem('jwt_token', json.jwt_token);
+
+        console.log(json.user.id)
+
+        localStorage.setItem('is_login', 'true');
+        localStorage.setItem('uid', json.user.id);
+        localStorage.setItem('username', json.user.username);
+        localStorage.setItem('expires_at', json.expires_at);
+        
         window.location.reload();
 
     });

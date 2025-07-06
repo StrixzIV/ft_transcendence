@@ -4,7 +4,7 @@ export interface LoginInfo {
 }
 
 export interface UserInfo {
-    name: string;
+    username: string;
     mail: string;
     password?: string;
 }
