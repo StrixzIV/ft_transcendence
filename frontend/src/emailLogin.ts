@@ -1,4 +1,3 @@
-import { mainPage } from "./main";
 import { registerPage } from "./register";
 
 export function loginPage() {
@@ -19,8 +18,6 @@ export function loginPage() {
           <div class="text-center my-2">or</div>
           <button id="google-login" type="button" class="w-full bg-red-500 hover:bg-red-600 p-2 rounded">Login with Google</button>
           <button id="register" type="button" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Register</button>
-        
-          <button id="home" class="hover:bg-green-400">Return to homepage</button>
 
         </form>
         
@@ -54,16 +51,17 @@ export function loginPage() {
         }
     
         const json = await response.json();
-        localStorage.setItem('jwt_token', json.jwt_token);
+
+        console.log(json.user.id)
+
+        localStorage.setItem('is_login', 'true');
+        localStorage.setItem('uid', json.user.id);
+        localStorage.setItem('username', json.user.username);
+        localStorage.setItem('expires_at', json.expires_at);
+        
         window.location.reload();
 
     });
-
-    const homeBtn = document.getElementById('home') as HTMLButtonElement;
-
-    homeBtn.addEventListener('click', () => {
-        mainPage();
-    })
 
     const registerBtn = document.getElementById('register') as HTMLButtonElement;
 
@@ -72,7 +70,11 @@ export function loginPage() {
     })
   
     // Handle Google login
-    // const googleBtn = document.getElementById('google-login')!;
-    // googleBtn.addEventListener('click', handleGoogleLogin);
+    const googleBtn = document.getElementById('google-login') as HTMLButtonElement;
+
+    googleBtn.addEventListener('click', () => {
+        window.location.href = 'https://localhost:8443/auth/google'
+    });
+
 }
   
