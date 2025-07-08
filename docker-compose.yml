@@ -8,10 +8,10 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./services/nginx/config/:/etc/nginx/conf.d/
-      - ./services/nginx/routes/:/etc/nginx/routes.d/
-      - ./services/nginx/rules/:/etc/nginx/rules.d/
-      - ./logs/nginx-gateway/:/var/log/nginx/
+      - ./services/nginx_gateway/config/:/etc/nginx/conf.d/
+      - ./services/nginx_gateway/routes/:/etc/nginx/routes.d/
+      - ./services/nginx_gateway/rules/:/etc/nginx/rules.d/
+      - ./logs/nginx_gateway/:/var/log/nginx/
     secrets:
       - ssl_key
       - ssl_certificate
@@ -101,16 +101,17 @@ services:
       - .env
     networks:
       - mainnet
+    volumes:
+      - ./services/vault/config:/vault/config
+      - ./data/vault/:/vault/data/
+      - ./logs/vault/:/vault/logs/
+      - ./services/vault/scripts/vault_server.sh:/vault_server.sh
     environment:
       - VAULT_ADDR=http://0.0.0.0:8200
       - VAULT_API_ADDR=http://0.0.0.0:8200
     cap_add:
       - IPC_LOCK
-    entrypoint: vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id="$VAULT_DEV_ROOT_TOKEN_ID"
-    volumes:
-      - ./services/vault/config:/vault/config
-      - ./services/vault/data:/vault/data
-      - ./logs/vault/:/vault/logs/
+    entrypoint: /vault_server.sh
     ports:
       - 8200
 
@@ -121,10 +122,10 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./services/vault/scripts/jwt_vault.sh:/jwt_vault.sh
+      - ./services/vault/scripts/vault_init.sh:/vault_init.sh
     environment:
       VAULT_ADDR: "http://vault:8200"
-    entrypoint: /jwt_vault.sh
+    entrypoint: /vault_init.sh
     depends_on:
       - vault
 

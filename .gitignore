@@ -1,14 +1,18 @@
+# secret
+secrets/*
+
 # env
 /**/*.env*
 
 # Logs
 logs/*
-/**/*.log
+/**/*.log*
 
 # Nodejs
 /**/node_modules
 
 # Database
+data/*
 /**/db
 /**/*.sqlite
 /**/*.sqlite3
