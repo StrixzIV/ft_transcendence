@@ -1,3 +1,5 @@
+import { auth_endpoint } from "./provider/api";
+
 export function registerPage() {
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -50,7 +52,7 @@ export function registerPage() {
 
         try {
 
-            const response = await fetch('https://localhost:8443/auth/user', {
+            const response = await fetch(auth_endpoint('/user'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

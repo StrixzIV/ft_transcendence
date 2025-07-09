@@ -1,3 +1,4 @@
+import { auth_endpoint } from "./provider/api";
 import { registerPage } from "./register";
 
 export function loginPage() {
@@ -33,7 +34,7 @@ export function loginPage() {
         const username = (document.getElementById('username') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
     
-        const response = await fetch('https://localhost:8443/auth/login', {
+        const response = await fetch(auth_endpoint('/login'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -73,7 +74,7 @@ export function loginPage() {
     const googleBtn = document.getElementById('google-login') as HTMLButtonElement;
 
     googleBtn.addEventListener('click', () => {
-        window.location.href = 'https://localhost:8443/auth/google'
+        window.location.href = auth_endpoint('/google')
     });
 
 }

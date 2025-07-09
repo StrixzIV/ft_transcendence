@@ -19,6 +19,7 @@ model Users {
     username        String   @unique
     email           String
     pasword_hash    String?
+    totp_secret     String?
     google_id       String?  @unique
     profile_url     String?
     refresh_tokens  RefreshToken[]
