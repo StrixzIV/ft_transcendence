@@ -9,12 +9,13 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { userRoute } from './routes/user';
 import { loginRoute } from './routes/login';
 import { googleRoute } from './routes/google';
+import { twoFactorRoute } from './routes/2fa';
 import { refreshRoute } from './routes/refresh';
 
 import { get_JWT_secret } from './utils/jwt';
 
 const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' })
-const endpoint_prefix = '/auth'
+const endpoint_prefix = '/api'
 
 async function initialize_server() {
 
@@ -72,6 +73,10 @@ async function initialize_server() {
     });
     
     app.register(refreshRoute, {
+        prefix: endpoint_prefix
+    });
+    
+    app.register(twoFactorRoute, {
         prefix: endpoint_prefix
     });
 

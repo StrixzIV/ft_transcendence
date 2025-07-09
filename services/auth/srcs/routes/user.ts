@@ -6,11 +6,7 @@ import { FastifyInstance } from 'fastify';
 
 import { get_JWT_secret } from '../utils/jwt';
 
-interface UserInfo {
-    username: string;
-    mail: string;
-    password?: string;
-}
+import { type UserInfo } from '../interfaces/request_data'
 
 const user_schema = {
     body: {
