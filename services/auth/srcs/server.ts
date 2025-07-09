@@ -15,7 +15,7 @@ import { refreshRoute } from './routes/refresh';
 import { get_JWT_secret } from './utils/jwt';
 
 const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' })
-const endpoint_prefix = '/auth'
+const endpoint_prefix = '/api'
 
 async function initialize_server() {
 

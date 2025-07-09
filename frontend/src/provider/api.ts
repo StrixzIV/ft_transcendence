@@ -1,0 +1,1 @@
+export const auth_endpoint = (endpoint: String) => `https://auth.localhost:8443/api/${endpoint.replace('/', '')}`
