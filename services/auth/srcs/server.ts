@@ -13,9 +13,10 @@ import { twoFactorRoute } from './routes/2fa';
 import { refreshRoute } from './routes/refresh';
 
 import { get_JWT_secret } from './utils/jwt';
+import { logoutRoute } from './routes/logout';
 
 const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' })
-const endpoint_prefix = '/api'
+const endpoint_prefix = '/auth'
 
 async function initialize_server() {
 
@@ -28,11 +29,9 @@ async function initialize_server() {
     app.register(cors, {
         origin: '*'
     })
-
     app.register(cookie)
 
     const jwt_secrets = await get_JWT_secret()
-
     await app.register(jwt, {
         secret: jwt_secrets.access_secret,
         sign: {
@@ -45,16 +44,15 @@ async function initialize_server() {
         try {
             await request.jwtVerify()
         }
-        
+
         catch (err) {
 
             if ((err as { name: string } ).name == "TokenExpiredError") {
                 response.code(401).send({ error: 'Token expired' })
                 return
             }
- 
             response.code(401).send({ error: 'Invalid or missing token' })
-        
+
         }
 
     })
@@ -67,16 +65,20 @@ async function initialize_server() {
     app.register(loginRoute, {
         prefix: endpoint_prefix
     });
-    
+
     app.register(googleRoute, {
         prefix: endpoint_prefix
     });
-    
+
     app.register(refreshRoute, {
         prefix: endpoint_prefix
     });
-    
+
     app.register(twoFactorRoute, {
+        prefix: endpoint_prefix
+    });
+
+    app.register(logoutRoute, {
         prefix: endpoint_prefix
     });
 
