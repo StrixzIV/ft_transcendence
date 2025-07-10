@@ -14,11 +14,10 @@ export function registerPage() {
           <input type="email" id="email" placeholder="Email" required class="w-full p-2 rounded bg-gray-700 text-white"/>
           <input type="password" id="password" placeholder="Password" required class="w-full p-2 rounded bg-gray-700 text-white"/>
           <input type="password" id="password-confirm" placeholder="Confirm Password" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          
+
           <button type="submit" class="w-full bg-green-500 hover:bg-green-600 p-2 rounded">Submit</button>
 
         </form>
-        
 
       </div>
     `;
@@ -32,7 +31,6 @@ export function registerPage() {
         const email = (document.getElementById('email') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
         const password_confirm = (document.getElementById('password-confirm') as HTMLInputElement).value;
-    
         const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/
 
         if (forbidden_regex.test(username)) {
@@ -44,7 +42,7 @@ export function registerPage() {
             alert('Password unmatched')
             return
         }
-        
+
         if (password.length < 6) {
             alert('Password length must be longer than 6 characters')
             return
@@ -63,28 +61,25 @@ export function registerPage() {
                     password: password
                 })
             });
-        
+
             if (!response.ok) {
                 const errorText = await response.text() as string;
                 alert(`Registration failed: ${errorText}`);
                 return;
             }
-        
+
             const json = await response.json()
             localStorage.setItem('is_login', 'true');
             localStorage.setItem('uid', json.user.id);
             localStorage.setItem('username', json.user.username);
             localStorage.setItem('expires_at', json.expires_at);
             window.location.reload();
-        
+
         }
-        
         catch (err) {
             console.error(err);
             alert('An error occurred while registering. Please try again.');
         }
 
     });
-    
 }
-  

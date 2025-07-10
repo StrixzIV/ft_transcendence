@@ -4,6 +4,7 @@ import viteLogo from '/vite.svg'
 import typescriptLogo from './typescript.svg'
 
 import { loginPage } from './emailLogin.ts'
+import { auth_endpoint } from './provider/api.ts'
 
 async function on_startup() {
 
@@ -27,13 +28,21 @@ async function on_startup() {
     window.history.replaceState({}, document.title, window.location.pathname);
     
     if (has_expires_at && parseInt(has_expires_at) < Math.floor(Date.now() / 1000)) {
+        
         localStorage.removeItem('uid');
         localStorage.removeItem('username');
         localStorage.removeItem('is_login');
         localStorage.removeItem('expires_at');
-        window.location.reload();
-    }
+        
+        await fetch(auth_endpoint('/logout'), {
+            method: 'POST',
+            credentials: 'include'
+        });
     
+        window.location.reload();
+    
+    }
+
     const is_login = localStorage.getItem('is_login');
 
     if (is_login) {
@@ -41,7 +50,14 @@ async function on_startup() {
     }
 
     else {
+
+        await fetch(auth_endpoint('/logout'), {
+            method: 'POST',
+            credentials: 'include'
+        });
+
         loginPage();
+    
     }
 
 }

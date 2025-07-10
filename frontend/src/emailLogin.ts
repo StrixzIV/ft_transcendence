@@ -21,19 +21,18 @@ export function loginPage() {
           <button id="register" type="button" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Register</button>
 
         </form>
-        
 
       </div>
     `;
-  
+
     // Handle email login
     const form = document.getElementById('login-form') as HTMLFormElement;
     form.addEventListener('submit', async (e) => {
-        
+
         e.preventDefault();
         const username = (document.getElementById('username') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
-    
+
         const response = await fetch(auth_endpoint('/login'), {
             method: 'POST',
             headers: {
@@ -44,22 +43,21 @@ export function loginPage() {
                 password
             })
         });
-    
+
         if (!response.ok) {
             const errorText = await response.text();
             alert(`Login failed: ${errorText}`);
             return;
         }
-    
+
         const json = await response.json();
 
-        console.log(json.user.id)
-
+        console.log(json.user.id);
         localStorage.setItem('is_login', 'true');
         localStorage.setItem('uid', json.user.id);
         localStorage.setItem('username', json.user.username);
         localStorage.setItem('expires_at', json.expires_at);
-        
+
         window.location.reload();
 
     });
@@ -69,7 +67,7 @@ export function loginPage() {
     registerBtn.addEventListener('click', () => {
         registerPage();
     })
-  
+
     // Handle Google login
     const googleBtn = document.getElementById('google-login') as HTMLButtonElement;
 
@@ -78,4 +76,3 @@ export function loginPage() {
     });
 
 }
-  

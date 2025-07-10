@@ -13,7 +13,7 @@ const REDIRECT_URI = "https://localhost:8443/auth/google/callback";
 export async function googleRoute(fastify: FastifyInstance) {
 
     fastify.get('/google', async (request, response) => {
-    
+
         const random_state = crypto.randomUUID()
         const auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams({
             client_id: GOOGLE_CLIENT_ID,
@@ -28,13 +28,13 @@ export async function googleRoute(fastify: FastifyInstance) {
         response.redirect(auth_url)
 
     });
-    
+
     fastify.get('/google/callback', async (request, response) => {
-    
+
         const { code } = request.query as { code: string };
 
         if (!code) {
-            return response.code(400).send({ error: "Missing code parameter" })
+            return response.redirect('https://localhost:8443/')
         }
 
         const token_callback = await fetch("https://oauth2.googleapis.com/token", {
@@ -92,7 +92,6 @@ export async function googleRoute(fastify: FastifyInstance) {
                     pasword_hash: null,
                 }
             })
-            
         }
 
         const secrets = await get_JWT_secret()
