@@ -64,11 +64,11 @@ export async function refreshRoute(fastify: FastifyInstance) {
                 });
 
                 return response.send(200);
-            
+
             }
 
         } 
-        
+
         catch (err) {
             response.code(401).send({ error: 'Invalid or expired refresh token' });
         }
