@@ -8,7 +8,7 @@ export interface JWTSecret {
 export async function get_JWT_secret(): Promise<JWTSecret> {
 
     const result = await vault.read('secret/data/jwt');
-    
+
     return {
         access_secret: result.data.data.access_secret,
         refresh_secret: result.data.data.refresh_secret

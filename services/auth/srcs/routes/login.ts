@@ -22,7 +22,7 @@ const login_schema = {
 export async function loginRoute(fastify: FastifyInstance) {
 
     fastify.post('/login', { schema: login_schema }, async (request, response) => {
-    
+
         const { username, password } = request.body as LoginInfo;
 
             const user = await prisma.users.findUnique({

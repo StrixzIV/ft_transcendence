@@ -33,7 +33,7 @@ async function on_startup() {
         localStorage.removeItem('expires_at');
         window.location.reload();
     }
-    
+
     const is_login = localStorage.getItem('is_login');
 
     if (is_login) {
