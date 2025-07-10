@@ -35,7 +35,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         return { qr_data_url, base32: secret.base32 }
 
     })
-    
+
     app.post('/2fa/verify', { preHandler: [app.authenticate] }, async (request, response) => {
 
         const uid = (request.user as { id: string }).id
