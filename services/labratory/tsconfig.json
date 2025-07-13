@@ -1,0 +1,48 @@
+{
+  "include": [
+    "srcs/**/*.ts",
+    "srcs/types/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+
+    /* Projects */
+    "incremental": true, 
+    "tsBuildInfoFile": "./.tsbuildinfo", 
+
+    /* Language and Environment */
+    "target": "es2020", 
+
+    /* Modules */
+    "module": "commonjs", 
+    "rootDir": "srcs", 
+    "moduleResolution": "node", 
+
+    /* Emit */
+    "declaration": false, 
+    "sourceMap": false,
+    "outDir": "dist", 
+    "removeComments": true, 
+    "newLine": "lf", 
+
+    /* Interop Constraints */
+    "esModuleInterop": true, 
+    "forceConsistentCasingInFileNames": true, 
+
+    /* Type Checking */
+    "strict": true, 
+    "noUnusedLocals": true, 
+    "noUnusedParameters": true, 
+    "noImplicitReturns": true, 
+    "noFallthroughCasesInSwitch": true, 
+    "noUncheckedIndexedAccess": true, 
+    "noImplicitOverride": true, 
+    "noPropertyAccessFromIndexSignature": true, 
+
+    /* Completeness */
+    "skipLibCheck": false
+  }
+}
