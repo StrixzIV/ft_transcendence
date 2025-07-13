@@ -38,7 +38,11 @@ Redirects to:
 https://localhost:8443/?id=<user_id>&username=<username>&expires_at=<unix_timestamp>
 ```
 
+**Note:** JWT access and refresh token will be sended back as HTTP-only cookie. (This cookie cannot be accessed with JavaScript. Include the credentials when asked for JWT instead.)
+
 `302` Redirect (No access code provided back)
+
+Redirects to:
 
 ```txt
 https://localhost:8443/
