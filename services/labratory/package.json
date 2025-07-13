@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --project tsconfig.json srcs/server.ts",
+    "dev": "ts-node-dev -r tsconfig-paths/register --respawn --project tsconfig.json srcs/server.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "lint": "eslint ./srcs --ext .ts"
@@ -20,6 +20,7 @@
     "@types/node": "^24.0.13",
     "eslint": "^9.31.0",
     "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.36.0"
   }

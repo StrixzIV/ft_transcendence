@@ -24,6 +24,10 @@
     /* Emit */
     "declaration": false, 
     "sourceMap": false,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["srcs/*"]
+    },
     "outDir": "dist", 
     "removeComments": true, 
     "newLine": "lf", 
