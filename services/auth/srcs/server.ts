@@ -13,6 +13,7 @@ import { twoFactorRoute } from './routes/2fa';
 import { refreshRoute } from './routes/refresh';
 
 import { get_JWT_secret } from './utils/jwt';
+import { logoutRoute } from './routes/logout';
 
 const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' })
 const endpoint_prefix = '/auth'
@@ -74,6 +75,10 @@ async function initialize_server() {
     });
 
     app.register(twoFactorRoute, {
+        prefix: endpoint_prefix
+    });
+
+    app.register(logoutRoute, {
         prefix: endpoint_prefix
     });
 
