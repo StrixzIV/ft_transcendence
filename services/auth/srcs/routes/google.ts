@@ -34,7 +34,7 @@ export async function googleRoute(fastify: FastifyInstance) {
         const { code } = request.query as { code: string };
 
         if (!code) {
-            return response.code(400).send({ error: "Missing code parameter" })
+            return response.redirect('https://localhost:8443/')
         }
 
         const token_callback = await fetch("https://oauth2.googleapis.com/token", {
