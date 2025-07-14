@@ -1,6 +1,8 @@
 import Fastify from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
 
+import { RESTFUL_PREFIX, WS_PREFIX } from './config/url';
+
 import logger from '@/utils/logger'
 import greetingRoute from '@/routes/greeting';
 import dateRoute from '@/routes/date';
@@ -13,10 +15,10 @@ async function createServer() {
     app.register(fastifyWebsocket);
 
     // API register point
-    app.register(greetingRoute);
+    app.register(greetingRoute, { prefix: RESTFUL_PREFIX });
 
     // WS register point
-    app.register(dateRoute);
+    app.register(dateRoute, { prefix: WS_PREFIX });
 
     return app;
 }
