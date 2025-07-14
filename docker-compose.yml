@@ -7,6 +7,7 @@ services:
     restart: always
     networks:
       - mainnet
+      - vault-net
     volumes:
       - ./services/nginx_gateway/config/:/etc/nginx/conf.d/
       - ./services/nginx_gateway/routes/:/etc/nginx/routes.d/
@@ -35,7 +36,7 @@ services:
     volumes:
       - ./logs/frontend/:/var/log/nginx/
     expose:
-      - 80
+      - 8080
 
   # RabbitMQ
   broker:
@@ -59,7 +60,7 @@ services:
     image: elasticsearch:8.12.0
     restart: always
     networks:
-      - mainnet
+      - elk-net
     environment:
       - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
       - discovery.type=single-node
@@ -74,7 +75,7 @@ services:
     image: logstash:8.12.0
     restart: always
     networks:
-      - mainnet
+      - elk-net
     volumes: 
       - ./logs/:/var/log/services/
       - ./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml
@@ -88,6 +89,7 @@ services:
     restart: always
     networks:
       - mainnet
+      - elk-net
     ports: 
       - 5601
     depends_on:
@@ -101,7 +103,8 @@ services:
     env_file:
       - .env
     networks:
-      - mainnet
+      - vault-net
+      - vault-init-net
     volumes:
       - ./services/vault/config:/vault/config
       - ./data/vault/:/vault/data/
@@ -121,7 +124,7 @@ services:
     env_file:
       - .env
     networks:
-      - mainnet
+      - vault-init-net
     volumes:
       - ./services/vault/scripts/vault_init.sh:/vault_init.sh
     environment:
@@ -156,6 +159,7 @@ services:
     restart: always
     networks:
       - mainnet
+      - vault-net
     volumes:
       - ./logs/auth-backend/:/logs/
       - ./data/auth/:/prisma/db/
@@ -168,6 +172,15 @@ services:
 
 networks:
   mainnet:
+    driver: bridge
+
+  elk-net:
+    driver: bridge
+
+  vault-net:
+    driver: bridge
+
+  vault-init-net:
     driver: bridge
 
 volumes:
