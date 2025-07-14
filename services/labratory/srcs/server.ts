@@ -1,9 +1,14 @@
 import Fastify from 'fastify';
+
 import logger from '@/utils/logger'
+import greetingRoute from '@/routes/greeting';
 
 async function createServer() {
     const loggerEngine = logger();
     const app = Fastify({ logger: loggerEngine });
+
+    // API register point
+    app.register(greetingRoute);
 
     return app;
 }
