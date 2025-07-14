@@ -20,6 +20,7 @@ services:
     depends_on:
       - frontend
       - kibana
+      - lab
       - auth-backend
 
   # Frontend
@@ -129,6 +130,21 @@ services:
     depends_on:
       - vault
 
+  # Test
+  lab:
+    container_name: lab
+    build:
+      context: ./services/labratory
+      dockerfile: Dockerfile
+    networks:
+      - mainnet
+    volumes:
+      - ./logs/lab:/logs/
+    environment:
+      NODE_ENV: production
+    expose:
+      - 3000
+
   # Backend
   auth-backend:
     container_name: auth-backend
@@ -141,8 +157,8 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./logs/auth-backend/:/logs
-      - ./data/auth:/prisma/db
+      - ./logs/auth-backend/:/logs/
+      - ./data/auth/:/prisma/db/
     environment:
       NODE_ENV: production
     depends_on:
