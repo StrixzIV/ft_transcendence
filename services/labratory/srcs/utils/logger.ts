@@ -10,7 +10,7 @@ const logger = (() => {
             return true;
         case 'production':
             return ({
-                stream: fs.createWriteStream('logs/lab.log', { flags: 'a' })
+                stream: fs.createWriteStream('/logs/lab.log', { flags: 'a' })
             });
         default:
             return false;
