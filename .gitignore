@@ -1,3 +1,8 @@
+# Computer + IDE Stuff
+/**/.DS_Store
+/**/.vscode/
+/**/.idea/
+
 # secret
 secrets/*
 
@@ -10,6 +15,9 @@ logs/*
 
 # Nodejs
 /**/node_modules
+/**/dist
+/**/.tsbuildinfo
+/**/.eslintcache
 
 # Database
 data/*
