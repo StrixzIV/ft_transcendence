@@ -1,9 +1,9 @@
 import fs from 'fs'
 
-const logger = (() => {
-    const key = process.env['NODE_ENV'] ?? 'development';
+import { NODE_ENV } from '@/config/env';
 
-    switch (key) {
+const logger = (() => {
+    switch (NODE_ENV) {
         case 'test':
             return false;
         case 'development':

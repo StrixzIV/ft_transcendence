@@ -1,1 +1,1 @@
-export const IS_PROD: boolean = process.env['NODE_ENV'] === 'production';
+export const NODE_ENV = process.env['NODE_ENV'] ?? 'development';
