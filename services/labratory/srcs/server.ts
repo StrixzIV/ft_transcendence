@@ -1,11 +1,14 @@
 import Fastify from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
+import cors from '@fastify/cors';
 
 import { RESTFUL_PREFIX, WS_PREFIX } from './config/url';
 
-import logger from '@/utils/logger'
 import greetingRoute from '@/routes/greeting';
 import dateRoute from '@/routes/date';
+
+import logger from '@/utils/logger'
+import corsProperties from './utils/corsProperties';
 
 async function createServer() {
     const loggerEngine = logger();
@@ -13,6 +16,7 @@ async function createServer() {
 
     // Register plugin
     app.register(fastifyWebsocket);
+    app.register(cors, corsProperties);
 
     // API register point
     app.register(greetingRoute, { prefix: RESTFUL_PREFIX });
