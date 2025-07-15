@@ -7,6 +7,7 @@ import { FastifyInstance } from 'fastify';
 import { get_JWT_secret } from '../utils/jwt';
 
 import { type UserInfo } from '../interfaces/request_data'
+import { publishUserCreated } from '../utils/rabbitmq';
 
 const user_schema = {
     body: {
@@ -114,6 +115,15 @@ export async function userRoute(fastify: FastifyInstance) {
             path: '/',
             maxAge: 30 * 24 * 60 * 60
         });
+
+        const cascade_data = {
+            id: user_data.id,
+            username: user_data.username,
+            mail: user_data.email,
+            created_at: user_data.created_at
+        } as { id: string; username: string; mail: string; created_at: Date; }
+
+        publishUserCreated(cascade_data)
 
         return response.code(201).send({
             user: {
