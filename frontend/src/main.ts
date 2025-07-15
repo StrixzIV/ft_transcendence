@@ -5,6 +5,7 @@ import typescriptLogo from './typescript.svg'
 
 import { loginPage } from './emailLogin.ts'
 import { auth_endpoint } from './provider/api.ts'
+import { twoFactorPage } from './2fa.ts'
 
 async function on_startup() {
 
@@ -13,6 +14,7 @@ async function on_startup() {
     const uid = params.get('id')
     const username = params.get('username')
     const expires_at = params.get('expires_at')
+    const twofa = params.get('twofa')
 
     const has_uid = localStorage.getItem('uid');
     const has_username = localStorage.getItem('username');
@@ -23,6 +25,13 @@ async function on_startup() {
         localStorage.setItem('username', username);
         localStorage.setItem('expires_at', expires_at);
         localStorage.setItem('is_login', 'true');
+    }
+
+    if (uid && twofa && twofa === 'true') {
+        localStorage.setItem('uid', uid);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        twoFactorPage();
+        return ;
     }
 
     window.history.replaceState({}, document.title, window.location.pathname);
