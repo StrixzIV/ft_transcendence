@@ -48,6 +48,10 @@ export async function loginRoute(fastify: FastifyInstance) {
                 return response.code(401).send({ error: 'Invalid username or password' });
             }
 
+            if (user.totp_secret) {
+                return response.code(202).send({ uid: user.id })
+            }
+
             const secrets = await get_JWT_secret()
 
             const token = fastify.jwt.sign({

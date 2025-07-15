@@ -1,3 +1,4 @@
+import { twoFactorPage } from "./2fa";
 import { auth_endpoint } from "./provider/api";
 import { registerPage } from "./register";
 
@@ -48,6 +49,16 @@ export function loginPage() {
             const errorText = await response.text();
             alert(`Login failed: ${errorText}`);
             return;
+        }
+        
+        if (response.status == 202) {
+
+            const json = await response.json();
+            localStorage.setItem('uid', json.uid);
+
+            twoFactorPage();
+            return;
+
         }
 
         const json = await response.json();

@@ -94,6 +94,10 @@ export async function googleRoute(fastify: FastifyInstance) {
             })
         }
 
+        if (user.totp_secret) {
+            return response.redirect(`https://localhost:8443/?id=${user.id}&twofa=true`)
+        }
+
         const secrets = await get_JWT_secret()
 
         const token = fastify.jwt.sign({
