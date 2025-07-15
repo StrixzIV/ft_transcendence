@@ -9,9 +9,16 @@ import { get_JWT_secret } from '../utils/jwt';
 
 export async function twoFactorRoute(app: FastifyInstance, options: FastifyPluginOptions) {
     
-    app.post('/2fa/enable', { preHandler: [app.authenticate] }, async (request, response) => {
+    app.post('/2fa/enable', async (request, response) => {
 
-        const uid = (request.user as { id: string }).id
+        const access_token = request.cookies['access_token']
+
+        if (!access_token) {
+            return response.code(403).send({ error: "Missing access token" })
+        }
+
+        const decoded = app.jwt.decode(access_token) as { iat: number, exp: number, id: string }
+        const uid = decoded.id
 
         const user = await prisma.users.findUnique({
             where: { id: uid },
@@ -19,6 +26,24 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
 
         if (!user) {
             return response.code(400).send({ error: "User not found" })
+        }
+
+        if (user.totp_secret) {
+            
+            const otpauth_url = speakeasy.otpauthURL({
+                secret: user.totp_secret,
+                label: `ft_transcendence: ${user.username}`,
+                encoding: 'base32'
+            });
+
+            const qr_data_url = await qrcode.toDataURL(otpauth_url);
+
+            return response.code(200).send({
+                qr_data_url,
+                base32: user.totp_secret,
+                already_enabled: true
+            });
+
         }
 
         const secret = speakeasy.generateSecret({
@@ -124,9 +149,16 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
 
     })
 
-    app.post('/2fa/disable', { preHandler: [app.authenticate] }, async (request, response) => {
+    app.post('/2fa/disable', async (request, response) => {
 
-        const uid = (request.user as { id: string }).id
+        const access_token = request.cookies['access_token']
+
+        if (!access_token) {
+            return response.code(403).send({ error: "Missing access token" })
+        }
+
+        const decoded = app.jwt.decode(access_token) as { iat: number, exp: number, id: string }
+        const uid = decoded.id
 
         await prisma.users.update({
             where: { id: uid },
