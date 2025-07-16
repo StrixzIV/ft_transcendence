@@ -15,11 +15,35 @@ datasource db {
 
 model Users {
 
-    id              String   @id @default(uuid())
-    username        String   @unique
-    mail           String
-    created_at      DateTime @default(now())
+    id                          String   @id @default(uuid())
+    username                    String   @unique
+    mail                        String
+    created_at                  DateTime @default(now())
+
+    preferences                 Json?
+
+    incoming_friend_request     Friendship[] @relation("IncomingFriendRequests")
+    outgoing_friend_request     Friendship[] @relation("OutgoingFriendRequests")
 
     @@map("users")
 
+}
+
+model Friendship {
+
+    id              String      @id @default(uuid())
+    
+    requester_id    String
+    requester       Users       @relation("OutgoingFriendRequests", fields: [requester_id], references: [id])
+    
+    addressee_id    String
+    addressee       Users       @relation("IncomingFriendRequests", fields: [addressee_id], references: [id])
+
+    status          String      // e.g., "pending", "accepted"
+    created_at      DateTime    @default(now())
+
+    @@unique([requester_id, addressee_id])
+
+    @@map("friendships")
+    
 }
