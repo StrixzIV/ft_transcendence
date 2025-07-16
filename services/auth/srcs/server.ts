@@ -15,7 +15,7 @@ import { logoutRoute } from './routes/logout';
 
 import { get_JWT_secret } from './utils/jwt';
 
-import { connectRabbitMQ } from './utils/rabbitmq'
+import { connectRabbitMQ, JWTValidationConsumer } from './utils/rabbitmq'
 
 const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' })
 const endpoint_prefix = '/auth'
@@ -92,7 +92,10 @@ async function initialize_server() {
 
     try {
 
+        // RabbitMQ Server/Consumer
         await connectRabbitMQ();
+        await JWTValidationConsumer();
+
         const app = await initialize_server();
 
         app.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
