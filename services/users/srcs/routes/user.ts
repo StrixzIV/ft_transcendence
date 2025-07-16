@@ -16,8 +16,6 @@ export async function userRoute(fastify: FastifyInstance) {
         try {
 
             const result = await JWTValidate(token);
-
-            console.log(result)
             
             if (!result.valid) {
                 return response.status(401).send({ error: "Invalid token" });
