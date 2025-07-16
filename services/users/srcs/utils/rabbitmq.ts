@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function consumeMQData() {
 
-    const conn = await amqp.connect('amqp://broker:5672');
+    const conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
     const channel = await conn.createChannel();
 
     await channel.assertExchange('user.events', 'fanout', { durable: true });
@@ -23,15 +23,15 @@ export async function consumeMQData() {
 
             if (event.event === 'user.created') {
 
-                const { id, username, email, created_at } = event.data;
+                const { id, username, mail, created_at } = event.data;
 
-                await prisma.userData.upsert({
-                    where: { user_id: id },
+                await prisma.users.upsert({
+                    where: { id: id },
                     update: {},
                     create: {
-                        user_id: id,
+                        id: id,
                         username,
-                        email,
+                        mail,
                         created_at: new Date(created_at)
                     }
                 });
