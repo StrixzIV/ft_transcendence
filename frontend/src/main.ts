@@ -157,7 +157,27 @@ export async function mainPage() {
             });
 
             if (!response.ok) {
+
+                if (response.status == 401 || response.status == 403) {
+
+                    await fetch(auth_endpoint('/logout'), {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    localStorage.removeItem('uid');
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('is_login');
+                    localStorage.removeItem('expires_at');
+                    window.location.reload();
+            
+                    loginPage();
+                    return ;
+                    
+                }
+
                 throw new Error('Failed to fetch QR code.');
+            
             }
 
             const data = await response.json();
