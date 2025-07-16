@@ -167,6 +167,30 @@ services:
       - NODE_ENV=production
     depends_on:
       - vault
+      - broker
+    expose:
+      - 3000
+
+  users-backend:
+    container_name: users-backend
+    build:
+      context: ./services/users
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - mainnet
+      - vault-net
+    volumes:
+      - ./logs/auth-backend/:/logs/
+      - ./data/auth/:/prisma/db/
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - vault
+      - broker
+      - auth-backend
     expose:
       - 3000
 
