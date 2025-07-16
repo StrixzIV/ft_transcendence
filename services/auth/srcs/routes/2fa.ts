@@ -17,7 +17,16 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             return response.code(403).send({ error: "Missing access token" })
         }
 
-        const decoded = app.jwt.decode(access_token) as { iat: number, exp: number, id: string }
+        let decoded;
+
+        try {
+            decoded = app.jwt.decode(access_token) as { iat: number, exp: number, id: string }
+        }
+        
+        catch (err) {
+            return response.code(401).send({ error: "Invalid or expired access token" })
+        }
+
         const uid = decoded.id
 
         const user = await prisma.users.findUnique({
@@ -157,7 +166,16 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             return response.code(403).send({ error: "Missing access token" })
         }
 
-        const decoded = app.jwt.decode(access_token) as { iat: number, exp: number, id: string }
+        let decoded;
+
+        try {
+            decoded = app.jwt.decode(access_token) as { iat: number, exp: number, id: string }
+        }
+        
+        catch (err) {
+            return response.code(401).send({ error: "Invalid or expired access token" })
+        }
+
         const uid = decoded.id
 
         await prisma.users.update({
