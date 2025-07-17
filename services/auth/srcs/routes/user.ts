@@ -23,22 +23,7 @@ const user_schema = {
 
 export async function userRoute(fastify: FastifyInstance) {
 
-    // FOR TESTING ONLY! REMOVE BEFORE EVALUATON
-    fastify.get('/user', async () => {
-        return prisma.users.findMany({
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                created_at: true
-            }
-        })
-    })
-    // -----------------------------------------
-
     fastify.post('/user', {schema: user_schema}, async (request, response) => {
-
-        // User creation logic
 
         const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/
         const { username, mail, password } = request.body as UserInfo
@@ -137,6 +122,22 @@ export async function userRoute(fastify: FastifyInstance) {
     })
 
     fastify.delete('/user/:id', async (request, response) => {
+
+        const access_token = request.cookies['access_token']
+
+        if (!access_token) {
+            return response.code(403).send({ error: "Missing access token" })
+        }
+
+        let decoded;
+
+        try {
+            decoded = fastify.jwt.verify(access_token) as { iat: number, exp: number, id: string }
+        }
+        
+        catch (err) {
+            return response.code(401).send({ error: "Invalid or expired access token" })
+        }
 
         const { id } = request.params as { id: string }
 
