@@ -4,25 +4,23 @@ import viteLogo from '/vite.svg'
 import typescriptLogo from './typescript.svg'
 
 import { loginPage } from './emailLogin.ts'
-import { auth_endpoint } from './provider/api.ts'
+import { auth_endpoint, users_endpoint } from './provider/api.ts'
 import { twoFactorPage } from './2fa.ts'
+import { secureFetch } from './utils/secureFetch.ts'
 
 async function on_startup() {
 
     const params = new URLSearchParams(window.location.search)
 
     const uid = params.get('id')
-    const username = params.get('username')
     const expires_at = params.get('expires_at')
     const twofa = params.get('twofa')
 
     const has_uid = localStorage.getItem('uid');
-    const has_username = localStorage.getItem('username');
     const has_expires_at = localStorage.getItem('expires_at');
 
-    if (uid && username && expires_at && !has_uid && !has_username && !has_expires_at) {
+    if (uid && expires_at && !has_uid && !has_expires_at) {
         localStorage.setItem('uid', uid);
-        localStorage.setItem('username', username);
         localStorage.setItem('expires_at', expires_at);
         localStorage.setItem('is_login', 'true');
     }
@@ -37,9 +35,8 @@ async function on_startup() {
     window.history.replaceState({}, document.title, window.location.pathname);
     
     if (has_expires_at && parseInt(has_expires_at) < Math.floor(Date.now() / 1000)) {
-        
+
         localStorage.removeItem('uid');
-        localStorage.removeItem('username');
         localStorage.removeItem('is_login');
         localStorage.removeItem('expires_at');
         
@@ -73,8 +70,11 @@ async function on_startup() {
 
 export async function mainPage() {
 
-    let uid = localStorage.getItem('uid');
-    let username = localStorage.getItem('username');
+    const userdata = await secureFetch(users_endpoint('/data'), {
+        method: 'GET'
+    });
+
+    const user = await userdata.json()
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
@@ -85,8 +85,8 @@ export async function mainPage() {
             <a href="https://www.typescriptlang.org/" target="_blank">
                 <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
             </a>
-            <h1>Welcome ${username ? username : 'Guest'}!</h1>
-            ${username ? `<p class="text-sm text-gray-400">UUID: ${uid}</p>` : ''}
+            <h1>Welcome ${user.username ? user.username : 'Guest'}!</h1>
+            ${user.username ? `<p class="text-sm text-gray-400">UUID: ${user.id}</p>` : ''}
             <div class="card">
                 <button id="counter" type="button"></button>
             </div>
@@ -133,7 +133,7 @@ export async function mainPage() {
     
     loginBtn.addEventListener('click', () => {
 
-        if (username) {
+        if (user.username) {
             localStorage.removeItem('uid');
             localStorage.removeItem('username');
             localStorage.removeItem('is_login');
@@ -151,18 +151,16 @@ export async function mainPage() {
 
         try {
 
-            const response = await fetch(auth_endpoint('/2fa/enable'), {
-                method: 'POST',
-                credentials: 'include'
+            const response = await secureFetch(auth_endpoint('/2fa/enable'), {
+                method: 'POST'
             });
 
             if (!response.ok) {
 
                 if (response.status == 401 || response.status == 403) {
 
-                    await fetch(auth_endpoint('/logout'), {
-                        method: 'POST',
-                        credentials: 'include'
+                    await secureFetch(auth_endpoint('/logout'), {
+                        method: 'POST'
                     });
 
                     localStorage.removeItem('uid');
@@ -197,9 +195,8 @@ export async function mainPage() {
 
         try {
 
-            const response = await fetch(auth_endpoint('/2fa/disable'), {
-                method: 'POST',
-                credentials: 'include'
+            const response = await secureFetch(auth_endpoint('/2fa/disable'), {
+                method: 'POST'
             });
 
             if (!response.ok) {
