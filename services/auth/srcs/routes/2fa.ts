@@ -20,7 +20,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         let decoded;
 
         try {
-            decoded = app.jwt.decode(access_token) as { iat: number, exp: number, id: string }
+            decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
         }
         
         catch (err) {
@@ -169,7 +169,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         let decoded;
 
         try {
-            decoded = app.jwt.decode(access_token) as { iat: number, exp: number, id: string }
+            decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
         }
         
         catch (err) {
