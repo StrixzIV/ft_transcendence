@@ -30,8 +30,7 @@ export async function userRoute(fastify: FastifyInstance) {
         } 
         
         catch (err) {
-            console.error(err);
-            response.status(500).send({ error: "JWT validation failed" });
+            response.status(403).send({ error: "JWT validation failed" });
         }
 
     })
