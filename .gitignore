@@ -5,6 +5,10 @@
 
 # secret
 secrets/*
+/**/*.crt
+/**/*.key
+/**/*.pem
+/**/*.token
 
 # env
 /**/*.env*
