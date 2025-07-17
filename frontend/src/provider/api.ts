@@ -1,1 +1,2 @@
 export const auth_endpoint = (endpoint: String) => `https://localhost:8443/auth/${endpoint.replace('/', '')}`
+export const users_endpoint = (endpoint: String) => `https://localhost:8443/user/${endpoint.replace('/', '')}`
