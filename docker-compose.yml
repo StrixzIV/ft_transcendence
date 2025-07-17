@@ -37,6 +37,9 @@ services:
       - ./logs/frontend/:/var/log/nginx/
     expose:
       - 8080
+    depends_on:
+      - auth-backend
+      - users-backend
 
   # RabbitMQ
   broker:
