@@ -1,5 +1,23 @@
 services:
 
+  # WAF
+  nginx-waf:
+    container_name: nginx-waf
+    build:
+      context: ./services/nginx_waf
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - env/.no_sensitive.env
+    networks:
+      - dmz-net
+    environment:
+      - API_GATEWAY_ADDR=http://nginx-gateway:8080
+    ports:
+      - "8443:443"
+    depends_on:
+      - nginx-gateway
+
   # Gateway
   nginx-gateway:
     container_name: nginx-gateway
@@ -7,17 +25,15 @@ services:
     restart: always
     networks:
       - mainnet
+      - dmz-net
       - vault-net
     volumes:
       - ./services/nginx_gateway/config/:/etc/nginx/conf.d/
       - ./services/nginx_gateway/routes/:/etc/nginx/routes.d/
       - ./services/nginx_gateway/rules/:/etc/nginx/rules.d/
       - ./logs/nginx_gateway/:/var/log/nginx/
-    secrets:
-      - ssl_key
-      - ssl_certificate
-    ports:
-      - "8443:443"
+    expose:
+      - 8080
     depends_on:
       - frontend
       - kibana
@@ -31,6 +47,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     restart: always
+    env_file:
+      - env/.no_sensitive.env
     networks:
       - mainnet
     volumes:
@@ -43,13 +61,13 @@ services:
     container_name: broker
     image: rabbitmq:4.1.1-management-alpine
     restart: always
+    env_file:
+      - env/.broker.env
     networks:
       - mainnet
     volumes:
       - rabbitmq-lib:/var/lib/rabbitmq
       - rabbitmq-log:/var/log/rabbitmq
-    env_file:
-      - .env
     expose:
       - 5672
       - 15672
@@ -101,7 +119,7 @@ services:
     container_name: vault
     restart: always
     env_file:
-      - .env
+      - env/.vault.env
     networks:
       - vault-net
       - vault-init-net
@@ -116,13 +134,14 @@ services:
     cap_add:
       - IPC_LOCK
     entrypoint: /vault_server.sh
-    ports:
+    expose:
       - 8200
 
   vault-init:
     image: hashicorp/vault:1.16
     env_file:
-      - .env
+      - env/.vault.env
+      - env/.token.env
     networks:
       - vault-init-net
     volumes:
@@ -155,7 +174,8 @@ services:
       context: ./services/auth
       dockerfile: Dockerfile
     env_file:
-      - .env
+      - env/.vault.env
+      - env/.google.env
     restart: always
     networks:
       - mainnet
@@ -171,6 +191,9 @@ services:
       - 3000
 
 networks:
+  dmz-net:
+    driver: bridge
+
   mainnet:
     driver: bridge
 
@@ -189,10 +212,3 @@ volumes:
 
   rabbitmq-log:
     driver: local
-
-secrets:
-  ssl_key:
-    file: ./secrets/ssl/nginx-selfsigned.key
-
-  ssl_certificate:
-    file: ./secrets/ssl/nginx-selfsigned.crt
