@@ -13,8 +13,8 @@ server {
     server_name ${DOMAIN_NAME};
 
     # Modsecurity
-    # modsecurity on;
-    # modsecurity_rules_file /etc/nginx/modsecurity.d/*.conf;
+    modsecurity             on;
+    modsecurity_rules_file  /etc/nginx/modsecurity.d/basic_rule.conf;
 
     # Route to API Gateway
     location / {
