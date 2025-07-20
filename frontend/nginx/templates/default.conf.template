@@ -1,12 +1,17 @@
 server {
     # Port
     listen 8080;
-    listen [::]:8080;
 
     # Main properties
+    server_name ${DOMAIN_NAME};
     root /var/www/html;
-    server_name localhost;
     index index.html index.htm;
+
+    # Health
+    location /health {
+        access_log off;
+        return 200;
+    }
 
     # For fetching frontend page
     location / {

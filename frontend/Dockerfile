@@ -22,8 +22,6 @@ RUN npm run build
 FROM nginx:1.29-alpine-slim AS runtime
 
 COPY --from=build /app/dist/ /var/www/html/
-COPY ./nginx /etc/nginx/conf.d/
+COPY ./nginx/templates /etc/nginx/templates
 
 EXPOSE 8080
-
-CMD ["nginx", "-g", "daemon off;"]
