@@ -1,20 +1,10 @@
 # For main domain
 server {
-    # Port
-    listen 443 ssl;
-    listen [::]:443 ssl;
-
-    # SSL
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_certificate     /etc/nginx/ssl/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/server.key;
-
     # Main properties
     server_name ${DOMAIN_NAME};
 
-    # Modsecurity
-    modsecurity             on;
-    modsecurity_rules_file  /etc/nginx/modsecurity.d/basic_rule.conf;
+    # Include common setup
+    include /etc/nginx/rules.d/common.conf;
 
     # Route to API Gateway
     location / {
@@ -25,21 +15,11 @@ server {
 
 # For subdomain
 server {
-    # Port
-    listen 443 ssl;
-    listen [::]:443 ssl;
-
-    # SSL
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_certificate     /etc/nginx/ssl/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/server.key;
-
     # Main properties
     server_name *.${DOMAIN_NAME};
 
-    # Modsecurity
-    modsecurity             on;
-    modsecurity_rules_file  /etc/nginx/modsecurity.d/basic_rule.conf;
+    # Include common setup
+    include /etc/nginx/rules.d/common.conf;
 
     # Route to API Gateway
     location / {
