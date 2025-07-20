@@ -3,7 +3,7 @@ server {
     listen 8080;
 
     # Main properties
-    server_name lab.localhost;
+    server_name lab.${DOMAIN_NAME};
 
     # Route to RESTFUL endpoint
     location /api/ {

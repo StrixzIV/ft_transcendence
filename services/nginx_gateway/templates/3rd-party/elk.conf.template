@@ -3,7 +3,7 @@ server {
     listen 8080;
 
     # Main properties
-    server_name elk.localhost;
+    server_name elk.${DOMAIN_NAME};
 
     # Route to service
     location / {

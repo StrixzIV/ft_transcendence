@@ -23,13 +23,14 @@ services:
     container_name: nginx-gateway
     image: nginx:1.29-alpine-slim
     restart: always
+    env_file:
+      - env/.no_sensitive.env
     networks:
       - mainnet
       - dmz-net
       - vault-net
     volumes:
-      - ./services/nginx_gateway/conf.d/:/etc/nginx/conf.d/:ro
-      - ./services/nginx_gateway/routes.d/:/etc/nginx/routes.d/:ro
+      - ./services/nginx_gateway/templates/:/etc/nginx/templates/:ro
       - ./services/nginx_gateway/rules.d/:/etc/nginx/rules.d/:ro
       - ./logs/nginx_gateway/:/var/log/nginx/:rw
     expose:
