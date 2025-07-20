@@ -28,10 +28,10 @@ services:
       - dmz-net
       - vault-net
     volumes:
-      - ./services/nginx_gateway/config/:/etc/nginx/conf.d/
-      - ./services/nginx_gateway/routes/:/etc/nginx/routes.d/
-      - ./services/nginx_gateway/rules/:/etc/nginx/rules.d/
-      - ./logs/nginx_gateway/:/var/log/nginx/
+      - ./services/nginx_gateway/conf.d/:/etc/nginx/conf.d/:ro
+      - ./services/nginx_gateway/routes.d/:/etc/nginx/routes.d/:ro
+      - ./services/nginx_gateway/rules.d/:/etc/nginx/rules.d/:ro
+      - ./logs/nginx_gateway/:/var/log/nginx/:rw
     expose:
       - 8080
     depends_on:
@@ -52,7 +52,7 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./logs/frontend/:/var/log/nginx/
+      - ./logs/frontend/:/var/log/nginx/:rw
     expose:
       - 8080
 
@@ -95,9 +95,9 @@ services:
     networks:
       - elk-net
     volumes: 
-      - ./logs/:/var/log/services/
-      - ./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml
-      - ./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./logs/:/var/log/services/:ro
+      - ./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     expose: 
       - 5044
 
@@ -124,10 +124,10 @@ services:
       - vault-net
       - vault-init-net
     volumes:
-      - ./services/vault/config:/vault/config
-      - ./data/vault/:/vault/data/
-      - ./logs/vault/:/vault/logs/
-      - ./services/vault/scripts/vault_server.sh:/vault_server.sh
+      - ./services/vault/scripts/vault_server.sh:/vault_server.sh:ro
+      - ./services/vault/config:/vault/config:ro
+      - ./data/vault/:/vault/data/:rw
+      - ./logs/vault/:/vault/logs/:rw
     environment:
       - VAULT_ADDR=http://0.0.0.0:8200
       - VAULT_API_ADDR=http://0.0.0.0:8200
@@ -145,7 +145,7 @@ services:
     networks:
       - vault-init-net
     volumes:
-      - ./services/vault/scripts/vault_init.sh:/vault_init.sh
+      - ./services/vault/scripts/vault_init.sh:/vault_init.sh:ro
     environment:
       - VAULT_ADDR=http://vault:8200
     entrypoint: /vault_init.sh
@@ -161,7 +161,7 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./logs/lab:/logs/
+      - ./logs/lab:/logs/:rw
     environment:
       - NODE_ENV=production
     expose:
@@ -181,8 +181,8 @@ services:
       - mainnet
       - vault-net
     volumes:
-      - ./logs/auth-backend/:/logs/
-      - ./data/auth/:/prisma/db/
+      - ./logs/auth-backend/:/logs/:rw
+      - ./data/auth/:/prisma/db/:rw
     environment:
       - NODE_ENV=production
     depends_on:
