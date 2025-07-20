@@ -33,20 +33,22 @@ RUN apk add --no-cache \
 WORKDIR /srcs
 
 # Download Source Codes
-RUN git clone https://github.com/owasp-modsecurity/ModSecurity --branch v${MODSECURITY_VERSION} --depth 1 --recursive --single-branch && \
-    git clone https://github.com/owasp-modsecurity/ModSecurity-nginx.git --branch v${NGINX_MODESEC_VERSION} --depth 1 --recursive --single-branch && \
-    curl -sSL https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz -o nginx-${NGINX_VERSION}.tar.gz && tar -xzf nginx-${NGINX_VERSION}.tar.gz
+RUN curl -sSLO https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz && \
+    curl -sSLO https://github.com/owasp-modsecurity/ModSecurity/releases/download/v3.0.14/modsecurity-v${MODSECURITY_VERSION}.tar.gz && \
+    curl -sSLO https://github.com/owasp-modsecurity/ModSecurity-nginx/releases/download/v1.0.4/ModSecurity-nginx-v${NGINX_MODESEC_VERSION}.tar.gz && \
+    tar -xzf nginx-${NGINX_VERSION}.tar.gz && \
+    tar -xzf modsecurity-v${MODSECURITY_VERSION}.tar.gz && \
+    tar -xzf ModSecurity-nginx-v${NGINX_MODESEC_VERSION}.tar.gz
 
 # Build ModSecurity Library
-RUN ARCH=$(gcc --print-multiarch) && \
-    cd ModSecurity && \
+RUN cd modsecurity-v${MODSECURITY_VERSION} && \
     ./build.sh && \
     ./configure --with-yajl --with-pcre2 --enable-silent-rules && \
     make -j$(nproc) install
 
 # Build ModSecurity Nginx-Module
 RUN cd nginx-${NGINX_VERSION} && \
-    ./configure --add-dynamic-module=../ModSecurity-nginx --with-compat && \
+    ./configure --add-dynamic-module=../ModSecurity-nginx-v${NGINX_MODESEC_VERSION} --with-compat && \
     make -j$(nproc) modules
 
 FROM nginxinc/nginx-unprivileged:1.28.0-alpine3.21-slim AS runtime
@@ -57,8 +59,8 @@ ARG NGINX_VERSION="1.28.0"
 
 # Copy thing from build
 COPY --from=build /usr/local/modsecurity/lib/libmodsecurity.so.${MODSECURITY_VERSION} /usr/local/modsecurity/lib/
-COPY --from=build /srcs/nginx-${NGINX_VERSION}/objs/*.so /etc/nginx/modules/modsecurity_nginx.so
-COPY --from=build /srcs/ModSecurity/unicode.mapping /etc/nginx/modsecurity.d/
+COPY --from=build /srcs/nginx-${NGINX_VERSION}/objs/ngx_http_modsecurity_module.so /etc/nginx/modules/ngx_http_modsecurity_module.so
+COPY --from=build --chown=nginx:nginx /srcs/modsecurity-v${MODSECURITY_VERSION}/unicode.mapping /etc/nginx/modsecurity.d/
 
 # Do some root things
 USER root
