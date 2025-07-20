@@ -3,7 +3,7 @@ server {
     listen 8080;
 
     # Main properties
-    server_name vault.localhost;
+    server_name vault.${DOMAIN_NAME};
 
     # Route to service
     location / {

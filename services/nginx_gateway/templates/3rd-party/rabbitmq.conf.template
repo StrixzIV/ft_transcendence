@@ -3,7 +3,7 @@ server {
     listen 8080;
 
     # Main properties
-    server_name broker.localhost;
+    server_name broker.${DOMAIN_NAME};
 
     # Route to service
     location / {
