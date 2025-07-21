@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = "file:db/users.db"
+}
+
+model Users {
+
+    id                          String   @id @default(uuid())
+    username                    String   @unique
+    mail                        String
+    created_at                  DateTime @default(now())
+
+    preferences                 Json?
+
+    incoming_friend_request     Friendship[] @relation("IncomingFriendRequests")
+    outgoing_friend_request     Friendship[] @relation("OutgoingFriendRequests")
+
+    @@map("users")
+
+}
+
+model Friendship {
+
+    id              String      @id @default(uuid())
+    
+    requester_id    String
+    requester       Users       @relation("OutgoingFriendRequests", fields: [requester_id], references: [id])
+    
+    addressee_id    String
+    addressee       Users       @relation("IncomingFriendRequests", fields: [addressee_id], references: [id])
+
+    status          String      // e.g., "pending", "accepted"
+    created_at      DateTime    @default(now())
+
+    @@unique([requester_id, addressee_id])
+
+    @@map("friendships")
+    
+}

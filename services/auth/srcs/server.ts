@@ -11,9 +11,11 @@ import { loginRoute } from './routes/login';
 import { googleRoute } from './routes/google';
 import { twoFactorRoute } from './routes/2fa';
 import { refreshRoute } from './routes/refresh';
+import { logoutRoute } from './routes/logout';
 
 import { get_JWT_secret } from './utils/jwt';
-import { logoutRoute } from './routes/logout';
+
+import { connectRabbitMQ, JWTValidationConsumer } from './utils/rabbitmq'
 
 const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' })
 const endpoint_prefix = '/auth'
@@ -86,13 +88,28 @@ async function initialize_server() {
 
 }
 
-initialize_server().then((app) => {
-    app.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
-        if (err) {
-            app.log.error(err);
-            process.exit(1);
-        }
-    });
-})
+(async () => {
 
+    try {
 
+        // RabbitMQ Server/Consumer
+        await connectRabbitMQ();
+        await JWTValidationConsumer();
+
+        const app = await initialize_server();
+
+        app.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
+            if (err) {
+                app.log.error(err);
+                process.exit(1);
+            }
+        });
+
+    }
+
+    catch (err) {
+        console.error('[Startup error]: ', err)
+        process.exit(1)
+    }
+
+})();
