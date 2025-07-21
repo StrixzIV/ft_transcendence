@@ -1,0 +1,2 @@
+include /etc/nginx/conf.d/3rd-party/*.conf;
+include /etc/nginx/conf.d/backend/*.conf;

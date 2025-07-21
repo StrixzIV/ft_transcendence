@@ -1,0 +1,17 @@
+server {
+    # Port
+    listen 8080;
+
+    # Main properties
+    server_name vault.${DOMAIN_NAME};
+
+    # Route to service
+    location / {
+        proxy_pass http://vault:8200;
+        include /etc/nginx/rules.d/blackbox-proxy-rule.conf;
+    }
+
+    # Logs
+    access_log /var/log/nginx/nginx_vault_access.log;
+    error_log  /var/log/nginx/nginx_vault_error.log;
+}
