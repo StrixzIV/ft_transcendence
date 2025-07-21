@@ -1,5 +1,27 @@
 services:
 
+  # TLS Terminate Point
+  nginx-ssl:
+    container_name: nginx-ssl
+    image: nginx:1.29-alpine-slim
+    restart: always
+    env_file:
+      - env/.no_sensitive.env
+    networks:
+      - dmz-net
+    environment:
+      - WAF_ADDR=http://nginx-waf:8080
+    volumes:
+      - ./services/nginx_ssl/templates/:/etc/nginx/templates/:ro
+      - ./services/nginx_ssl/rules.d/:/etc/nginx/rules.d/:ro
+    secrets:
+      - ssl-cert
+      - ssl-key
+    ports:
+      - "8443:443"
+    depends_on:
+      - nginx-waf
+
   # WAF
   nginx-waf:
     container_name: nginx-waf
@@ -13,8 +35,8 @@ services:
       - dmz-net
     environment:
       - API_GATEWAY_ADDR=http://nginx-gateway:8080
-    ports:
-      - "8443:443"
+    expose:
+      - 8080
     depends_on:
       - nginx-gateway
 
@@ -200,12 +222,15 @@ networks:
 
   elk-net:
     driver: bridge
+    internal: true
 
   vault-net:
     driver: bridge
+    internal: true
 
   vault-init-net:
     driver: bridge
+    internal: true
 
 volumes:
   rabbitmq-lib:
@@ -213,3 +238,10 @@ volumes:
 
   rabbitmq-log:
     driver: local
+
+secrets:
+  ssl-cert:
+    file: ./secrets/ssl/server.crt
+
+  ssl-key:
+    file: ./secrets/ssl/server.key
