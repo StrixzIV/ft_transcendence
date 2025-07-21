@@ -7,6 +7,7 @@ import { FastifyInstance } from 'fastify';
 import { get_JWT_secret } from '../utils/jwt';
 
 import { type UserInfo } from '../interfaces/request_data'
+import { publishUserCreated } from '../utils/rabbitmq';
 
 const user_schema = {
     body: {
@@ -22,22 +23,7 @@ const user_schema = {
 
 export async function userRoute(fastify: FastifyInstance) {
 
-    // FOR TESTING ONLY! REMOVE BEFORE EVALUATON
-    fastify.get('/user', async () => {
-        return prisma.users.findMany({
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                created_at: true
-            }
-        })
-    })
-    // -----------------------------------------
-
     fastify.post('/user', {schema: user_schema}, async (request, response) => {
-
-        // User creation logic
 
         const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/
         const { username, mail, password } = request.body as UserInfo
@@ -115,6 +101,15 @@ export async function userRoute(fastify: FastifyInstance) {
             maxAge: 30 * 24 * 60 * 60
         });
 
+        const cascade_data = {
+            id: user_data.id,
+            username: user_data.username,
+            mail: user_data.email,
+            created_at: user_data.created_at
+        } as { id: string; username: string; mail: string; created_at: Date; }
+
+        publishUserCreated(cascade_data)
+
         return response.code(201).send({
             user: {
                 id: user_data.id,
@@ -127,6 +122,22 @@ export async function userRoute(fastify: FastifyInstance) {
     })
 
     fastify.delete('/user/:id', async (request, response) => {
+
+        const access_token = request.cookies['access_token']
+
+        if (!access_token) {
+            return response.code(403).send({ error: "Missing access token" })
+        }
+
+        let decoded;
+
+        try {
+            decoded = fastify.jwt.verify(access_token) as { iat: number, exp: number, id: string }
+        }
+        
+        catch (err) {
+            return response.code(401).send({ error: "Invalid or expired access token" })
+        }
 
         const { id } = request.params as { id: string }
 

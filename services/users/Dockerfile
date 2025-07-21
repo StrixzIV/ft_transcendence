@@ -30,6 +30,6 @@ COPY --from=build /app/prisma prisma
 COPY tools/waitfor.sh /waitfor.sh
 RUN chmod +x /waitfor.sh
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["sh", "-c", "/waitfor.sh broker:5672 -- npm run db_init && node dist/server.js"]

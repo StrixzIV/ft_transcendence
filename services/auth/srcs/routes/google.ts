@@ -5,6 +5,7 @@ import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
 import { get_JWT_secret } from '../utils/jwt';
+import { publishUserCreated } from '../utils/rabbitmq';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
@@ -143,6 +144,14 @@ export async function googleRoute(fastify: FastifyInstance) {
             maxAge: 30 * 24 * 60 * 60
         });
 
+        const cascade_data = {
+            id: user.id,
+            username: user.username,
+            mail: user.email,
+            created_at: user.created_at
+        } as { id: string; username: string; mail: string; created_at: Date; }
+
+        publishUserCreated(cascade_data)
         response.redirect(`https://localhost:8443/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`)
 
     });
