@@ -1,0 +1,17 @@
+server {
+    # Port
+    listen 8080;
+
+    # Main properties
+    server_name broker.${DOMAIN_NAME};
+
+    # Route to service
+    location / {
+        proxy_pass http://broker:15672;
+        include /etc/nginx/rules.d/blackbox-proxy-rule.conf;
+    }
+
+    # Logs
+    access_log /var/log/nginx/nginx_broker_access.log;
+    error_log  /var/log/nginx/nginx_broker_error.log;
+}

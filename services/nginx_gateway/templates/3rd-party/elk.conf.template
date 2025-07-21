@@ -1,0 +1,17 @@
+server {
+    # Port
+    listen 8080;
+
+    # Main properties
+    server_name elk.${DOMAIN_NAME};
+
+    # Route to service
+    location / {
+        proxy_pass http://kibana:5601;
+        include /etc/nginx/rules.d/blackbox-proxy-rule.conf;
+    }
+
+    # Logs
+    access_log /var/log/nginx/nginx_elk_access.log;
+    error_log  /var/log/nginx/nginx_elk_error.log;
+}

@@ -3,8 +3,15 @@
 /**/.vscode/
 /**/.idea/
 
+# Backup files
+/**/*.bak
+
 # secret
 secrets/*
+/**/*.crt
+/**/*.key
+/**/*.pem
+/**/*.token
 
 # env
 /**/*.env*
