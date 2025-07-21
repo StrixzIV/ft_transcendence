@@ -37,11 +37,9 @@ export function twoFactorPage() {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const token = (document.getElementById('token') as HTMLInputElement).value;
 
         try {
-
             const uid = localStorage.getItem('uid');
 
             const response = await fetch(auth_endpoint('/2fa/verify'), {
@@ -66,10 +64,7 @@ export function twoFactorPage() {
             localStorage.setItem('expires_at', json.expires_at);
 
             window.location.reload();
-
-
         } 
-        
         catch (err) {
             console.error('2FA error', err);
             errorDisplay.textContent = "Something went wrong. Try again.";
