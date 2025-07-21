@@ -6,8 +6,8 @@ source ./env/.no_sensitive.env
 set +a
 
 # Set variables
-ssl_dir=./services/nginx_waf/ssl
-ssl_name=server # Don't edit this, until you edit in WAF first
+ssl_dir=./secrets/ssl
+ssl_name=server # Don't edit this, until you edit in nginx-ssl first
 
 if [ -d $ssl_dir ]; then
 	echo "SSL certificats & keys has already been generated."
