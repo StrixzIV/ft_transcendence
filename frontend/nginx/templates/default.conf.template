@@ -7,11 +7,11 @@ server {
     root /var/www/html;
     index index.html index.htm;
 
-    # Health
-    location /health {
-        access_log off;
-        return 200;
-    }
+    # # Health
+    # location /health {
+    #     access_log off;
+    #     return 200;
+    # }
 
     # For fetching frontend page
     location / {
