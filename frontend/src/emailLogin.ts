@@ -3,7 +3,6 @@ import { auth_endpoint } from "./provider/api";
 import { registerPage } from "./register";
 
 export function loginPage() {
-
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
       <div class="min-h-screen flex items-center justify-center bg-gray-900 text-white">
