@@ -1,4 +1,4 @@
-import { auth_endpoint } from "../provider/api";
+import { auth_endpoint } from "@/provider/api";
 
 export async function secureFetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
 
