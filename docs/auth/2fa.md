@@ -21,7 +21,7 @@ Generate Qrcode url for registing 2FA
 
 `401` **Look at `token-error.md`**
 
-`500` Inter Server Error (Failed to genereate QRCode)
+`500` Internal Server Error (Failed to genereate QRCode)
 
 ```json
 {
