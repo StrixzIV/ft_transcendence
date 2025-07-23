@@ -1,6 +1,6 @@
 # JWT Token Error
 
-## Access toekn
+## Access token
 
 `401` User not found (somehow uid in cookies doesn't exist)
 
