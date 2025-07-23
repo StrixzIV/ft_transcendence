@@ -1,6 +1,6 @@
 # /auth/login
 
-This auth endpoint API is for normal email login.
+This auth endpoint API is for normal login.
 
 ## `POST` - /auth/login
 
@@ -31,7 +31,7 @@ Validate username and password and return JWT access and refresh token.
 ```json
 {
   "user": {
-    "id": "228c3f8d-1577-4073-bce7-16dda1c50b87",
+    "uid": "228c3f8d-1577-4073-bce7-16dda1c50b87",
     "username": "bob",
     "mail": "bob@example.com"
   },
@@ -39,17 +39,25 @@ Validate username and password and return JWT access and refresh token.
 }
 ```
 
-**Note:** JWT access and refresh token will be sended back as HTTP-only cookie. (This cookie cannot be accessed with JavaScript. Include the credentials when asked for JWT instead.)
-
-`401` Not found
+`202` Accepted but required 2FA
 
 ```json
-{ 
-  "error": "User not found"
+{
+  "uid": "228c3f8d-1577-4073-bce7-16dda1c50b87"
 }
 ```
 
-`401` Not found (Invalid username/password)
+**Note:** JWT access and refresh token will be sended back as HTTP-only cookie. (This cookie cannot be accessed with JavaScript. Include the credentials when asked for JWT instead.)
+
+`401` Login Denied (User already has Google OAuth2 account in the DB)
+
+```json
+{ 
+  "error": "User is registered with Google sign-in. Please login with Google"
+}
+```
+
+`401` Invalid username/password
 
 ```json
 { 
@@ -57,18 +65,10 @@ Validate username and password and return JWT access and refresh token.
 }
 ```
 
-`401` Not found (User already has Google OAuth2 account in the DB already)
-
-```json
-{ 
-  "error": "User registered with Google sign-in. Please login with Google"
-}
-```
-
-`500` Internal Server Error (JWT signed fail)
+`500` Internal Server Error (JWT signing is failed)
 
 ```json
 {
-  "error": "Cannot get iat field from JWT"
+  "error": "Cannot generate login token"
 }
 ```

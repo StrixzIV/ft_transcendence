@@ -2,61 +2,7 @@
 
 This auth endpoint API allows you to register a new user.
 
-## `GET` - /auth/user (FOR TESTING ONLY)
-
-Retrieve all users in the system. **(Testing only; remove in production.)**
-
-### Response
-
-`200` Successful
-
-```json
-[
-  {
-    "id": "ff46bb97-cf52-4ca2-99f6-72170899af69",
-    "username": "abc123",
-    "email": "alice@example.com",
-    "created_at": "2025-07-13T14:54:46.970Z"
-  },
-  {
-    "id": "2a47bd07-cfa2-4ca2-19c1-72170899af123",
-    "username": "test",
-    "email": "test@example.com",
-    "created_at": "2025-07-13T14:00:46.230Z"
-  },
-  ...
-]
-```
-
-## `DELETE` - /auth/user/{id} (FOR TESTING ONLY)
-
-Remove user by id **(Testing only; remove in production.)**
-
-### Response
-
-`200` Successful
-
-```json
-{
-  "message": "User deleted",
-  "user": {
-    "id": "ff46bb97-cf52-4ca2-99f6-72170899af69",
-    "username": "bob",
-    "email": "bob@example.com",
-    "created_at": "2025-07-13T14:54:46.970Z"
-  }
-}
-```
-
-`404` Not found
-
-```json
-{
-  "error": "User not found"
-}
-```
-
-## `POST` - /auth/user 
+## `POST` - /auth/user
 
 Create a new user account.
 
@@ -89,7 +35,7 @@ Create a new user account.
 ```json
 {
   "user": {
-    "id": "228c3f8d-1577-4073-bce7-16dda1c50b87",
+    "uid": "228c3f8d-1577-4073-bce7-16dda1c50b87",
     "username": "bob",
     "mail": "bob@example.com"
   },
@@ -113,10 +59,10 @@ Create a new user account.
 }
 ```
 
-`500` Internal Server Error (JWT signed fail)
+`500` Internal Server Error (JWT signing is failed)
 
 ```json
 {
-  "error": "Cannot get iat field from JWT"
+  "error": "Cannot generate login credential"
 }
 ```

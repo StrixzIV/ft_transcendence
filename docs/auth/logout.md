@@ -12,16 +12,4 @@ Invalidate the current refresh token and clear all session cookies.
 
 `200` Successful
 
-```json
-{
-  "success": true
-}
-```
-
 `500` Internal Server Error
-
-```json
-{
-  "error": "Internal server error"
-}
-```

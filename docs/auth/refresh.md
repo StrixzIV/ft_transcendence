@@ -12,26 +12,4 @@ Validate the provided refresh token, issue a new access token, and set it as a H
 
 `200` Successful (Set access token cookie only)
 
-`401` Not found (No token cookie provided)
-
-```json
-{ 
-  "error": "Missing refresh token"
-}
-```
-
-`401` Not found (Invalid token cookie)
-
-```json
-{ 
-  "error": "Invalid refresh token"
-}
-```
-
-`401` Not found (Token expired)
-
-```json
-{ 
-  "error": "Invalid or expired refresh token"
-}
-```
+`401` **Look at `token-error.md`**
