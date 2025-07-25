@@ -79,6 +79,7 @@ USER nginx
 
 # Copy thing from host
 COPY --chown=nginx:nginx ./nginx.conf /etc/nginx/nginx.conf
+COPY --chown=nginx:nginx ./includes/ /etc/nginx/includes/
 COPY --chown=nginx:nginx ./rules.d/ /etc/nginx/rules.d/
 COPY --chown=nginx:nginx ./templates/ /etc/nginx/templates/
 COPY --chown=nginx:nginx ./modsecurity.d/ /etc/nginx/modsecurity.d/
