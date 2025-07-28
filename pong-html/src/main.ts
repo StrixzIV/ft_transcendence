@@ -43,8 +43,10 @@ class Pong {
             // Error handling here.
         }
         this._canvasWidth = cWidth;
+        this._canvas.width = cWidth;
         this._canvas.style.width = `${cWidth}px`;
         this._cavnasHeight = cHeight;
+        this._canvas.height = cHeight;
         this._canvas.style.height = `${cHeight}px`;
         this._canvas.id = "pongTable";
         document.body.appendChild(this._canvas);
@@ -53,7 +55,6 @@ class Pong {
         if (this._context == null) {
             // Error handling here.
         }
-        this._context.scale(1, 1);
     }
 
     private initialize(gridSize: number, paddleHeight: number, paddleSpeed: number, ballSpeed: number): void {
@@ -77,11 +78,11 @@ class Pong {
             this._ballSpeed, -this._ballSpeed
         );
 
-        window.addEventListener('keydown', (event: KeyboardEvent) => {
+        document.addEventListener('keydown', (event: KeyboardEvent) => {
             this._pressedKeys.add(event.code);
         });
     
-        window.addEventListener('keyup', (event: KeyboardEvent) => {
+        document.addEventListener('keyup', (event: KeyboardEvent) => {
             this._pressedKeys.delete(event.code);
         });
     
@@ -105,14 +106,14 @@ class Pong {
         if (keys.has("KeyW") && !keys.has("KeyS")) {
             this._leftPaddle.setDy(this._paddleSpeed * -1);
         }
-        else if (keys.has("KeyS") && keys.has("KeyW")) {
+        else if (keys.has("KeyS") && !keys.has("KeyW")) {
             this._leftPaddle.setDy(this._paddleSpeed);
         }
 
         if (keys.has("ArrowUp") && !keys.has("ArrowDown")) {
             this._rightPaddle.setDy(this._paddleSpeed * -1);
         }
-        else if (keys.has("KeyS") && keys.has("KeyW")) {
+        else if (keys.has("ArrowDown") && !keys.has("ArrowUp")) {
             this._rightPaddle.setDy(this._paddleSpeed);
         }
     }
@@ -135,24 +136,11 @@ class Pong {
 
         // Clear the board
         ctx.clearRect(0, 0, cWidth, cHeight);
-
-         //   // draw walls
-    //   context.fillStyle = 'lightgrey';
-    //   context.fillRect(0, 0, canvas.width, grid);
-    //   context.fillRect(0, canvas.height - grid, canvas.width, canvas.height);
-
-    //   // draw dotted line down the middle
-    //   for (let i = grid; i < canvas.height - grid; i += grid * 2) {
-    //     context.fillRect(canvas.width / 2 - grid / 2, i, grid, grid);
-    //   }
         
         // Draw walls
         ctx.fillStyle = 'lightgrey';
-        // ctx.fillRect(0, 0, cWidth, gridSize);
-        // ctx.fillRect(0, cHeight - gridSize, cWidth, cHeight);
-
-        ctx.fillRect(0, 0, 100, 100);
-        ctx.fillRect(0, 780, 1000, 800);
+        ctx.fillRect(0, 0, cWidth, gridSize);
+        ctx.fillRect(0, cHeight - gridSize, cWidth, cHeight);
 
         // Draw dotted line down the middle
         for (let i = gridSize; i < cHeight - gridSize; i += gridSize * 2) {
@@ -190,7 +178,7 @@ class Pong {
         let rightHeight = rightPaddle.getHeight();
         
         // Draw paddles
-        ctx.fillStyle = 'yellow';
+        ctx.fillStyle = 'white';
         ctx.fillRect(leftX, leftY, leftWidth, leftHeight);
         ctx.fillRect(rightX, rightY, rightWidth, rightHeight);
 
