@@ -20,19 +20,20 @@ class Pong {
     private _leftPaddle!: Paddle;
     private _rightPaddle!: Paddle;
 
-    private _pressedKeys = new Set<string>();
+    private _winScore!: number;
 
-    // private _gameIsOver: boolean;
+    private _pressedKeys = new Set<string>();
+    private _isGameOver!: boolean;
 
     constructor (
-        gameWidth: number, cHeight: number, gridSize: number, paddleHeight: number,
-        paddleSpeed: number, ballSpeed: number, sideWidth: number
+        gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number,
+        paddleSpeed: number, ballSpeed: number, winScore: number
     ) {
-        this.createCanvas(gameWidth, cHeight, sideWidth);
-        this.initialize(gridSize, paddleHeight, paddleSpeed, ballSpeed);
+        this.createCanvas(gameWidth, sideWidth, cHeight);
+        this.initialize(gridSize, paddleHeight, paddleSpeed, ballSpeed, winScore);
     }
 
-    private createCanvas(gameWidth: number, cHeight: number, sideWidth: number): void {
+    private createCanvas(gameWidth: number, sideWidth: number, cHeight: number): void {
         // document.documentElement.style["overflow"] = "hidden";
         // document.documentElement.style.overflow = "hidden";
         // document.documentElement.style.width = "100%";
@@ -68,11 +69,13 @@ class Pong {
 
     }
 
-    private initialize(gridSize: number, paddleHeight: number, paddleSpeed: number, ballSpeed: number): void {
+    private initialize(gridSize: number, paddleHeight: number, paddleSpeed: number, ballSpeed: number, winScore: number): void {
         this._gridSizeInPx = gridSize;
         this._maxPaddleY = this._cavnasHeight - gridSize - paddleHeight;
         this._paddleSpeed = paddleSpeed;
         this._ballSpeed = ballSpeed;
+        this._winScore = winScore;
+        this._isGameOver = true;
         
         this._leftPaddle = new Paddle (
             "leftPlayer", gridSize, paddleHeight,
@@ -149,7 +152,7 @@ class Pong {
         ctx.textAlign = "left";
         ctx.fillText(`${leftScore}`, gridSize, gridSize * 5, sWidth - gridSize);
         ctx.textAlign = "right";
-        ctx.fillText(`${rightScore}`, cWidth - gridSize, gridSize * 5, sWidth - gridSize);
+        ctx.fillText(`${rightScore}`, cWidth, gridSize * 5, sWidth - gridSize);
     }
 
     public startGameLoop = (): void => {
@@ -164,7 +167,7 @@ class Pong {
         let rPaddle = this._rightPaddle;
 
         // Clear canvas
-        this._context!.clearRect(0, 0, cWidth, cHeight);
+        ctx.clearRect(0, 0, cWidth, cHeight);
 
         // Draw walls
         ctx.fillStyle = 'lightgrey';
@@ -181,10 +184,7 @@ class Pong {
         ctx.fillRect(lPaddle.getX(), lPaddle.getY(), lPaddle.getWidth(), lPaddle.getHeight());
         ctx.fillRect(rPaddle.getX(), rPaddle.getY(), rPaddle.getWidth(), rPaddle.getHeight());
         
-        // Start after delay
-        setTimeout(() => {
-            requestAnimationFrame(this.gameLoop);
-        }, 2000);
+        requestAnimationFrame(this.gameLoop);
 
     }
     
@@ -200,8 +200,22 @@ class Pong {
         let ball = this._ball;
         let leftPaddle = this._leftPaddle;
         let rightPaddle = this._rightPaddle;
-
-        // Clear the game board (center)
+        let winScore = this._winScore;
+        let keys = this._pressedKeys;
+        
+        if (this._isGameOver) {
+            if (keys.has("Enter")) {
+                leftPaddle.setScore(0);
+                rightPaddle.setScore(0);
+                leftPaddle.setY((cHeight - leftPaddle.getHeight()) / 2);
+                rightPaddle.setY((cHeight - rightPaddle.getHeight()) / 2);
+                this._isGameOver = false;
+            }
+            requestAnimationFrame(this.gameLoop)
+            return ;
+        }
+        
+        // Clear the game board (center only commented out)
         // ctx.clearRect(sWidth, 0, gWidth, cHeight);
         ctx.clearRect(0, 0, cWidth, cHeight);
         
@@ -312,6 +326,11 @@ class Pong {
         // Draw Scores
         this.scoreboards();
 
+        // Check if winScore is reached
+        if (leftPaddle.getScore() >= winScore || rightPaddle.getScore() >= winScore) {
+            this._isGameOver = true;
+        }
+
         // Next frame
         requestAnimationFrame(this.gameLoop);
 
@@ -319,5 +338,5 @@ class Pong {
 
 }
 
-let pong = new Pong(1000, 800, 20, 100, 8, 6, 100);
+let pong = new Pong(1000, 100, 800, 20, 100, 8, 6, 5);
 pong.startGameLoop();
