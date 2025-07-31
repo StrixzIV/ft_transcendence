@@ -16,11 +16,17 @@ done
 echo "[vault-init] Vault is ready."
 echo "[vault-init] Storing tokens..."
 
-# Store in Vault KV
+# Store JWT in Vault KV
 vault kv put secret/jwt \
                 access_secret="$JWT_ACCESS_TOKEN_SECRETS" \
                 refresh_secret="$JWT_REFRESH_TOKEN_SECRETS" \
                 algorithm="HS256" \
+                > /dev/null 2>&1
+
+# Sotre Google in Vault KV
+vault kv put secret/google \
+                google_client_id="$GOOGLE_CLIENT_ID" \
+                google_client_secret="$GOOGLE_CLIENT_SECRET" \
                 > /dev/null 2>&1
 
 # Remove vault's token in env after use
@@ -28,5 +34,7 @@ unset VAULT_TOKEN
 unset VAULT_DEV_ROOT_TOKEN_ID
 unset JWT_ACCESS_TOKEN_SECRETS
 unset JWT_REFRESH_TOKEN_SECRETS
+unset GOOGLE_CLIENT_ID
+unset GOOGLE_CLIENT_SECRET
 
 echo "[vault-init] Secret stored successfully!"

@@ -6,16 +6,18 @@ import { FastifyInstance } from 'fastify';
 
 import { get_JWT_secret } from '../utils/jwt';
 import { publishUserCreated } from '../utils/rabbitmq';
+import { get_google_secret } from '../utils/google';
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? "";
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
 const REDIRECT_URI = "https://localhost:8443/auth/google/callback";
 
 export async function googleRoute(fastify: FastifyInstance) {
 
-    fastify.get('/google', async (request, response) => {
+    const google_secrets = await get_google_secret();
+    const GOOGLE_CLIENT_ID = google_secrets.google_client_id;
+    const GOOGLE_CLIENT_SECRET = google_secrets.google_client_secret;
 
-        const random_state = crypto.randomUUID()
+    fastify.get('/google', async (request, response) => {
+        const random_state = crypto.randomUUID();
         const auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams({
             client_id: GOOGLE_CLIENT_ID,
             redirect_uri: REDIRECT_URI,
@@ -27,7 +29,6 @@ export async function googleRoute(fastify: FastifyInstance) {
         });
 
         response.redirect(auth_url)
-
     });
 
     fastify.get('/google/callback', async (request, response) => {
@@ -116,7 +117,7 @@ export async function googleRoute(fastify: FastifyInstance) {
         const decoded = fastify.jwt.decode(raw_refresh_token) as { iat: number, exp: number }
 
         if (!decoded) {
-            return response.code(500).send({ error: 'Cannot get iat field from JWT' });
+            return response.code(500).send({ error: 'Cannot generate login credential' });
         }
 
         await prisma.refreshToken.create({
@@ -153,7 +154,5 @@ export async function googleRoute(fastify: FastifyInstance) {
 
         publishUserCreated(cascade_data)
         response.redirect(`https://localhost:8443/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`)
-
     });
-
 }
