@@ -43,7 +43,7 @@ https://${DOMAIN_NAME}:8443/?id=<user_id>&username=<username>&expires_at=<unix_t
 `302` Redirect (Succesful, but need 2FA Verification)
 
 ```txt
-`https://${DOMAIN_NAME}:8443/?id=${user.id}&twofa=true`
+https://${DOMAIN_NAME}:8443/?id=<user_id>&twofa=true
 ```
 
 `302` Redirect (No access code provided back)

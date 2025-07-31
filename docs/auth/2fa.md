@@ -69,6 +69,7 @@ Turn off 2FA mode
 
 ```typescript
 {
+  id: string;
   token: string;
 }
 ```
@@ -77,7 +78,8 @@ Turn off 2FA mode
 
 ```json
 {
-  "totp_token": "supersecret"
+  "id": "228c3f8d-1577-4073-bce7-16dda1c50b87",
+  "token": "123456"
 }
 ```
 
@@ -88,7 +90,7 @@ Turn off 2FA mode
 ```json
 {
   "user": {
-    "uid": "228c3f8d-1577-4073-bce7-16dda1c50b87",
+    "id": "228c3f8d-1577-4073-bce7-16dda1c50b87",
     "username": "bob",
     "mail": "bob@example.com"
   },
@@ -97,3 +99,11 @@ Turn off 2FA mode
 ```
 
 `401` **Look at `token-error.md`**
+
+`500` Internal Server Error (JWT signing is failed)
+
+```json
+{
+  "error": "Cannot generate login credential"
+}
+```
