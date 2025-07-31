@@ -31,7 +31,7 @@ Validate username and password and return JWT access and refresh token.
 ```json
 {
   "user": {
-    "uid": "228c3f8d-1577-4073-bce7-16dda1c50b87",
+    "id": "228c3f8d-1577-4073-bce7-16dda1c50b87",
     "username": "bob",
     "mail": "bob@example.com"
   },
@@ -43,7 +43,9 @@ Validate username and password and return JWT access and refresh token.
 
 ```json
 {
-  "uid": "228c3f8d-1577-4073-bce7-16dda1c50b87"
+  "user": {
+    "id": "228c3f8d-1577-4073-bce7-16dda1c50b87"
+  }
 }
 ```
 

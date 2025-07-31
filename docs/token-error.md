@@ -18,19 +18,11 @@
 }
 ```
 
-`401` Invalid token cookie
+`401` Invalid/Expired token cookie
 
 ```json
 { 
-  "error": "Invalid access token"
-}
-```
-
-`401` Token expired
-
-```json
-{ 
-  "error": "Expired access token"
+  "error": "Invalid or expired access token"
 }
 ```
 
@@ -52,18 +44,10 @@
 }
 ```
 
-`401` Invalid token cookie
+`401` Invalid/Expired token cookie
 
 ```json
 { 
-  "error": "Invalid refresh token"
-}
-```
-
-`401` Token expired
-
-```json
-{ 
-  "error": "Expired refresh token"
+  "error": "Invalid or expired refresh token"
 }
 ```
