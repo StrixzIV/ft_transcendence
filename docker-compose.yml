@@ -82,6 +82,22 @@ services:
       - auth-backend
       - users-backend
 
+  # S3
+  minio:
+    container_name: minio
+    image: minio/minio:latest
+    restart: always
+    env_file:
+      - env/.s3.env
+    networks:
+      - mainnet
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    expose:
+      - 9000
+      - 9001
+
   # RabbitMQ
   broker:
     container_name: broker
@@ -264,6 +280,9 @@ volumes:
     driver: local
 
   rabbitmq-log:
+    driver: local
+
+  minio-data:
     driver: local
 
 secrets:
