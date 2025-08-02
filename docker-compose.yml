@@ -95,6 +95,7 @@ services:
       - mainnet
     volumes:
       - ./data/minio:/data
+      - ./assets:/init-assets:ro
     command: server /data --console-address ":9001"
     expose:
       - 9000
