@@ -21,5 +21,13 @@ mc anonymous set public myminio/ft-transendence-images
 
 echo "✅ Bucket 'ft-transendence-images' created."
 
+if mc stat myminio/ft-transendence-images/default-profile.png > /dev/null 2>&1; then
+    echo "default-profile.png already exists, skipping upload."
+else
+    echo "Uploading default-profile.png..."
+    mc cp /init-assets/default-profile.png myminio/ft-transendence-images/
+    echo "Uploaded default-profile.png"
+fi
+
 # Wait for MinIO process
 wait $MINIO_PID
