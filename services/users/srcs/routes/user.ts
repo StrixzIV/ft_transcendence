@@ -10,7 +10,7 @@ export async function userRoute(fastify: FastifyInstance) {
         const token = request.cookies["access_token"];
 
         if (!token) {
-            return response.status(403).send({ error: "Missing token" });
+            return response.status(401).send({ error: "Missing token" });
         }
 
         try {
@@ -30,7 +30,7 @@ export async function userRoute(fastify: FastifyInstance) {
         } 
         
         catch (err) {
-            response.status(403).send({ error: "JWT validation failed" });
+            response.status(500).send({ error: "JWT validation failed" });
         }
 
     })

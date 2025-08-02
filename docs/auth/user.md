@@ -35,7 +35,7 @@ Create a new user account.
 ```json
 {
   "user": {
-    "uid": "228c3f8d-1577-4073-bce7-16dda1c50b87",
+    "id": "228c3f8d-1577-4073-bce7-16dda1c50b87",
     "username": "bob",
     "mail": "bob@example.com"
   },
