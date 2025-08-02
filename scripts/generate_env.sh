@@ -50,7 +50,18 @@ create_s3() {
     chmod 600 $file
 
     MINIO_ROOT_USER=$(input_with_default "MINIO_ROOT_USER [default: user]: " "user")
-    read -s -p "MINIO_ROOT_PASSWORD: " MINIO_ROOT_PASSWORD
+
+    # Enforcing 8 characters password
+    while true; do
+        read -s -p "MINIO_ROOT_PASSWORD (At least 8 characters): " MINIO_ROOT_PASSWORD
+        echo ""
+
+        if [ ${#MINIO_ROOT_PASSWORD} -lt 8 ]; then
+            echo "❌ Password must be at least 8 characters long. Please try again."
+        else
+            break
+        fi
+    done
 
     append_env $file MINIO_ROOT_USER $MINIO_ROOT_USER
     append_env $file MINIO_ROOT_PASSWORD $MINIO_ROOT_PASSWORD
