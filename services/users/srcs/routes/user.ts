@@ -34,5 +34,31 @@ export async function userRoute(fastify: FastifyInstance) {
         }
 
     })
+    
+    fastify.get('/image', async (request, response) => {
+
+        try {
+            
+            const res = await fetch("http://minio:9000/ft-transendence-images/default-profile.png");
+
+            if (!res.ok) {
+                return response.status(404).send({ error: "Image not found" });
+            }
+
+            const buffer = Buffer.from(await res.arrayBuffer());
+
+            response
+                .header("Content-Type", "image/png")
+                .header("Content-Length", buffer.length)
+                .send(buffer);
+
+        }
+        
+        catch (err) {
+            request.log.error(err);
+            response.status(500).send({ error: "Failed to fetch image" });
+        }
+
+    })
 
 }
