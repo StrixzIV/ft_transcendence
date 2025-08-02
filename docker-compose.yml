@@ -252,6 +252,7 @@ services:
     environment:
       - NODE_ENV=production
     depends_on:
+      - minio
       - vault
       - broker
       - auth-backend
