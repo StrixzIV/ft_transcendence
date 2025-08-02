@@ -94,7 +94,7 @@ services:
     networks:
       - mainnet
     volumes:
-      - minio-data:/data
+      - ./data/minio:/data
     command: server /data --console-address ":9001"
     expose:
       - 9000
@@ -282,9 +282,6 @@ volumes:
     driver: local
 
   rabbitmq-log:
-    driver: local
-
-  minio-data:
     driver: local
 
 secrets:
