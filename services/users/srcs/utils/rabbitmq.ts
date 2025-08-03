@@ -1,6 +1,11 @@
+import path from "path";
 import amqp from 'amqplib';
-import { prisma } from '../db';
+import mime from "mime-types"; 
 import { v4 as uuidv4 } from "uuid";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+
+import { s3 } from './s3';
+import { prisma } from '../db';
 
 export async function consumeMQData() {
 
@@ -15,31 +20,79 @@ export async function consumeMQData() {
     console.log('[User Data Service] Waiting for user.created events...');
 
     channel.consume(q.queue, async (msg) => {
+
         if (!msg?.content) return;
 
         try {
+
             const event = JSON.parse(msg.content.toString());
 
             if (event.event === 'user.created') {
 
-                const { id, username, mail, created_at } = event.data;
+                const { id, username, mail, created_at, profile_url } = event.data;
 
-                await prisma.users.upsert({
-                    where: { id: id },
-                    update: {},
-                    create: {
-                        id: id,
-                        username,
-                        mail,
-                        created_at: new Date(created_at)
+                if (profile_url) {
+
+                    const profile_res = await fetch(profile_url);
+
+                    if (!profile_res.ok) {
+                        throw new Error(`Failed to fetch image: ${profile_res.status}`)
                     }
-                });
+
+                    const contentType = profile_res.headers.get("content-type") 
+                        || mime.lookup(profile_url) 
+                        || "application/octet-stream";
+
+                    let ext = mime.extension(contentType) || path.extname(new URL(profile_url).pathname).slice(1) || "bin";
+
+                    const s3_key = `${id}.${ext}`
+                    const array_buf = await profile_res.arrayBuffer();
+                    const buffer = Buffer.from(array_buf);
+
+                    await s3.send(new PutObjectCommand({
+                        Bucket: "ft-transendence-images",
+                        Key: s3_key,
+                        Body: buffer,
+                        ContentType: contentType,
+                    }));
+
+                    await prisma.users.upsert({
+                        where: { id: id },
+                        update: {},
+                        create: {
+                            id: id,
+                            username,
+                            mail,
+                            created_at: new Date(created_at),
+                            profile_url: s3_key.split('/').slice(-1)[0]
+                        }
+                    });
+
+                }
+
+                else {
+                    await prisma.users.upsert({
+                        where: { id: id },
+                        update: {},
+                        create: {
+                            id: id,
+                            username,
+                            mail,
+                            created_at: new Date(created_at)
+                        }
+                    });
+                }
 
                 console.log(`[User Data Service] User ${username} saved.`);
+
             }
-        } catch (error) {
+
+        }
+        
+        catch (error) {
             console.error('[Consumer Error]', error);
         }
+
     }, { noAck: true });
 }
 
