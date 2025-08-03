@@ -1,7 +1,10 @@
-import { prisma } from '../db';
+import { Readable } from "stream";
 import { FastifyInstance } from 'fastify';
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 
+import { prisma } from '../db';
 import { JWTValidate } from '../utils/rabbitmq';
+import { s3, stream_to_buf } from '../utils/s3';
 
 export async function userRoute(fastify: FastifyInstance) {
 
@@ -23,9 +26,13 @@ export async function userRoute(fastify: FastifyInstance) {
 
             const uid = result.data.id;
 
-            return await prisma.users.findUnique({
-                where: { id: uid }
-            });
+            for (let attempt = 0; attempt < 5; attempt++) {
+                const user = await prisma.users.findUnique({ where: { id: uid } });
+                if (user) return user;
+                await new Promise(r => setTimeout(r, 200));
+            }
+
+            return null;
         
         } 
         
@@ -37,18 +44,41 @@ export async function userRoute(fastify: FastifyInstance) {
     
     fastify.get('/image', async (request, response) => {
 
-        try {
-            
-            const res = await fetch("http://minio:9000/ft-transendence-images/default-profile.png");
+        const token = request.cookies["access_token"];
 
-            if (!res.ok) {
-                return response.status(404).send({ error: "Image not found" });
+        if (!token) {
+            return response.status(401).send({ error: "Missing token" });
+        }
+
+        try {
+
+            const token_data = await JWTValidate(token);
+            
+            if (!token_data.valid) {
+                return response.status(401).send({ error: "Invalid token" });
             }
 
-            const buffer = Buffer.from(await res.arrayBuffer());
+            const uid = token_data.data.id;
+            const user = await prisma.users.findUnique({ where: { id: uid } });
+
+            let images_name = "default-profile.png";
+
+            if (user) {
+                images_name = user.profile_url ?? "default-profile.png";
+            }
+
+            console.log(images_name)
+
+            const command = new GetObjectCommand({
+                Bucket: "ft-transendence-images",
+                Key: images_name
+            });
+            
+            const result = await s3.send(command);
+            const buffer = await stream_to_buf(result.Body as Readable);
 
             response
-                .header("Content-Type", "image/png")
+                .header("Content-Type", result.ContentType)
                 .header("Content-Length", buffer.length)
                 .send(buffer);
 
