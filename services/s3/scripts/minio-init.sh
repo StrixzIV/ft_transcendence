@@ -17,8 +17,6 @@ mc alias set myminio http://localhost:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
 # Create bucket if not exists
 mc mb myminio/ft-transendence-images || true
 
-mc anonymous set public myminio/ft-transendence-images
-
 echo "✅ Bucket 'ft-transendence-images' created."
 
 if mc stat myminio/ft-transendence-images/default-profile.png > /dev/null 2>&1; then
