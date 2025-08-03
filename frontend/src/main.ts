@@ -1,8 +1,5 @@
 import './style.css'
 
-import viteLogo from '/vite.svg'
-import typescriptLogo from './typescript.svg'
-
 import { loginPage } from './emailLogin.ts'
 import { auth_endpoint, users_endpoint } from './provider/api.ts'
 import { twoFactorPage } from './2fa.ts'
@@ -74,17 +71,22 @@ export async function mainPage() {
         method: 'GET'
     });
 
+    const user_image = await secureFetch(users_endpoint('/image'), {
+        method: 'GET'
+    });
+
     const user = await userdata.json()
+    const blob = await user_image.blob()
+    const image_uri = URL.createObjectURL(blob)
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
         <div class="text-white bg-gray-900 min-h-screen flex flex-col items-center justify-center space-y-4">
-            <a href="https://vite.dev" target="_blank">
-                <img src="${viteLogo}" class="logo" alt="Vite logo" />
-            </a>
-            <a href="https://www.typescriptlang.org/" target="_blank">
-                <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-            </a>
+            <img 
+                src="${image_uri}" 
+                alt="Profile Image"
+                class="w-24 h-24 rounded-full border border-gray-500"
+            />
             <h1>Welcome ${user.username ? user.username : 'Guest'}!</h1>
             ${user.username ? `<p class="text-sm text-gray-400">UUID: ${user.id}</p>` : ''}
             <div class="card">
