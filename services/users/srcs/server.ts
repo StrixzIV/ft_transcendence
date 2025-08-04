@@ -9,6 +9,7 @@ import { consumeMQData } from './utils/rabbitmq'
 
 import { userRoute } from './routes/userData';
 import { imageRoute } from './routes/image';
+import { friendshipRoute } from './routes/friendship';
 
 const MAX_SIZE_MB = 5;
 const endpoint_prefix = '/user'
@@ -39,6 +40,10 @@ async function initialize_server() {
     })
     
     app.register(imageRoute, {
+        prefix: endpoint_prefix
+    })
+    
+    app.register(friendshipRoute, {
         prefix: endpoint_prefix
     })
 
