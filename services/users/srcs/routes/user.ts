@@ -33,7 +33,7 @@ export async function userRoute(fastify: FastifyInstance) {
                 await new Promise(r => setTimeout(r, 50));
             }
 
-            return null;
+            return response.status(404).send({ error: "User not found" });
         
         } 
         
