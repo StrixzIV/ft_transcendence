@@ -84,6 +84,7 @@ export async function mainPage() {
         <div class="text-white bg-gray-900 min-h-screen flex flex-col items-center justify-center space-y-4">
             <img 
                 src="${image_uri}" 
+                id="profile-img"
                 alt="Profile Image"
                 class="w-24 h-24 rounded-full border border-gray-500"
             />
@@ -97,6 +98,17 @@ export async function mainPage() {
             </p>
 
             <button id="show-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded">Enable 2FA</button>
+            
+            <input 
+                type="file" 
+                id="upload-input" 
+                accept="image/*" 
+                class="hidden"
+            />
+            <button id="upload-btn" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded">
+                Upload New Profile Image
+            </button>
+
             <button id="logout" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mt-2">Logout</button>
 
         </div>
@@ -132,6 +144,10 @@ export async function mainPage() {
     const manualCode = document.getElementById('manual-code') as HTMLParagraphElement;
     const disable2fa = document.getElementById('disable-2fa') as HTMLButtonElement;
     const copyBtn = document.getElementById('copy-code') as HTMLButtonElement;
+
+    const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+    const uploadInput = document.getElementById('upload-input') as HTMLInputElement;
+    const profileImg = document.getElementById('profile-img') as HTMLImageElement;
     
     loginBtn.addEventListener('click', () => {
 
@@ -147,6 +163,52 @@ export async function mainPage() {
             loginPage();
         }
         
+    });
+
+    uploadBtn.addEventListener('click', () => uploadInput.click());
+
+    uploadInput.addEventListener('change', async () => {
+
+        if (!uploadInput.files || uploadInput.files.length === 0) return;
+
+        const file = uploadInput.files[0];
+
+        if (!file.type.startsWith("image/")) {
+            alert("Please upload a valid image file.");
+            return;
+        }
+
+        // 5MB limit
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Image must be smaller than 5MB.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+
+            const res = await secureFetch(users_endpoint('/image'), {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                throw new Error("Upload failed");
+            }
+
+            const newBlob = await secureFetch(users_endpoint('/image')).then(r => r.blob());
+            const newUri = URL.createObjectURL(newBlob);
+            profileImg.src = newUri;
+
+        }
+        
+        catch (err) {
+            alert("Failed to upload image.");
+            console.error(err);
+        }
+
     });
 
     showQrBtn.addEventListener('click', async () => {
