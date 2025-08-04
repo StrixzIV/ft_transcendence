@@ -113,6 +113,12 @@ services:
     volumes:
       - rabbitmq-lib:/var/lib/rabbitmq
       - rabbitmq-log:/var/log/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
     expose:
       - 5672
       - 15672
@@ -232,8 +238,10 @@ services:
     environment:
       - NODE_ENV=production
     depends_on:
-      - vault
-      - broker
+      vault:
+        condition: service_started
+      broker:
+        condition: service_healthy
     expose:
       - 3000
 
@@ -255,10 +263,14 @@ services:
     environment:
       - NODE_ENV=production
     depends_on:
-      - minio
-      - vault
-      - broker
-      - auth-backend
+      auth-backend:
+        condition: service_started
+      minio:
+        condition: service_started
+      vault:
+        condition: service_started
+      broker:
+        condition: service_healthy
     expose:
       - 3000
 
