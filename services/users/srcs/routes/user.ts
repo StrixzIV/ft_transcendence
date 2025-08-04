@@ -1,6 +1,7 @@
+import path from "path";
 import { Readable } from "stream";
 import { FastifyInstance } from 'fastify';
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 import { prisma } from '../db';
 import { JWTValidate } from '../utils/rabbitmq';
@@ -88,6 +89,52 @@ export async function userRoute(fastify: FastifyInstance) {
             request.log.error(err);
             response.status(500).send({ error: "Failed to fetch image" });
         }
+
+    })
+    
+    fastify.post('/image', async (request, response) => {
+
+        const token = request.cookies["access_token"];
+
+        if (!token) {
+            return response.status(401).send({ error: "Missing token" });
+        }
+
+        const result = await JWTValidate(token);
+        if (!result.valid) return response.status(401).send({ error: "Invalid token" });
+
+        const uid = result.data.id;
+        const data = await request.file();
+        if (!data) return response.status(400).send({ error: "No file uploaded" });
+
+        if (!data.mimetype.startsWith("image/")) {
+            return response.status(400).send({ error: "Only image uploads are allowed" });
+        }
+        
+        const chunks: Buffer[] = [];
+        
+        for await (const chunk of data.file) {
+            chunks.push(chunk);
+        }
+
+        const file_buf = Buffer.concat(chunks);
+
+        const ext = path.extname(data.filename).replace('.', '')
+        const s3_key = `${uid}.${ext}`
+
+        await s3.send(new PutObjectCommand({
+            Bucket: "ft-transendence-images",
+            Key: s3_key,
+            Body: file_buf,
+            ContentType: data.mimetype,
+        }));
+
+        await prisma.users.update({
+            where: { id: uid },
+            data: { profile_url: s3_key }
+        });
+
+        return response.status(201).send({ message: "Upload successful", key: s3_key });
 
     })
 
