@@ -173,11 +173,4 @@ export class Ball {
         this._y += this._dy;
     }
 
-    // public resetBall(): void {
-    //     // this._x = x;
-    //     // this._y = y;
-    //     // this._dx = dx;
-    //     // this._dy = dy;
-    // }
-
 }
