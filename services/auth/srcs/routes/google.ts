@@ -28,7 +28,7 @@ export async function googleRoute(fastify: FastifyInstance) {
             random_state
         });
 
-        response.redirect(auth_url)
+        response.redirect(auth_url);
     });
 
     fastify.get('/google/callback', async (request, response) => {
@@ -51,21 +51,19 @@ export async function googleRoute(fastify: FastifyInstance) {
                 redirect_uri: REDIRECT_URI,
                 grant_type: "authorization_code",
             })
-        })
+        });
 
-        const token_data = await token_callback.json()
+        const token_data = await token_callback.json();
 
         if (token_data.error) {
-            fastify.log.error(token_data)
-            return response.code(500).send({ error: "Failed to excahgne code for tokens" })
+            fastify.log.error(token_data);
+            return response.code(500).send({ error: "Failed to exchange code for tokens" });
         }
 
         const id_token = token_data.id_token;
-
         const base64_data = id_token.split(".")[1];
         const buffer = Buffer.from(base64_data, "base64");
         const user_data = JSON.parse(buffer.toString());
-
         const { email, name, picture, sub: googleId } = user_data
 
         let user = await prisma.users.findUnique({
@@ -100,13 +98,11 @@ export async function googleRoute(fastify: FastifyInstance) {
             return response.redirect(`https://localhost:8443/?id=${user.id}&twofa=true`)
         }
 
-        const secrets = await get_JWT_secret()
-
+        const secrets = await get_JWT_secret();
         const token = fastify.jwt.sign({
             id: user.id,
             username: user.username
-        })
-
+        });
         const raw_refresh_token = jwtLib.sign(
             { id: user.id },
             secrets.refresh_secret,
@@ -114,7 +110,7 @@ export async function googleRoute(fastify: FastifyInstance) {
         );
 
         const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
-        const decoded = fastify.jwt.decode(raw_refresh_token) as { iat: number, exp: number }
+        const decoded = fastify.jwt.decode(raw_refresh_token) as { iat: number, exp: number };
 
         if (!decoded) {
             return response.code(500).send({ error: 'Cannot generate login credential' });
@@ -152,7 +148,7 @@ export async function googleRoute(fastify: FastifyInstance) {
             created_at: user.created_at
         } as { id: string; username: string; mail: string; created_at: Date; }
 
-        publishUserCreated(cascade_data)
-        response.redirect(`https://localhost:8443/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`)
+        publishUserCreated(cascade_data);
+        response.redirect(`https://localhost:8443/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`);
     });
 }

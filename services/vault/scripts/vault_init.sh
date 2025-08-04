@@ -23,10 +23,16 @@ vault kv put secret/jwt \
                 algorithm="HS256" \
                 > /dev/null 2>&1
 
-# Sotre Google in Vault KV
+# Store Google in Vault KV
 vault kv put secret/google \
                 google_client_id="$GOOGLE_CLIENT_ID" \
                 google_client_secret="$GOOGLE_CLIENT_SECRET" \
+                > /dev/null 2>&1
+
+# Store Broker Secret
+vault kv put secret/broker \
+                rabbit_user="$RABBITMQ_DEFAULT_USER" \
+                rabbit_password="$RABBITMQ_DEFAULT_PASS" \
                 > /dev/null 2>&1
 
 # Remove vault's token in env after use
@@ -36,5 +42,7 @@ unset JWT_ACCESS_TOKEN_SECRETS
 unset JWT_REFRESH_TOKEN_SECRETS
 unset GOOGLE_CLIENT_ID
 unset GOOGLE_CLIENT_SECRET
+unset RABBITMQ_DEFAULT_USER
+unset RABBITMQ_DEFAULT_PASS
 
 echo "[vault-init] Secret stored successfully!"
