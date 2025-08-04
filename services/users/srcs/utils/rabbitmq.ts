@@ -7,9 +7,33 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3 } from './s3';
 import { prisma } from '../db';
 
+let conn: amqp.ChannelModel | null = null;
+
+export async function getRabbitMQConnection() {
+
+    if (!conn) {
+
+        conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
+        
+        conn.on('error', (err) => {
+            console.error('RabbitMQ connection error:', err);
+            conn = null;
+        });
+
+        conn.on('close', () => {
+            console.warn('RabbitMQ connection closed. Reconnecting...');
+            conn = null;
+        });
+
+    }
+
+    return conn;
+
+}
+
 export async function consumeMQData() {
 
-    const conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
+    const conn = await getRabbitMQConnection();
     const channel = await conn.createChannel();
 
     await channel.assertExchange('user.events', 'fanout', { durable: true });
@@ -98,7 +122,7 @@ export async function consumeMQData() {
 
 export async function JWTValidate(token: string) {
 
-    const conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
+    const conn = await getRabbitMQConnection();
     const channel = await conn.createChannel();
 
     const correlationId = uuidv4();
@@ -113,15 +137,16 @@ export async function JWTValidate(token: string) {
             replyQueue.queue,
             (msg) => {
                 if (msg?.properties.correlationId === correlationId) {
-                if (settled) return;
-                settled = true;
+                    
+                    if (settled) return;
+                    settled = true;
 
-                const result = JSON.parse(msg.content.toString());
-                resolve(result);
+                    const result = JSON.parse(msg.content.toString());
+                    resolve(result);
 
-                // Cleanup: cancel consumer and delete queue
-                channel.cancel(msg.fields.consumerTag).catch(console.error);
-                channel.deleteQueue(replyQueue.queue).catch(console.error);
+                    // Cleanup: cancel consumer and delete queue
+                    channel.cancel(msg.fields.consumerTag).catch(console.error);
+                    channel.deleteQueue(replyQueue.queue).catch(console.error);
                 }
             },
             { noAck: true }
