@@ -1,170 +1,135 @@
-import { Paddle, Ball } from "./pong_paddle_ball";
+// client.ts
+import { Paddle, Ball } from "./pong_paddle_ball.js";
 
-class Pong {
+interface GameState {
+    leftPaddleY: number;
+    rightPaddleY: number;
+    ballX: number;
+    ballY: number;
+    leftScore: number;
+    rightScore: number;
+    isGameOver: boolean;
+    winningPlayer?: 'leftPlayer' | 'rightPlayer';
+}
 
+class PongClient {
     private _canvas!: HTMLCanvasElement | null;
     private _context!: CanvasRenderingContext2D | null;
 
     private _canvasWidth!: number;
     private _cavnasHeight!: number;
-    
     private _gameWidth!: number;
     private _sidebarWidth!: number;
-
     private _gridSizeInPx!: number;
-    private _maxPaddleY!: number;
-    private _ballSpeed!: number;
-    private _paddleSpeed!: number;
-    
-    private _ball!: Ball;
-    private _leftPaddle!: Paddle;
-    private _rightPaddle!: Paddle;
 
-    private _winScore!: number;
+    private _leftPaddle: Paddle;
+    private _rightPaddle: Paddle;
+    private _ball: Ball;
 
-    private _pressedKeys = new Set<string>();
-    private _isGameOver!: boolean;
+    private _socket!: WebSocket;
+    private _isGameOver: boolean = true;
+    private _winningPlayer: 'leftPlayer' | 'rightPlayer' | undefined = undefined;
 
-    constructor (
-        gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number,
-        paddleSpeed: number, ballSpeed: number, winScore: number
-    ) {
-        this.createCanvas(gameWidth, sideWidth, cHeight);
-        this.initialize(gridSize, paddleHeight, paddleSpeed, ballSpeed, winScore);
+    constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number) {
+        this._gridSizeInPx = gridSize;
+        this._gameWidth = gameWidth;
+        this._sidebarWidth = sideWidth;
+        this._cavnasHeight = cHeight;
+
+        this._leftPaddle = new Paddle("leftPlayer", gridSize, paddleHeight, 0, 0);
+        this._rightPaddle = new Paddle("rightPlayer", gridSize, paddleHeight, 0, 0);
+        this._ball = new Ball(gridSize, gridSize, 0, 0, 0, 0);
+
+        this.createCanvas(this._gameWidth, sideWidth, cHeight);
+        this.setupWebSocket();
+        this.loadFont();
+        this.setupEventListeners();
     }
 
     private createCanvas(gameWidth: number, sideWidth: number, cHeight: number): void {
-        // document.documentElement.style["overflow"] = "hidden";
-        // document.documentElement.style.overflow = "hidden";
-        // document.documentElement.style.width = "100%";
-        // document.documentElement.style.height = "100%";
-        // document.documentElement.style.margin = "0";
-        // document.documentElement.style.padding = "0";
-        // document.body.style.overflow = "hidden";
-        // document.body.style.width = "100%";
-        // document.body.style.height = "100%";
-        // document.body.style.margin = "0";
-        // document.body.style.padding = "0";
-
-        this._gameWidth = gameWidth;
-        this._sidebarWidth = sideWidth;
-        
         this._canvas = document.createElement("canvas");
-        if (this._canvas == null) {
-            // Error handling here.
+        if (!this._canvas) {
+            console.error("Failed to create canvas.")
         }
+        
+        document.body.appendChild(this._canvas);
+
         this._canvasWidth = gameWidth + sideWidth * 2;
         this._canvas.width = this._canvasWidth;
         this._canvas.style.width = `${this._canvasWidth}px`;
         this._cavnasHeight = cHeight;
         this._canvas.height = cHeight;
         this._canvas.style.height = `${cHeight}px`;
-        this._canvas.id = "pongTable";
-        document.body.appendChild(this._canvas);
 
         this._context = this._canvas.getContext('2d')!;
-        if (this._context == null) {
-            // Error handling here.
+        if (!this._context) {
+            console.error("Failed to get 2D context for canvas.");
         }
-
     }
 
-    private initialize(gridSize: number, paddleHeight: number, paddleSpeed: number, ballSpeed: number, winScore: number): void {
-        this._gridSizeInPx = gridSize;
-        this._maxPaddleY = this._cavnasHeight - gridSize - paddleHeight;
-        this._paddleSpeed = paddleSpeed;
-        this._ballSpeed = ballSpeed;
-        this._winScore = winScore;
-        this._isGameOver = true;
-        
-        this._leftPaddle = new Paddle (
-            "leftPlayer", gridSize, paddleHeight,
-            this._sidebarWidth + gridSize * 2, this._cavnasHeight / 2 - paddleHeight / 2
-        );
+    private setupEventListeners(): void {
+        document.addEventListener('keydown', (event: KeyboardEvent) => {
+            this.sendInput(event.code, true);
+        });
+        document.addEventListener('keyup', (event: KeyboardEvent) => {
+            this.sendInput(event.code, false);
+        });
+    }
 
-        this._rightPaddle = new Paddle (
-            "rightPlayer", gridSize, paddleHeight,
-            this._sidebarWidth + this._gameWidth - gridSize * 2, this._cavnasHeight / 2 - paddleHeight / 2
-        );
-
-        this._ball = new Ball (
-            gridSize, gridSize, this._canvasWidth / 2, this._cavnasHeight / 2,
-            this._ballSpeed, -this._ballSpeed
-        );
-
+    private loadFont(): void {
         const myFont = new FontFace('pong-score', 'url(src/pong-score.otf.woff2)');
-
-        myFont.load().then(function(loadedFont) {
+        myFont.load().then((loadedFont) => {
             document.fonts.add(loadedFont);
-        }).catch(function(error) {
+        }).catch((error) => {
             console.error('Failed to load font:', error);
         });
-        
-        document.addEventListener('keydown', (event: KeyboardEvent) => {
-            this._pressedKeys.add(event.code);
-        });
+    }
+
+    private setupWebSocket(): void {
+        // Need to run a server, e.g. `node server.js`
+        this._socket = new WebSocket("ws://localhost:8080");
+
+        this._socket.onopen = () => {
+            console.log("Connected to WebSocket server.");
+        };
+
+        this._socket.onmessage = (event) => {
+            const gameState: GameState = JSON.parse(event.data);
+            this.updateClientState(gameState);
+        };
+
+        this._socket.onclose = () => {
+            console.log("Disconnected from WebSocket server.");
+        };
+
+        this._socket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+    }
+
+    private sendInput(keyCode: string, isPressed: boolean): void {
+        if (this._socket.readyState === WebSocket.OPEN) {
+            this._socket.send(JSON.stringify({ type: "input", key: keyCode, pressed: isPressed }));
+        }
+    }
+
+    private updateClientState(gameState: GameState): void {
+        this._leftPaddle.setY(gameState.leftPaddleY);
+        this._rightPaddle.setY(gameState.rightPaddleY);
+        this._ball.setX(gameState.ballX);
+        this._ball.setY(gameState.ballY);
+        this._leftPaddle.setScore(gameState.leftScore);
+        this._rightPaddle.setScore(gameState.rightScore);
+        this._isGameOver = gameState.isGameOver;
+        this._winningPlayer = gameState.winningPlayer;
+        this.drawGame();
+    }
     
-        document.addEventListener('keyup', (event: KeyboardEvent) => {
-            this._pressedKeys.delete(event.code);
-        });
-    
-    }
-
-    // 2 rectangular axis-aligned objects
-    private collide(paddle: Paddle, ball: Ball): boolean {
-        return (
-            paddle.getX() < ball.getX() + ball.getWidth() &&
-            paddle.getX() + paddle.getWidth() > ball.getX() &&
-            paddle.getY() < ball.getY() + ball.getHeight() &&
-            paddle.getY() + paddle.getHeight() > ball.getY()
-        );
-    }
-
-    private processKeysInput(): void {
-        let keys = this._pressedKeys;
-        this._leftPaddle.setDy(0);
-        this._rightPaddle.setDy(0);
-        
-        if (keys.has("KeyW") && !keys.has("KeyS")) {
-            this._leftPaddle.setDy(this._paddleSpeed * -1);
-        }
-        else if (keys.has("KeyS") && !keys.has("KeyW")) {
-            this._leftPaddle.setDy(this._paddleSpeed);
-        }
-
-        if (keys.has("ArrowUp") && !keys.has("ArrowDown")) {
-            this._rightPaddle.setDy(this._paddleSpeed * -1);
-        }
-        else if (keys.has("ArrowDown") && !keys.has("ArrowUp")) {
-            this._rightPaddle.setDy(this._paddleSpeed);
-        }
-    }
-
-    private scoreboards = (): void => {
+    private drawGame(): void {
         let ctx = this._context!;
         let cWidth = this._canvasWidth;
-        let sWidth = this._sidebarWidth;
-        let gridSize = this._gridSizeInPx;
-        let leftScore = this._leftPaddle.getScore();
-        let rightScore = this._rightPaddle.getScore();
-
-        ctx.font = `${sWidth / 2}px pong-score`;
-        ctx.textAlign = "left";
-        ctx.fillText(`${leftScore}`, gridSize, gridSize * 5, sWidth - gridSize);
-        ctx.textAlign = "right";
-        ctx.fillText(`${rightScore}`, cWidth, gridSize * 5, sWidth - gridSize);
-    }
-
-    public startGameLoop = (): void => {
-        
-        // Code to run before game loop starts will be here.
-
-        let ctx = this._context!;
-        let cWidth = this._canvasWidth!;
         let cHeight = this._cavnasHeight;
         let gridSize = this._gridSizeInPx;
-        let lPaddle = this._leftPaddle;
-        let rPaddle = this._rightPaddle;
 
         // Clear canvas
         ctx.clearRect(0, 0, cWidth, cHeight);
@@ -174,169 +139,52 @@ class Pong {
         ctx.fillRect(0, 0, cWidth, gridSize);
         ctx.fillRect(0, cHeight - gridSize, cWidth, cHeight);
 
-        // Draw dotted line down the middle
-        for (let i = gridSize; i < cHeight - gridSize; i += gridSize * 2) {
-            ctx.fillRect(cWidth / 2 - gridSize / 2, i, gridSize, gridSize);
-        }
-        
-        // Draw paddles
-        ctx.fillStyle = 'white';
-        ctx.fillRect(lPaddle.getX(), lPaddle.getY(), lPaddle.getWidth(), lPaddle.getHeight());
-        ctx.fillRect(rPaddle.getX(), rPaddle.getY(), rPaddle.getWidth(), rPaddle.getHeight());
-        
-        requestAnimationFrame(this.gameLoop);
-
-    }
-    
-    private gameLoop = (): void => {
-
-        let ctx = this._context!;
-        let cWidth = this._canvasWidth!;
-        let gWidth = this._gameWidth;
-        let sWidth = this._sidebarWidth;
-        let cHeight = this._cavnasHeight;
-        let gridSize = this._gridSizeInPx;
-        let maxPaddleY = this._maxPaddleY;
-        let ball = this._ball;
-        let leftPaddle = this._leftPaddle;
-        let rightPaddle = this._rightPaddle;
-        let winScore = this._winScore;
-        let keys = this._pressedKeys;
-        
-        if (this._isGameOver) {
-            if (keys.has("Enter")) {
-                leftPaddle.setScore(0);
-                rightPaddle.setScore(0);
-                leftPaddle.setY((cHeight - leftPaddle.getHeight()) / 2);
-                rightPaddle.setY((cHeight - rightPaddle.getHeight()) / 2);
-                this._isGameOver = false;
-            }
-            requestAnimationFrame(this.gameLoop)
-            return ;
-        }
-        
-        // Clear the game board (center only commented out)
-        // ctx.clearRect(sWidth, 0, gWidth, cHeight);
-        ctx.clearRect(0, 0, cWidth, cHeight);
-        
-        // Draw walls
-        ctx.fillStyle = 'lightgrey';
-        ctx.fillRect(0, 0, cWidth, gridSize);
-        ctx.fillRect(0, cHeight - gridSize, cWidth, cHeight);
-
-        // Draw dotted line down the middle
+        // Draw dotted line
         for (let i = gridSize; i < cHeight - gridSize; i += gridSize * 2) {
             ctx.fillRect(cWidth / 2 - gridSize / 2, i, gridSize, gridSize);
         }
 
-        this.processKeysInput();
-        
-        // Move paddles
-        if (ball.getToBeReset() == false) {
-            leftPaddle.movePaddle1Frame();
-            rightPaddle.movePaddle1Frame();
-        }
-
-        // Prevent paddles from going through walls
-        if (leftPaddle.getY() < gridSize) {
-            leftPaddle.setY(gridSize);
-        }
-        else if (leftPaddle.getY() > maxPaddleY) {
-            leftPaddle.setY(maxPaddleY);
-        }
-
-        if (rightPaddle.getY() < gridSize) {
-            rightPaddle.setY(gridSize);
-        }
-        else if (rightPaddle.getY() > maxPaddleY) {
-            rightPaddle.setY(maxPaddleY);
-        }
-
-        let leftX = leftPaddle.getX();
-        let leftY = leftPaddle.getY();
-        let leftWidth = leftPaddle.getWidth();
-        let leftHeight = leftPaddle.getHeight();
-        let rightX = rightPaddle.getX();
-        let rightY = rightPaddle.getY();
-        let rightWidth = rightPaddle.getWidth();
-        let rightHeight = rightPaddle.getHeight();
-        
-        // Draw paddles
+        // Draw paddles and ball
         ctx.fillStyle = 'white';
-        ctx.fillRect(leftX, leftY, leftWidth, leftHeight);
-        ctx.fillRect(rightX, rightY, rightWidth, rightHeight);
+        ctx.fillRect(this._leftPaddle.getX(), this._leftPaddle.getY(), this._leftPaddle.getWidth(), this._leftPaddle.getHeight());
+        ctx.fillRect(this._rightPaddle.getX(), this._rightPaddle.getY(), this._rightPaddle.getWidth(), this._rightPaddle.getHeight());
+        ctx.fillRect(this._ball.getX(), this._ball.getY(), this._ball.getWidth(), this._ball.getHeight());
 
-        // Move ball
-        ball.moveBall1Frame();
-
-        // Prevent ball from going through walls by changing its velocity
-        if (ball.getY() < gridSize) {
-            ball.setY(gridSize);
-            ball.setDy(ball.getDy() * -1);
-        }
-        else if (ball.getY() + gridSize > cHeight - gridSize) {
-            ball.setY(cHeight - gridSize * 2);
-            ball.setDy(ball.getDy() * -1);
-        }
-
-        // Reset ball if it goes past paddle (but only if we haven't already done so)
-        if ( (ball.getX() < sWidth + gridSize || ball.getX() > sWidth + gWidth - gridSize) && ball.getToBeReset() == false ) {
-            
-            ball.setToBeReset(true);
-            
-            // Stop ball
-            const tmpDx = ball.getDx();
-            const tmpDy = ball.getDy();
-            ball.setDx(0);
-            ball.setDy(0);
-
-            // Add score
-            if (ball.getX() < sWidth + gridSize) {
-                rightPaddle.addScore(1);
-            }
-            else {
-                leftPaddle.addScore(1);
-            }
-
-            // Give some time for the player to recover before launching the ball again
-            setTimeout(() => {
-                ball.setToBeReset(false);
-                ball.setX(cWidth / 2);
-                ball.setY(cHeight / 2);
-                ball.setDx(tmpDx);
-                ball.setDy(tmpDy);
-            }, 1000);
-        }
-
-        // Check to see if ball collides with paddle. if they do change x velocity
-        if (this.collide(leftPaddle, ball)) {
-            ball.setDx(ball.getDx() * -1);
-            // Move ball next to the paddle, otherwise the collision will happen again in the next frame
-            ball.setX(leftX + leftWidth);
-        }
-        else if (this.collide(rightPaddle, ball)) {
-            ball.setDx(ball.getDx() * -1);
-            // move ball next to the paddle, otherwise the collision will happen again in the next frame
-            ball.setX(rightX - ball.getWidth());
-        }
-
-        // Draw ball
-        ctx.fillRect(ball.getX(), ball.getY(), ball.getWidth(), ball.getHeight());
-
-        // Draw Scores
+        // Draw scores
         this.scoreboards();
 
-        // Check if winScore is reached
-        if (leftPaddle.getScore() >= winScore || rightPaddle.getScore() >= winScore) {
-            this._isGameOver = true;
+        if (this._isGameOver) {
+            this.drawGameOverScreen();
         }
-
-        // Next frame
-        requestAnimationFrame(this.gameLoop);
-
     }
 
+    private scoreboards(): void {
+        let ctx = this._context!;
+        let cWidth = this._canvasWidth;
+        let sWidth = this._sidebarWidth;
+        let gridSize = this._gridSizeInPx;
+
+        ctx.font = `${sWidth / 2}px pong-score`;
+        ctx.textAlign = "left";
+        ctx.fillText(`${this._leftPaddle.getScore()}`, gridSize, gridSize * 5, sWidth - gridSize);
+        ctx.textAlign = "right";
+        ctx.fillText(`${this._rightPaddle.getScore()}`, cWidth, gridSize * 5, sWidth - gridSize);
+    }
+    
+    private drawGameOverScreen(): void {
+        let ctx = this._context!;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, this._canvasWidth, this._cavnasHeight);
+        ctx.fillStyle = 'white';
+        ctx.font = '50px Arial';
+        ctx.textAlign = 'center';
+        
+        let winnerMessage = this._winningPlayer === 'leftPlayer' ? 'Left Player Wins!' : 'Right Player Wins!';
+        ctx.fillText(winnerMessage, this._canvasWidth / 2, this._cavnasHeight / 2 - 50);
+        ctx.font = '20px Arial';
+        ctx.fillText('Press Enter to Play Again', this._canvasWidth / 2, this._cavnasHeight / 2 + 20);
+    }
 }
 
-let pong = new Pong(1000, 100, 800, 20, 100, 8, 6, 5);
-pong.startGameLoop();
+// Start the client
+new PongClient(1000, 100, 800, 20, 100);
