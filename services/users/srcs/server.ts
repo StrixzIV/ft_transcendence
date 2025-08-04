@@ -6,7 +6,9 @@ import cookie from '@fastify/cookie';
 import fastifyMultipart from '@fastify/multipart';
 
 import { consumeMQData } from './utils/rabbitmq'
-import { userRoute } from './routes/user';
+
+import { userRoute } from './routes/userData';
+import { imageRoute } from './routes/image';
 
 const MAX_SIZE_MB = 5;
 const endpoint_prefix = '/user'
@@ -33,6 +35,10 @@ async function initialize_server() {
 
     // API register point
     app.register(userRoute, {
+        prefix: endpoint_prefix
+    })
+    
+    app.register(imageRoute, {
         prefix: endpoint_prefix
     })
 
