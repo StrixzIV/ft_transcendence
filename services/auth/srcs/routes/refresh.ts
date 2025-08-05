@@ -5,28 +5,26 @@ import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
 import { get_JWT_secret } from '../utils/jwt';
+import { JWTInfo } from '../interfaces/jwt';
 
 export async function refreshRoute(fastify: FastifyInstance) {
 
     fastify.post('/refresh', async (request, response) => {
-
-        const refresh_token = request.cookies['refresh_token']
+        const refresh_token = request.cookies['refresh_token'];
 
         if (!refresh_token) {
-            return response.code(401).send({ error: "Missing refresh token" })
+            return response.code(401).send({ error: "Missing refresh token" });
         }
 
-        const secrets = await get_JWT_secret()
+        const secrets = await get_JWT_secret();
 
         try {
-
             const payload = jwtLib.verify(
                 refresh_token,
                 secrets.refresh_secret
-            ) as { id: string };
+            ) as JWTInfo;
 
             const user_id = payload.id;
-
             const tokens = await prisma.refreshToken.findMany({
                 where: { user_id }
             });
@@ -48,31 +46,27 @@ export async function refreshRoute(fastify: FastifyInstance) {
                 where: { id: user_id }
             });
 
-            if (user) {
-
-                const access_token = fastify.jwt.sign({ 
-                    id: user.id,
-                    username: user.username
-                });
-
-                response.setCookie('access_token', access_token, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'lax',
-                    path: '/',
-                    maxAge: 15 * 60
-                });
-
-                return response.send(200);
-
+            if (!user) {
+                return response.code(401).send({ error: "User doesn't exist" });
             }
 
+            const access_token = fastify.jwt.sign({ 
+                id: user.id,
+                username: user.username
+            });
+
+            response.setCookie('access_token', access_token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 15 * 60
+            });
+
+            return response.send(200);
         } 
-
         catch (err) {
-            response.code(401).send({ error: 'Invalid or expired refresh token' });
+            return response.code(401).send({ error: 'Invalid or expired refresh token' });
         }
-
-    })
-
+    });
 }

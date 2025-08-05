@@ -7,11 +7,12 @@ import { FastifyInstance } from 'fastify';
 import { get_JWT_secret } from '../utils/jwt';
 import { publishUserCreated } from '../utils/rabbitmq';
 import { get_google_secret } from '../utils/google';
+import { JWTInfo } from '../interfaces/jwt';
+import { CascadeUserData } from '../interfaces/cascade_data';
 
 const REDIRECT_URI = "https://localhost:8443/auth/google/callback";
 
 export async function googleRoute(fastify: FastifyInstance) {
-
     const google_secrets = await get_google_secret();
     const GOOGLE_CLIENT_ID = google_secrets.google_client_id;
     const GOOGLE_CLIENT_SECRET = google_secrets.google_client_secret;
@@ -32,7 +33,6 @@ export async function googleRoute(fastify: FastifyInstance) {
     });
 
     fastify.get('/google/callback', async (request, response) => {
-
         const { code } = request.query as { code: string };
 
         if (!code) {
@@ -64,16 +64,15 @@ export async function googleRoute(fastify: FastifyInstance) {
         const base64_data = id_token.split(".")[1];
         const buffer = Buffer.from(base64_data, "base64");
         const user_data = JSON.parse(buffer.toString());
-        const { email, name, picture, sub: googleId } = user_data
+        const { email, name, picture, sub: googleId } = user_data;
 
         let user = await prisma.users.findUnique({
             where: {
                 google_id: googleId,
             }
-        })
+        });
 
         if (!user) {
-
             const basename = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
             let username = basename;
             let counter = 1;
@@ -91,11 +90,11 @@ export async function googleRoute(fastify: FastifyInstance) {
                     profile_url: picture,
                     pasword_hash: null,
                 }
-            })
+            });
         }
 
         if (user.twofa_enable) {
-            return response.redirect(`https://localhost:8443/?id=${user.id}&twofa=true`)
+            return response.redirect(`https://localhost:8443/?id=${user.id}&twofa=true`);
         }
 
         const secrets = await get_JWT_secret();
@@ -110,7 +109,7 @@ export async function googleRoute(fastify: FastifyInstance) {
         );
 
         const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
-        const decoded = fastify.jwt.decode(raw_refresh_token) as { iat: number, exp: number };
+        const decoded = fastify.jwt.decode(raw_refresh_token) as JWTInfo;
 
         if (!decoded) {
             return response.code(500).send({ error: 'Cannot generate login credential' });
@@ -146,7 +145,7 @@ export async function googleRoute(fastify: FastifyInstance) {
             username: user.username,
             mail: user.email,
             created_at: user.created_at
-        } as { id: string; username: string; mail: string; created_at: Date; }
+        } as CascadeUserData;
 
         publishUserCreated(cascade_data);
         response.redirect(`https://localhost:8443/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`);

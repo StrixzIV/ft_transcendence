@@ -7,6 +7,7 @@ import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import { prisma } from "../db";
 import { get_JWT_secret } from '../utils/jwt';
 import { decrypt, encrypt } from '../utils/encryption';
+import { JWTInfo } from '../interfaces/jwt';
 
 export async function twoFactorRoute(app: FastifyInstance, options: FastifyPluginOptions) {
     app.post('/2fa/generate', async (request, response) => {
@@ -17,10 +18,10 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             return response.code(401).send({ error: "Missing access token" });
         }
 
-        let decoded;
+        let decoded: JWTInfo;
 
         try {
-            decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
+            decoded = app.jwt.verify(access_token) as JWTInfo;
         }
         catch (err) {
             return response.code(401).send({ error: "Invalid or expired access token" })
@@ -79,10 +80,10 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             return response.code(401).send({ error: "Missing access token" });
         }
 
-        let decoded;
+        let decoded: JWTInfo;
 
         try {
-            decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
+            decoded = app.jwt.verify(access_token) as JWTInfo
         }
         catch (err) {
             return response.code(401).send({ error: "Invalid or expired access token" })
@@ -118,10 +119,10 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             return response.code(401).send({ error: "Missing access token" });
         }
 
-        let decoded;
+        let decoded: JWTInfo;
 
         try {
-            decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
+            decoded = app.jwt.verify(access_token) as JWTInfo;
         }
         catch (err) {
             return response.code(401).send({ error: "Invalid or expired access token" })

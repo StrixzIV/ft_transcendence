@@ -1,6 +1,5 @@
-import fs from 'fs';
-
 import Fastify from 'fastify';
+
 import jwt from '@fastify/jwt';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
@@ -13,26 +12,28 @@ import { twoFactorRoute } from './routes/2fa';
 import { refreshRoute } from './routes/refresh';
 import { logoutRoute } from './routes/logout';
 
+import logger from './utils/logger';
 import { get_JWT_secret } from './utils/jwt';
 
-import { connectRabbitMQ, JWTValidationConsumer } from './utils/rabbitmq'
+import { connectRabbitMQ, get_rabbit_url, JWTValidationConsumer } from './utils/rabbitmq'
+import { get_encrypt_secret } from './utils/encryption';
+import { get_google_secret } from './utils/google';
 
-const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' });
 const endpoint_prefix = '/auth';
 
 async function initialize_server() {
-    const app = Fastify({ 
-        logger: {
-            stream: log_filestream
-        }
-    });
+    const loggerEngine = logger();
+    const app = Fastify({ logger: loggerEngine });
 
-    app.register(cors, {
-        origin: '*'
-    });
+    app.register(cors, { origin: '*' });
     app.register(cookie);
 
+    // init secrets
+    await get_encrypt_secret();
+    await get_google_secret();
+    await get_rabbit_url();
     const jwt_secrets = await get_JWT_secret();
+
     await app.register(jwt, {
         secret: jwt_secrets.access_secret,
         sign: {
@@ -41,22 +42,17 @@ async function initialize_server() {
     });
 
     app.decorate('authenticate', async (request: FastifyRequest, response: FastifyReply) => {
-
         try {
-            await request.jwtVerify()
+            await request.jwtVerify();
         }
-
         catch (err) {
-
             if ((err as { name: string } ).name == "TokenExpiredError") {
                 response.code(401).send({ error: 'Token expired' })
                 return
             }
             response.code(401).send({ error: 'Invalid or missing token' })
-
         }
-
-    })
+    });
 
     // API register point
     app.register(userRoute, {
@@ -83,8 +79,7 @@ async function initialize_server() {
         prefix: endpoint_prefix
     });
 
-    return app
-
+    return app;
 }
 
 (async () => {

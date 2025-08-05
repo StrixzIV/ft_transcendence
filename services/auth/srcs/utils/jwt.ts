@@ -1,9 +1,5 @@
+import { JWTSecret } from "../interfaces/jwt";
 import { vault } from "./vault_client";
-
-export interface JWTSecret {
-    access_secret: string,
-    refresh_secret: string
-}
 
 let jwt_secret: JWTSecret | null = null;
 
