@@ -6,7 +6,7 @@ import { FastifyInstance } from 'fastify';
 
 import { FRONTEND_URI } from '../config/urls';
 
-import { get_JWT_secret } from '../utils/jwt';
+import { access_cookie_properties, get_JWT_secret, refresh_cookie_properties } from '../utils/jwt';
 import { publishUserCreated } from '../utils/rabbitmq';
 import { get_google_secret } from '../utils/google';
 import { JWTInfo } from '../interfaces/jwt';
@@ -126,21 +126,8 @@ export async function googleRoute(fastify: FastifyInstance) {
             }
         });
 
-        response.setCookie('access_token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 15 * 60
-        });
-
-        response.setCookie('refresh_token', raw_refresh_token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 30 * 24 * 60 * 60
-        });
+        response.setCookie('access_token', token, access_cookie_properties);
+        response.setCookie('refresh_token', raw_refresh_token, refresh_cookie_properties);
 
         const cascade_data = {
             id: user.id,

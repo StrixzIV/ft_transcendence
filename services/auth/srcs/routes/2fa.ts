@@ -5,10 +5,11 @@ import qrcode from "qrcode";
 import speakeasy from "speakeasy";
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import { prisma } from "../db";
-import { get_JWT_secret } from '../utils/jwt';
+import { access_cookie_properties, get_JWT_secret, refresh_cookie_properties } from '../utils/jwt';
 import { decrypt, encrypt } from '../utils/encryption';
 import { JWTInfo } from '../interfaces/jwt';
 import { disable_schema, enable_schema, generate_schema, verify_schema } from '../schema/twofa_schema';
+import { JWT_REFRESH_TIMEOUT } from '../config/jwt';
 
 export async function twoFactorRoute(app: FastifyInstance, options: FastifyPluginOptions) {
     app.post('/2fa/generate', { schema: generate_schema }, async (request, response) => {
@@ -183,10 +184,10 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         const raw_refresh_token = jwtLib.sign(
             { id: user.id },
             secrets.refresh_secret,
-            { expiresIn: '30d' }
+            { expiresIn: JWT_REFRESH_TIMEOUT }
         );
         const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
-        const decoded = app.jwt.decode(raw_refresh_token) as { iat: number, exp: number };
+        const decoded = app.jwt.decode(raw_refresh_token) as JWTInfo;
 
         if (!decoded) {
             return response.code(500).send({ error: 'Cannot generate login credential' });
@@ -201,20 +202,8 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             }
         });
 
-        response.setCookie('access_token', access_token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 15 * 60
-        });
-        response.setCookie('refresh_token', raw_refresh_token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 30 * 24 * 60 * 60
-        });
+        response.setCookie('access_token', access_token, access_cookie_properties);
+        response.setCookie('refresh_token', raw_refresh_token, refresh_cookie_properties);
 
         return response.code(200).send({
             user: {
@@ -222,8 +211,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
                 username: user.username,
                 mail: user.email
             },
-            expires_at: decoded.exp,
-            valid: true
+            expires_at: decoded.exp
         });
     });
 }
