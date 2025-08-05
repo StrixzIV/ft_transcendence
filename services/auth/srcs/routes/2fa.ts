@@ -8,9 +8,10 @@ import { prisma } from "../db";
 import { get_JWT_secret } from '../utils/jwt';
 import { decrypt, encrypt } from '../utils/encryption';
 import { JWTInfo } from '../interfaces/jwt';
+import { disable_schema, enable_schema, generate_schema, verify_schema } from '../schema/twofa_schema';
 
 export async function twoFactorRoute(app: FastifyInstance, options: FastifyPluginOptions) {
-    app.post('/2fa/generate', async (request, response) => {
+    app.post('/2fa/generate', { schema: generate_schema }, async (request, response) => {
         // auth logic
         const access_token = request.cookies['access_token'];
 
@@ -72,7 +73,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         return { qr_data_url, totp_token: secret.base32 };
     });
 
-    app.post('/2fa/enable', async (request, response) => {
+    app.post('/2fa/enable', { schema: enable_schema }, async (request, response) => {
         // auth logic
         const access_token = request.cookies['access_token'];
 
@@ -111,7 +112,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         return response.code(200).send();
     });
 
-    app.post('/2fa/disable', async (request, response) => {
+    app.post('/2fa/disable', { schema: disable_schema },async (request, response) => {
         // auth logic
         const access_token = request.cookies['access_token'];
 
@@ -146,7 +147,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         return response.code(200).send();
     });
 
-    app.post('/2fa/verify', async (request, response) => {
+    app.post('/2fa/verify', { schema: verify_schema },async (request, response) => {
         const { token, id } = request.body as { token: string, id: string };
 
         const user = await prisma.users.findUnique({
