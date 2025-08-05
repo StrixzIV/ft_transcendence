@@ -47,10 +47,10 @@ async function initialize_server() {
         }
         catch (err) {
             if ((err as { name: string } ).name == "TokenExpiredError") {
-                response.code(401).send({ error: 'Token expired' })
-                return
+                response.code(401).send({ error: 'Token expired' });
+                return;
             }
-            response.code(401).send({ error: 'Invalid or missing token' })
+            response.code(401).send({ error: 'Invalid or missing token' });
         }
     });
 
