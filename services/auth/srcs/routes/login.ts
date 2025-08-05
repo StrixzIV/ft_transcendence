@@ -20,9 +20,7 @@ const login_schema = {
 };
 
 export async function loginRoute(fastify: FastifyInstance) {
-
     fastify.post('/login', { schema: login_schema }, async (request, response) => {
-
         const { username, password } = request.body as LoginInfo;
 
             const user = await prisma.users.findUnique({
@@ -30,30 +28,28 @@ export async function loginRoute(fastify: FastifyInstance) {
             });
 
             if (!user) {
-                return response.code(401).send({ error: 'User not found' });
+                return response.code(401).send({ error: "User doesn't exist" });
             }
-            
+
             if (!user.pasword_hash && !user.google_id) {
                 return response.code(401).send({ error: 'Invalid username or password' });
             }
-            
             else if (!user.pasword_hash && user.google_id) {
                 return response.code(401).send({ error: 'User registered with Google sign-in. Please login with Google' });
             }
 
-            const passwordHash = user.pasword_hash ?? ''
+            const passwordHash = user.pasword_hash ?? '';
             const passwordMatch = await bcrypt.compare(password, passwordHash);
 
             if (!passwordMatch) {
                 return response.code(401).send({ error: 'Invalid username or password' });
             }
 
-            if (user.totp_secret) {
-                return response.code(202).send({ uid: user.id })
+            if (user.twofa_enable) {
+                return response.code(202).send({ user: { uid: user.id } });
             }
 
-            const secrets = await get_JWT_secret()
-
+            const secrets = await get_JWT_secret();
             const token = fastify.jwt.sign({
                 id: user.id,
                 username: user.username
@@ -64,7 +60,6 @@ export async function loginRoute(fastify: FastifyInstance) {
                 secrets.refresh_secret,
                 { expiresIn: '30d' }
             );
-            
             const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
             const decoded = fastify.jwt.decode(raw_refresh_token) as { iat: number, exp: number }
 
@@ -105,6 +100,5 @@ export async function loginRoute(fastify: FastifyInstance) {
                 },
                 expires_at: decoded.exp
             });
-
     });
 }

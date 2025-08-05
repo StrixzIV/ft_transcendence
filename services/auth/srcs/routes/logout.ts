@@ -6,20 +6,16 @@ import { get_JWT_secret } from '../utils/jwt';
 export async function logoutRoute(fastify: FastifyInstance) {
 
     fastify.post('/logout', async (request, reply) => {
-        
         try {
-            
             const refreshToken = request.cookies.refresh_token;
 
             if (refreshToken) {
-                
                 let decoded: any;
                 const secrets = await get_JWT_secret();
 
                 try {
                     decoded = jwtLib.verify(refreshToken, secrets.refresh_secret);
                 }
-                
                 catch (err) {
                     decoded = null;
                 }
@@ -39,13 +35,10 @@ export async function logoutRoute(fastify: FastifyInstance) {
                 .clearCookie('refresh_token', { path: '/' })
                 .code(200)
                 .send({ success: true });
-                
         }
-        
         catch (err) {
             console.error('Logout error:', err);
             reply.code(500).send({ error: 'Internal server error' });
         }
-
     });
 }

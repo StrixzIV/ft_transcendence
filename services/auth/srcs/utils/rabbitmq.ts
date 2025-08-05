@@ -16,7 +16,7 @@ async function get_rabbit_url() {
     const rabbit_password = rabbit_secret.data.data.rabbit_password;
 
     // create url
-    rabbit_url = `amqp://${rabbit_user ?? ''}:${rabbit_password ?? ''}@broker:5672`;
+    rabbit_url = `amqp://${rabbit_user!}:${rabbit_password!}@broker:5672`;
 
     return rabbit_url;
 }
@@ -68,7 +68,6 @@ export async function JWTValidationConsumer() {
 
         const correlationId = msg.properties.correlationId;
         const replyTo = msg.properties.replyTo;
-
         let response: any;
 
         try {

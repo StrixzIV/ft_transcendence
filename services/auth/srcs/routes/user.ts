@@ -19,10 +19,9 @@ const user_schema = {
             password: { type: 'string', minLength: 6 }
         }
     }
-}
+};
 
 export async function userRoute(fastify: FastifyInstance) {
-
     fastify.post('/user', {schema: user_schema}, async (request, response) => {
 
         const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/
