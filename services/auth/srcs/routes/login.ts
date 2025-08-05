@@ -7,17 +7,8 @@ import { FastifyInstance } from 'fastify';
 import { get_JWT_secret } from '../utils/jwt';
 
 import { type LoginInfo } from '../interfaces/request_data'
-
-const login_schema = {
-    body: {
-        type: 'object',
-        required: ['username', 'password'],
-        properties: {
-            username: { type: 'string' },
-            password: { type: 'string' }
-        }
-    }
-};
+import login_schema from '../schema/login_schema';
+import { JWTInfo } from '../interfaces/jwt';
 
 export async function loginRoute(fastify: FastifyInstance) {
     fastify.post('/login', { schema: login_schema }, async (request, response) => {
@@ -61,10 +52,10 @@ export async function loginRoute(fastify: FastifyInstance) {
                 { expiresIn: '30d' }
             );
             const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
-            const decoded = fastify.jwt.decode(raw_refresh_token) as { iat: number, exp: number }
+            const decoded = fastify.jwt.decode(raw_refresh_token) as JWTInfo;
 
             if (!decoded) {
-                return response.code(500).send({ error: 'Cannot get iat field from JWT' });
+                return response.code(500).send({ error: 'Cannot generate login credential' });
             }
 
             await prisma.refreshToken.create({

@@ -37,7 +37,6 @@ export async function logoutRoute(fastify: FastifyInstance) {
                 .send({ success: true });
         }
         catch (err) {
-            console.error('Logout error:', err);
             reply.code(500).send({ error: 'Internal server error' });
         }
     });

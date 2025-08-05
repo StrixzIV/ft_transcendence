@@ -6,7 +6,7 @@ import { vault } from './vault_client';
 let rabbit_url: string | null = null;
 let channel: amqp.Channel | null = null;
 
-async function get_rabbit_url() {
+export async function get_rabbit_url() {
     if (rabbit_url) {
         return rabbit_url;
     }
@@ -49,7 +49,6 @@ export function publishUserCreated(user: { id: string, username: string, mail: s
 
     channel.publish('user.events', '', payload);
     console.log('[Auth Service] Published user.created event.');
-    
 }
 
 export async function JWTValidationConsumer() {
@@ -63,7 +62,6 @@ export async function JWTValidationConsumer() {
     console.log('[Auth Service] Waiting for JWT validation requests...');
 
     channel.consume(queue, async (msg) => {
-
         if (!msg) return;
 
         const correlationId = msg.properties.correlationId;

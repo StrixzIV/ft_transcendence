@@ -8,7 +8,7 @@ const IV_LENGTH = 12;
 // secret key
 let priv_secret_key: string | null = null;
 
-async function get_encrypt_secret(): Promise<string> {
+export async function get_encrypt_secret(): Promise<string> {
     if (priv_secret_key) {
         return priv_secret_key;
     }
