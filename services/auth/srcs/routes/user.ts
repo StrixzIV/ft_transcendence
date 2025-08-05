@@ -4,13 +4,14 @@ import jwtLib from 'jsonwebtoken';
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
-import { get_JWT_secret } from '../utils/jwt';
+import { access_cookie_properties, get_JWT_secret, refresh_cookie_properties } from '../utils/jwt';
 
 import { type UserInfo } from '../interfaces/request_data'
 import { publishUserCreated } from '../utils/rabbitmq';
 import user_schema from '../schema/user_schema';
 import { JWTInfo } from '../interfaces/jwt';
 import { CascadeUserData } from '../interfaces/cascade_data';
+import { JWT_REFRESH_TIMEOUT } from '../config/jwt';
 
 export async function userRoute(fastify: FastifyInstance) {
     fastify.post('/user', {schema: user_schema}, async (request, response) => {
@@ -54,7 +55,7 @@ export async function userRoute(fastify: FastifyInstance) {
         const raw_refresh_token = jwtLib.sign(
             { id: user_data.id },
             secrets.refresh_secret,
-            { expiresIn: '30d' }
+            { expiresIn: JWT_REFRESH_TIMEOUT }
         );
 
         const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
@@ -73,21 +74,8 @@ export async function userRoute(fastify: FastifyInstance) {
             }
         });
 
-        response.setCookie('access_token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 15 * 60
-        });
-
-        response.setCookie('refresh_token', raw_refresh_token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 30 * 24 * 60 * 60
-        });
+        response.setCookie('access_token', token, access_cookie_properties);
+        response.setCookie('refresh_token', raw_refresh_token, refresh_cookie_properties);
 
         const cascade_data = {
             id: user_data.id,

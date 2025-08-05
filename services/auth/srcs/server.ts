@@ -1,9 +1,9 @@
 import Fastify from 'fastify';
+import { FastifyRequest, FastifyReply } from 'fastify';
 
 import jwt from '@fastify/jwt';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
-import { FastifyRequest, FastifyReply } from 'fastify';
 
 import { userRoute } from './routes/user';
 import { loginRoute } from './routes/login';
@@ -13,11 +13,13 @@ import { refreshRoute } from './routes/refresh';
 import { logoutRoute } from './routes/logout';
 
 import logger from './utils/logger';
-import { get_JWT_secret } from './utils/jwt';
+import corsProperties from './utils/cors';
 
+import { get_JWT_secret } from './utils/jwt';
 import { connectRabbitMQ, get_rabbit_url, JWTValidationConsumer } from './utils/rabbitmq'
 import { get_encrypt_secret } from './utils/encryption';
 import { get_google_secret } from './utils/google';
+import { JWT_ACCESS_TIMEOUT } from './config/jwt';
 
 const endpoint_prefix = '/auth';
 
@@ -25,7 +27,7 @@ async function initialize_server() {
     const loggerEngine = logger();
     const app = Fastify({ logger: loggerEngine });
 
-    app.register(cors, { origin: '*' });
+    app.register(cors, corsProperties);
     app.register(cookie);
 
     // init secrets
@@ -37,7 +39,7 @@ async function initialize_server() {
     await app.register(jwt, {
         secret: jwt_secrets.access_secret,
         sign: {
-            expiresIn: '15m'
+            expiresIn: JWT_ACCESS_TIMEOUT
         }
     });
 
@@ -55,29 +57,12 @@ async function initialize_server() {
     });
 
     // API register point
-    app.register(userRoute, {
-        prefix: endpoint_prefix
-    });
-
-    app.register(loginRoute, {
-        prefix: endpoint_prefix
-    });
-
-    app.register(googleRoute, {
-        prefix: endpoint_prefix
-    });
-
-    app.register(refreshRoute, {
-        prefix: endpoint_prefix
-    });
-
-    app.register(twoFactorRoute, {
-        prefix: endpoint_prefix
-    });
-
-    app.register(logoutRoute, {
-        prefix: endpoint_prefix
-    });
+    app.register(userRoute, { prefix: endpoint_prefix });
+    app.register(loginRoute, { prefix: endpoint_prefix });
+    app.register(googleRoute, { prefix: endpoint_prefix });
+    app.register(refreshRoute, { prefix: endpoint_prefix });
+    app.register(twoFactorRoute, { prefix: endpoint_prefix });
+    app.register(logoutRoute, { prefix: endpoint_prefix });
 
     return app;
 }
@@ -101,5 +86,4 @@ async function initialize_server() {
         console.error('[Startup error]: ', err)
         process.exit(1)
     }
-
 })();

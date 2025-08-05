@@ -4,11 +4,12 @@ import jwtLib from 'jsonwebtoken';
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
-import { get_JWT_secret } from '../utils/jwt';
+import { access_cookie_properties, get_JWT_secret, refresh_cookie_properties } from '../utils/jwt';
 
 import { type LoginInfo } from '../interfaces/request_data'
 import login_schema from '../schema/login_schema';
 import { JWTInfo } from '../interfaces/jwt';
+import { JWT_REFRESH_TIMEOUT } from '../config/jwt';
 
 export async function loginRoute(fastify: FastifyInstance) {
     fastify.post('/login', { schema: login_schema }, async (request, response) => {
@@ -37,7 +38,7 @@ export async function loginRoute(fastify: FastifyInstance) {
             }
 
             if (user.twofa_enable) {
-                return response.code(202).send({ user: { uid: user.id } });
+                return response.code(202).send({ user: { id: user.id } });
             }
 
             const secrets = await get_JWT_secret();
@@ -49,7 +50,7 @@ export async function loginRoute(fastify: FastifyInstance) {
             const raw_refresh_token = jwtLib.sign(
                 { id: user.id },
                 secrets.refresh_secret,
-                { expiresIn: '30d' }
+                { expiresIn: JWT_REFRESH_TIMEOUT }
             );
             const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
             const decoded = fastify.jwt.decode(raw_refresh_token) as JWTInfo;
@@ -67,21 +68,8 @@ export async function loginRoute(fastify: FastifyInstance) {
                 }
             });
 
-            response.setCookie('access_token', token, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
-                path: '/',
-                maxAge: 15 * 60
-            });
-
-            response.setCookie('refresh_token', raw_refresh_token, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
-                path: '/',
-                maxAge: 30 * 24 * 60 * 60
-            });
+            response.setCookie('access_token', token, access_cookie_properties);
+            response.setCookie('refresh_token', raw_refresh_token, refresh_cookie_properties);
 
             return response.code(200).send({
                 user: {

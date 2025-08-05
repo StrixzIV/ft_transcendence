@@ -4,7 +4,7 @@ import jwtLib from 'jsonwebtoken';
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
-import { get_JWT_secret } from '../utils/jwt';
+import { access_cookie_properties, get_JWT_secret } from '../utils/jwt';
 import { JWTInfo } from '../interfaces/jwt';
 
 export async function refreshRoute(fastify: FastifyInstance) {
@@ -54,13 +54,7 @@ export async function refreshRoute(fastify: FastifyInstance) {
                 username: user.username
             });
 
-            response.setCookie('access_token', access_token, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
-                path: '/',
-                maxAge: 15 * 60
-            });
+            response.setCookie('access_token', access_token, access_cookie_properties);
 
             return response.send(200);
         } 
