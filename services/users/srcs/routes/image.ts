@@ -10,7 +10,6 @@ import { s3, stream_to_buf } from '../utils/s3';
 export async function imageRoute(fastify: FastifyInstance) {
     
     fastify.get('/image', async (request, response) => {
-
         const token = request.cookies["access_token"];
 
         if (!token) {
@@ -34,25 +33,19 @@ export async function imageRoute(fastify: FastifyInstance) {
                 images_name = user.profile_url ?? "default-profile.png";
             }
 
-            console.log(images_name)
-
             const command = new GetObjectCommand({
                 Bucket: "ft-transendence-images",
                 Key: images_name
             });
-            
+
             const result = await s3.send(command);
             const buffer = await stream_to_buf(result.Body as Readable);
-
-            response.header('Cache-Control', 'public, max-age=30');
 
             response
                 .header("Content-Type", result.ContentType)
                 .header("Content-Length", buffer.length)
                 .send(buffer);
-
         }
-        
         catch (err) {
             request.log.error(err);
             response.status(500).send({ error: "Failed to fetch image" });
@@ -89,32 +82,25 @@ export async function imageRoute(fastify: FastifyInstance) {
                 images_name = user.profile_url ?? "default-profile.png";
             }
 
-            console.log(images_name)
-
             const command = new GetObjectCommand({
                 Bucket: "ft-transendence-images",
                 Key: images_name
             });
-            
+
             const result = await s3.send(command);
             const buffer = await stream_to_buf(result.Body as Readable);
-
-            response.header('Cache-Control', 'public, max-age=30');
 
             response
                 .header("Content-Type", result.ContentType)
                 .header("Content-Length", buffer.length)
                 .send(buffer);
-
         }
-        
         catch (err) {
             request.log.error(err);
             response.status(500).send({ error: "Failed to fetch image" });
         }
-
     })
-    
+
     fastify.post('/image', async (request, response) => {
 
         const token = request.cookies["access_token"];
@@ -158,7 +144,5 @@ export async function imageRoute(fastify: FastifyInstance) {
         });
 
         return response.status(201).send({ message: "Upload successful", key: s3_key });
-
     })
-
 }
