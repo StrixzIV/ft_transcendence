@@ -1,10 +1,39 @@
+import path from "path";
 import amqp from 'amqplib';
-import { prisma } from '../db';
+import mime from "mime-types"; 
 import { v4 as uuidv4 } from "uuid";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+
+import { s3 } from './s3';
+import { prisma } from '../db';
+
+let conn: amqp.ChannelModel | null = null;
+
+export async function getRabbitMQConnection() {
+
+    if (!conn) {
+
+        conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
+        
+        conn.on('error', (err) => {
+            console.error('RabbitMQ connection error:', err);
+            conn = null;
+        });
+
+        conn.on('close', () => {
+            console.warn('RabbitMQ connection closed. Reconnecting...');
+            conn = null;
+        });
+
+    }
+
+    return conn;
+
+}
 
 export async function consumeMQData() {
 
-    const conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
+    const conn = await getRabbitMQConnection();
     const channel = await conn.createChannel();
 
     await channel.assertExchange('user.events', 'fanout', { durable: true });
@@ -15,37 +44,85 @@ export async function consumeMQData() {
     console.log('[User Data Service] Waiting for user.created events...');
 
     channel.consume(q.queue, async (msg) => {
+
         if (!msg?.content) return;
 
         try {
+
             const event = JSON.parse(msg.content.toString());
 
             if (event.event === 'user.created') {
 
-                const { id, username, mail, created_at } = event.data;
+                const { id, username, mail, created_at, profile_url } = event.data;
 
-                await prisma.users.upsert({
-                    where: { id: id },
-                    update: {},
-                    create: {
-                        id: id,
-                        username,
-                        mail,
-                        created_at: new Date(created_at)
+                if (profile_url) {
+
+                    const profile_res = await fetch(profile_url);
+
+                    if (!profile_res.ok) {
+                        throw new Error(`Failed to fetch image: ${profile_res.status}`)
                     }
-                });
+
+                    const contentType = profile_res.headers.get("content-type") 
+                        || mime.lookup(profile_url) 
+                        || "application/octet-stream";
+
+                    let ext = mime.extension(contentType) || path.extname(new URL(profile_url).pathname).slice(1) || "bin";
+
+                    const s3_key = `${id}.${ext}`
+                    const array_buf = await profile_res.arrayBuffer();
+                    const buffer = Buffer.from(array_buf);
+
+                    await s3.send(new PutObjectCommand({
+                        Bucket: "ft-transendence-images",
+                        Key: s3_key,
+                        Body: buffer,
+                        ContentType: contentType,
+                    }));
+
+                    await prisma.users.upsert({
+                        where: { id: id },
+                        update: {},
+                        create: {
+                            id: id,
+                            username,
+                            mail,
+                            created_at: new Date(created_at),
+                            profile_url: s3_key.split('/').slice(-1)[0]
+                        }
+                    });
+
+                }
+
+                else {
+                    await prisma.users.upsert({
+                        where: { id: id },
+                        update: {},
+                        create: {
+                            id: id,
+                            username,
+                            mail,
+                            created_at: new Date(created_at)
+                        }
+                    });
+                }
 
                 console.log(`[User Data Service] User ${username} saved.`);
+
             }
-        } catch (error) {
+
+        }
+        
+        catch (error) {
             console.error('[Consumer Error]', error);
         }
+
     }, { noAck: true });
 }
 
 export async function JWTValidate(token: string) {
 
-    const conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
+    const conn = await getRabbitMQConnection();
     const channel = await conn.createChannel();
 
     const correlationId = uuidv4();
@@ -60,15 +137,16 @@ export async function JWTValidate(token: string) {
             replyQueue.queue,
             (msg) => {
                 if (msg?.properties.correlationId === correlationId) {
-                if (settled) return;
-                settled = true;
+                    
+                    if (settled) return;
+                    settled = true;
 
-                const result = JSON.parse(msg.content.toString());
-                resolve(result);
+                    const result = JSON.parse(msg.content.toString());
+                    resolve(result);
 
-                // Cleanup: cancel consumer and delete queue
-                channel.cancel(msg.fields.consumerTag).catch(console.error);
-                channel.deleteQueue(replyQueue.queue).catch(console.error);
+                    // Cleanup: cancel consumer and delete queue
+                    channel.cancel(msg.fields.consumerTag).catch(console.error);
+                    channel.deleteQueue(replyQueue.queue).catch(console.error);
                 }
             },
             { noAck: true }
