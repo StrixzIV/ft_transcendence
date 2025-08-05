@@ -82,6 +82,25 @@ services:
       - auth-backend
       - users-backend
 
+  # S3
+  minio:
+    container_name: minio
+    build:
+      context: ./services/s3
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - env/.s3.env
+    networks:
+      - mainnet
+    volumes:
+      - ./data/minio:/data
+      - ./assets:/init-assets:ro
+    command: server /data --console-address ":9001"
+    expose:
+      - 9000
+      - 9001
+
   # RabbitMQ
   broker:
     container_name: broker
@@ -94,6 +113,12 @@ services:
     volumes:
       - rabbitmq-lib:/var/lib/rabbitmq
       - rabbitmq-log:/var/log/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
     expose:
       - 5672
       - 15672
@@ -213,8 +238,10 @@ services:
     environment:
       - NODE_ENV=production
     depends_on:
-      - vault
-      - broker
+      vault:
+        condition: service_started
+      broker:
+        condition: service_healthy
     expose:
       - 3000
 
@@ -224,19 +251,26 @@ services:
       context: ./services/users
       dockerfile: Dockerfile
     env_file:
+      - env/.s3.env
       - env/.broker.env
+      - env/.no_sensitive.env
     restart: always
     networks:
       - mainnet
     volumes:
-      - ./logs/auth-backend/:/logs/:rw
-      - ./data/auth/:/prisma/db/:rw
+      - ./logs/users-backend/:/logs/:rw
+      - ./data/users-backend/:/prisma/db/:rw
     environment:
       - NODE_ENV=production
     depends_on:
-      - vault
-      - broker
-      - auth-backend
+      auth-backend:
+        condition: service_started
+      minio:
+        condition: service_started
+      vault:
+        condition: service_started
+      broker:
+        condition: service_healthy
     expose:
       - 3000
 
