@@ -4,7 +4,6 @@ import { prisma } from '../db';
 import { get_JWT_secret } from '../utils/jwt';
 
 export async function logoutRoute(fastify: FastifyInstance) {
-
     fastify.post('/logout', async (request, reply) => {
         try {
             const refreshToken = request.cookies.refresh_token;
@@ -34,7 +33,7 @@ export async function logoutRoute(fastify: FastifyInstance) {
                 .clearCookie('access_token', { path: '/' })
                 .clearCookie('refresh_token', { path: '/' })
                 .code(200)
-                .send({ success: true });
+                .send();
         }
         catch (err) {
             reply.code(500).send({ error: 'Internal server error' });

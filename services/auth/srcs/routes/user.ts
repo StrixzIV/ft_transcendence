@@ -14,7 +14,6 @@ import { CascadeUserData } from '../interfaces/cascade_data';
 
 export async function userRoute(fastify: FastifyInstance) {
     fastify.post('/user', {schema: user_schema}, async (request, response) => {
-
         const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         const { username, mail, password } = request.body as UserInfo;
 
@@ -62,7 +61,7 @@ export async function userRoute(fastify: FastifyInstance) {
         const decoded = fastify.jwt.decode(raw_refresh_token) as JWTInfo;
 
         if (!decoded) {
-            return response.code(500).send({ error: 'Cannot get iat field from JWT' });
+            return response.code(500).send({ error: 'Cannot generate login credential' });
         }
 
         await prisma.refreshToken.create({

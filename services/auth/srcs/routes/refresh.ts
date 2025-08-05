@@ -8,7 +8,6 @@ import { get_JWT_secret } from '../utils/jwt';
 import { JWTInfo } from '../interfaces/jwt';
 
 export async function refreshRoute(fastify: FastifyInstance) {
-
     fastify.post('/refresh', async (request, response) => {
         const refresh_token = request.cookies['refresh_token'];
 

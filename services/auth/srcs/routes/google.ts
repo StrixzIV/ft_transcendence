@@ -4,18 +4,19 @@ import jwtLib from 'jsonwebtoken';
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
+import { FRONTEND_URI } from '../config/urls';
+
 import { get_JWT_secret } from '../utils/jwt';
 import { publishUserCreated } from '../utils/rabbitmq';
 import { get_google_secret } from '../utils/google';
 import { JWTInfo } from '../interfaces/jwt';
 import { CascadeUserData } from '../interfaces/cascade_data';
 
-const REDIRECT_URI = "https://localhost:8443/auth/google/callback";
-
 export async function googleRoute(fastify: FastifyInstance) {
     const google_secrets = await get_google_secret();
     const GOOGLE_CLIENT_ID = google_secrets.google_client_id;
     const GOOGLE_CLIENT_SECRET = google_secrets.google_client_secret;
+    const REDIRECT_URI = `${FRONTEND_URI}/auth/google/callback`;
 
     fastify.get('/google', async (request, response) => {
         const random_state = crypto.randomUUID();
@@ -36,7 +37,7 @@ export async function googleRoute(fastify: FastifyInstance) {
         const { code } = request.query as { code: string };
 
         if (!code) {
-            return response.redirect('https://localhost:8443/')
+            return response.redirect(FRONTEND_URI);
         }
 
         const token_callback = await fetch("https://oauth2.googleapis.com/token", {
@@ -56,7 +57,8 @@ export async function googleRoute(fastify: FastifyInstance) {
         const token_data = await token_callback.json();
 
         if (token_data.error) {
-            fastify.log.error(token_data);
+            fastify.log.error(token_data.error);
+
             return response.code(500).send({ error: "Failed to exchange code for tokens" });
         }
 
@@ -94,7 +96,7 @@ export async function googleRoute(fastify: FastifyInstance) {
         }
 
         if (user.twofa_enable) {
-            return response.redirect(`https://localhost:8443/?id=${user.id}&twofa=true`);
+            return response.redirect(`${FRONTEND_URI}/?id=${user.id}&twofa=true`);
         }
 
         const secrets = await get_JWT_secret();
@@ -148,6 +150,6 @@ export async function googleRoute(fastify: FastifyInstance) {
         } as CascadeUserData;
 
         publishUserCreated(cascade_data);
-        response.redirect(`https://localhost:8443/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`);
+        response.redirect(`${FRONTEND_URI}/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`);
     });
 }

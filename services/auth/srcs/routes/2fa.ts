@@ -25,7 +25,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             decoded = app.jwt.verify(access_token) as JWTInfo;
         }
         catch (err) {
-            return response.code(401).send({ error: "Invalid or expired access token" })
+            return response.code(401).send({ error: "Invalid or expired access token" });
         }
 
         const uid = decoded.id;
@@ -65,7 +65,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         });
 
         if (secret.otpauth_url == null) {
-            return response.code(500).send({ error: "Failed to generate 2FA QRCode" })
+            return response.code(500).send({ error: "Failed to generate 2FA QRCode" });
         }
 
         const qr_data_url = await qrcode.toDataURL(secret.otpauth_url);
@@ -189,7 +189,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         const decoded = app.jwt.decode(raw_refresh_token) as { iat: number, exp: number };
 
         if (!decoded) {
-            return response.code(500).send({ error: 'Cannot get iat field from JWT' });
+            return response.code(500).send({ error: 'Cannot generate login credential' });
         }
 
         await prisma.refreshToken.create({
