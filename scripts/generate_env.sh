@@ -80,7 +80,7 @@ create_token() {
 
     append_env $file JWT_ACCESS_TOKEN_SECRET "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
     append_env $file JWT_REFRESH_TOKEN_SECRET "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
-    append_env $file TOTP_ENCRYPT_SECRET "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
+    append_env $file TOTP_ENCRYPT_SECRET "\"$(openssl rand -base64 24 | tr -d '\n')\"" # use for aes-256, so change = break whole codebase
 }
 
 create_google() {

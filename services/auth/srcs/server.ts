@@ -17,29 +17,28 @@ import { get_JWT_secret } from './utils/jwt';
 
 import { connectRabbitMQ, JWTValidationConsumer } from './utils/rabbitmq'
 
-const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' })
-const endpoint_prefix = '/auth'
+const log_filestream = fs.createWriteStream('/logs/auth.log', { flags: 'a' });
+const endpoint_prefix = '/auth';
 
 async function initialize_server() {
-
     const app = Fastify({ 
         logger: {
             stream: log_filestream
         }
-    })
+    });
 
     app.register(cors, {
         origin: '*'
-    })
-    app.register(cookie)
+    });
+    app.register(cookie);
 
-    const jwt_secrets = await get_JWT_secret()
+    const jwt_secrets = await get_JWT_secret();
     await app.register(jwt, {
         secret: jwt_secrets.access_secret,
         sign: {
             expiresIn: '15m'
         }
-    })
+    });
 
     app.decorate('authenticate', async (request: FastifyRequest, response: FastifyReply) => {
 
@@ -89,9 +88,7 @@ async function initialize_server() {
 }
 
 (async () => {
-
     try {
-
         // RabbitMQ Server/Consumer
         await connectRabbitMQ();
         await JWTValidationConsumer();
@@ -100,13 +97,11 @@ async function initialize_server() {
 
         app.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
             if (err) {
-                app.log.error(err);
+                app.log.error(err.message);
                 process.exit(1);
             }
         });
-
     }
-
     catch (err) {
         console.error('[Startup error]: ', err)
         process.exit(1)

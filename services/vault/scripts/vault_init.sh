@@ -20,7 +20,6 @@ echo "[vault-init] Storing tokens..."
 vault kv put secret/jwt \
                 access_secret="$JWT_ACCESS_TOKEN_SECRET" \
                 refresh_secret="$JWT_REFRESH_TOKEN_SECRET" \
-                algorithm="HS256" \
                 > /dev/null 2>&1
 
 # Store TOTP Encryption Secret

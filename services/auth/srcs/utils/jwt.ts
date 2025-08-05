@@ -12,11 +12,14 @@ export async function get_JWT_secret(): Promise<JWTSecret> {
         return jwt_secret;
     }
 
+    // get secrets
     const result = await vault.read('secret/data/jwt');
+    const access = result.data.data.access_secret!;
+    const refresh = result.data.data.refresh_secret!;
 
     jwt_secret = {
-        access_secret: result.data.data.access_secret,
-        refresh_secret: result.data.data.refresh_secret
+        access_secret: access,
+        refresh_secret: refresh
     } as JWTSecret;
 
     return jwt_secret;

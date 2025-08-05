@@ -6,15 +6,15 @@ import speakeasy from "speakeasy";
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import { prisma } from "../db";
 import { get_JWT_secret } from '../utils/jwt';
+import { decrypt, encrypt } from '../utils/encryption';
 
 export async function twoFactorRoute(app: FastifyInstance, options: FastifyPluginOptions) {
-    
-    app.post('/2fa/enable', async (request, response) => {
-
-        const access_token = request.cookies['access_token']
+    app.post('/2fa/generate', async (request, response) => {
+        // auth logic
+        const access_token = request.cookies['access_token'];
 
         if (!access_token) {
-            return response.code(403).send({ error: "Missing access token" })
+            return response.code(401).send({ error: "Missing access token" });
         }
 
         let decoded;
@@ -22,25 +22,24 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         try {
             decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
         }
-        
         catch (err) {
             return response.code(401).send({ error: "Invalid or expired access token" })
         }
 
-        const uid = decoded.id
-
+        const uid = decoded.id;
         const user = await prisma.users.findUnique({
             where: { id: uid },
-        })
+        });
 
         if (!user) {
-            return response.code(400).send({ error: "User not found" })
+            return response.code(401).send({ error: "User doesn't exist" });
         }
 
-        if (user.totp_secret) {
-            
+        // main logic
+        if (user.totp_encerypted_secret) {
+            const decrypt_totp_secret = await decrypt(user.totp_encerypted_secret);
             const otpauth_url = speakeasy.otpauthURL({
-                secret: user.totp_secret,
+                secret: decrypt_totp_secret,
                 label: `ft_transcendence: ${user.username}`,
                 encoding: 'base32'
             });
@@ -49,60 +48,131 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
 
             return response.code(200).send({
                 qr_data_url,
-                base32: user.totp_secret,
-                already_enabled: true
+                totp_token: decrypt_totp_secret,
             });
-
         }
 
         const secret = speakeasy.generateSecret({
             name: `ft_transendence: ${user.username}`
-        })
+        });
+        const encrypted_totp_secret = await encrypt(secret.base32);
 
         await prisma.users.update({
             where: { id: uid },
-            data: { totp_secret: secret.base32 }
-        })
+            data: { totp_encerypted_secret: encrypted_totp_secret }
+        });
 
         if (secret.otpauth_url == null) {
             return response.code(500).send({ error: "Failed to generate 2FA QRCode" })
         }
 
-        const qr_data_url = await qrcode.toDataURL(secret.otpauth_url)
+        const qr_data_url = await qrcode.toDataURL(secret.otpauth_url);
 
-        return { qr_data_url, base32: secret.base32 }
+        return { qr_data_url, totp_token: secret.base32 };
+    });
 
-    })
+    app.post('/2fa/enable', async (request, response) => {
+        // auth logic
+        const access_token = request.cookies['access_token'];
 
-    app.post('/2fa/verify', async (request, response) => {
+        if (!access_token) {
+            return response.code(401).send({ error: "Missing access token" });
+        }
 
-        const { token, uid } = request.body as { token: string, uid: string }
+        let decoded;
 
+        try {
+            decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
+        }
+        catch (err) {
+            return response.code(401).send({ error: "Invalid or expired access token" })
+        }
+
+        const uid = decoded.id;
         const user = await prisma.users.findUnique({
             where: { id: uid },
-        })
+        });
 
         if (!user) {
-            return response.code(400).send({ error: "User not found" })
+            return response.code(401).send({ error: "User doesn't exist" });
         }
 
-        if (!user.totp_secret) {
-            return response.code(400).send({ error: "2FA not enabled" })
+        // main logic
+        if (!user.totp_encerypted_secret) {
+            return response.code(409).send({ error: "Please, Generate 2FA QRCode before click enable" });
         }
 
+        await prisma.users.update({
+            where: { id: uid },
+            data: { twofa_enable: true }
+        });
+
+        return response.code(200).send();
+    });
+
+    app.post('/2fa/disable', async (request, response) => {
+        // auth logic
+        const access_token = request.cookies['access_token'];
+
+        if (!access_token) {
+            return response.code(401).send({ error: "Missing access token" });
+        }
+
+        let decoded;
+
+        try {
+            decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
+        }
+        catch (err) {
+            return response.code(401).send({ error: "Invalid or expired access token" })
+        }
+
+        const uid = decoded.id;
+        const user = await prisma.users.findUnique({
+            where: { id: uid },
+        });
+
+        if (!user) {
+            return response.code(401).send({ error: "User doesn't exist" });
+        }
+
+        // main logic
+        await prisma.users.update({
+            where: { id: uid },
+            data: { totp_encerypted_secret: null, twofa_enable: false }
+        });
+
+        return response.code(200).send();
+    });
+
+    app.post('/2fa/verify', async (request, response) => {
+        const { token, id } = request.body as { token: string, id: string };
+
+        const user = await prisma.users.findUnique({
+            where: { id: id },
+        });
+
+        if (!user) {
+            return response.code(401).send({ error: "User doesn't exist" });
+        }
+
+        if (!user.totp_encerypted_secret || !user.twofa_enable) {
+            return response.code(409).send({ error: "2FA not enabled" });
+        }
+
+        const decrypted_totp_secret = await decrypt(user.totp_encerypted_secret);
         const valid = speakeasy.totp.verify({
-            secret: user.totp_secret,
+            secret: decrypted_totp_secret,
             encoding: "base32",
             token,
             window: 1
-        })
+        });
 
         if (!valid) {
-            return { valid }
+            return { valid };
         }
 
-        const secrets = await get_JWT_secret()
-        
+        const secrets = await get_JWT_secret();
         const access_token = app.jwt.sign({
             id: user.id,
             username: user.username
@@ -113,9 +183,8 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             secrets.refresh_secret,
             { expiresIn: '30d' }
         );
-        
         const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
-        const decoded = app.jwt.decode(raw_refresh_token) as { iat: number, exp: number }
+        const decoded = app.jwt.decode(raw_refresh_token) as { iat: number, exp: number };
 
         if (!decoded) {
             return response.code(500).send({ error: 'Cannot get iat field from JWT' });
@@ -137,7 +206,6 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             path: '/',
             maxAge: 15 * 60
         });
-
         response.setCookie('refresh_token', raw_refresh_token, {
             httpOnly: true,
             secure: true,
@@ -155,36 +223,5 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
             expires_at: decoded.exp,
             valid: true
         });
-
-    })
-
-    app.post('/2fa/disable', async (request, response) => {
-
-        const access_token = request.cookies['access_token']
-
-        if (!access_token) {
-            return response.code(403).send({ error: "Missing access token" })
-        }
-
-        let decoded;
-
-        try {
-            decoded = app.jwt.verify(access_token) as { iat: number, exp: number, id: string }
-        }
-        
-        catch (err) {
-            return response.code(401).send({ error: "Invalid or expired access token" })
-        }
-
-        const uid = decoded.id
-
-        await prisma.users.update({
-            where: { id: uid },
-            data: { totp_secret: null }
-        })
-
-        return { success: true }
-
-    })
-
+    });
 }

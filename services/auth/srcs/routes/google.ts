@@ -94,7 +94,7 @@ export async function googleRoute(fastify: FastifyInstance) {
             })
         }
 
-        if (user.totp_secret) {
+        if (user.twofa_enable) {
             return response.redirect(`https://localhost:8443/?id=${user.id}&twofa=true`)
         }
 
