@@ -202,6 +202,7 @@ services:
       context: ./services/auth
       dockerfile: Dockerfile
     env_file:
+      - env/.no_sensitive.env
       - env/.vault.env
     restart: always
     networks:
