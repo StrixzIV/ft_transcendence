@@ -93,6 +93,16 @@ export async function googleRoute(fastify: FastifyInstance) {
                     pasword_hash: null,
                 }
             })
+
+            const cascade_data = {
+                id: user.id,
+                username: user.username,
+                mail: user.email,
+                created_at: user.created_at
+            } as { id: string; username: string; mail: string; created_at: Date; }
+
+            await publishUserCreated(cascade_data)
+            
         }
 
         if (user.totp_secret) {
@@ -144,14 +154,6 @@ export async function googleRoute(fastify: FastifyInstance) {
             maxAge: 30 * 24 * 60 * 60
         });
 
-        const cascade_data = {
-            id: user.id,
-            username: user.username,
-            mail: user.email,
-            created_at: user.created_at
-        } as { id: string; username: string; mail: string; created_at: Date; }
-
-        publishUserCreated(cascade_data)
         response.redirect(`https://localhost:8443/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`)
 
     });

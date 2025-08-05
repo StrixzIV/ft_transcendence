@@ -1,5 +1,7 @@
 import amqp from 'amqplib';
 import jwtLib from 'jsonwebtoken';
+
+import { prisma } from "../db";
 import { get_JWT_secret } from './jwt';
 
 let channel: amqp.Channel | null = null;
@@ -11,12 +13,16 @@ export async function connectRabbitMQ() {
     console.log('[Auth Service] RabbitMQ connected.');
 }
 
-export function publishUserCreated(user: { id: string, username: string, mail: string, created_at: Date }) {
+export async function publishUserCreated(user: { id: string, username: string, mail: string, created_at: Date }) {
 
     if (!channel) {
         console.error('[Auth Service] RabbitMQ channel not initialized.');
         return;
     }
+
+    const user_info = await prisma.users.findUnique({
+        where: { id: user.id },
+    })
 
     const payload = Buffer.from(JSON.stringify({
         event: 'user.created',
@@ -24,7 +30,8 @@ export function publishUserCreated(user: { id: string, username: string, mail: s
             id: user.id,
             username: user.username,
             mail: user.mail,
-            created_at: user.created_at
+            created_at: user.created_at,
+            profile_url: user_info?.profile_url
         }
     }));
 
