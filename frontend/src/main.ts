@@ -6,10 +6,13 @@ import { twoFactorPage } from './2fa.ts'
 import { secureFetch } from './utils/secureFetch.ts'
 
 async function on_startup() {
+
     const params = new URLSearchParams(window.location.search)
+
     const uid = params.get('id')
     const expires_at = params.get('expires_at')
     const twofa = params.get('twofa')
+
     const has_uid = localStorage.getItem('uid');
     const has_expires_at = localStorage.getItem('expires_at');
 
@@ -27,17 +30,20 @@ async function on_startup() {
     }
 
     window.history.replaceState({}, document.title, window.location.pathname);
-
+    
     if (has_expires_at && parseInt(has_expires_at) < Math.floor(Date.now() / 1000)) {
+
         localStorage.removeItem('uid');
         localStorage.removeItem('is_login');
         localStorage.removeItem('expires_at');
-
+        
         await fetch(auth_endpoint('/logout'), {
             method: 'POST',
             credentials: 'include'
         });
+    
         window.location.reload();
+    
     }
 
     const is_login = localStorage.getItem('is_login');
@@ -45,16 +51,22 @@ async function on_startup() {
     if (is_login) {
         await mainPage();
     }
+
     else {
+
         await fetch(auth_endpoint('/logout'), {
             method: 'POST',
             credentials: 'include'
         });
+
         loginPage();
+    
     }
+
 }
 
 export async function mainPage() {
+
     const userdata = await secureFetch(users_endpoint('/data'), {
         method: 'GET'
     });
@@ -100,28 +112,31 @@ export async function mainPage() {
             <button id="logout" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mt-2">Logout</button>
 
         </div>
-
-        <div id="qr-modal" class="flex fixed inset-0 bg-opacity-60 backdrop-blur-md items-center justify-center z-50">
+    
+        <div id="qr-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
             <div class="bg-white p-6 rounded shadow-md text-black relative">
-
+                
                 <button id="close-qr" class="absolute top-2 right-2 text-xl">&times;</button>
                 <h2 class="text-lg mb-4">Scan this QR Code</h2>
-
+                
                 <div class="flex justify-center">
                     <img id="qr-image" src="" alt="2FA QR Code" class="w-48 h-48"/>
                 </div>
-
+                
                 <div class="mt-4 flex items-center space-x-2">
                     <p id="manual-code" class="text-sm mt-4 break-all"></p>
                     <button id="copy-code" class="text-xs mt-4 px-2 py-1 bg-gray-400 hover:bg-gray-300 text-black rounded">📋</button>
                 </div>
-
+                
                 <button id="disable-2fa" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-2">Disable 2FA</button>
+            
             </div>
         </div>
+    
     `;
 
     const loginBtn = document.getElementById('logout') as HTMLButtonElement;
+
     const showQrBtn = document.getElementById('show-2fa') as HTMLButtonElement;
     const modal = document.getElementById('qr-modal')!;
     const closeModalBtn = document.getElementById('close-qr') as HTMLButtonElement;
@@ -135,6 +150,7 @@ export async function mainPage() {
     const profileImg = document.getElementById('profile-img') as HTMLImageElement;
     
     loginBtn.addEventListener('click', () => {
+
         if (user.username) {
             localStorage.removeItem('uid');
             localStorage.removeItem('username');
@@ -142,6 +158,7 @@ export async function mainPage() {
             localStorage.removeItem('expires_at');
             window.location.reload();
         }
+        
         else {
             loginPage();
         }
@@ -193,15 +210,19 @@ export async function mainPage() {
         }
 
     });
+
     showQrBtn.addEventListener('click', async () => {
 
         try {
+
             const response = await secureFetch(auth_endpoint('/2fa/enable'), {
                 method: 'POST'
             });
 
             if (!response.ok) {
+
                 if (response.status == 401 || response.status == 403) {
+
                     await secureFetch(auth_endpoint('/logout'), {
                         method: 'POST'
                     });
@@ -211,11 +232,14 @@ export async function mainPage() {
                     localStorage.removeItem('is_login');
                     localStorage.removeItem('expires_at');
                     window.location.reload();
+            
                     loginPage();
-
                     return ;
+                    
                 }
+
                 throw new Error('Failed to fetch QR code.');
+            
             }
 
             const data = await response.json();
