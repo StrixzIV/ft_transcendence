@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Set variables
-token_size=64
+token_size=48
 env_dir=env
 
 append_env() {
@@ -120,7 +120,7 @@ create_google() {
     local file=$env_dir/.google.env
 
     if [ -f $file ]; then
-	    echo "$file files have already been generated."
+        echo "$file files have already been generated."
         return 0
     fi
 
