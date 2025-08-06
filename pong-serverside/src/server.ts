@@ -38,7 +38,25 @@ function initializeGameState(): void {
     winningPlayer = undefined;
 }
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({
+    port: 8080
+});
+
+// const allowedOrigins = ['http://localhost'];
+
+// wss.on('headers', (headers, request) => {
+//     const origin = request.headers.origin;
+
+//     if (!allowedOrigins.includes(origin!)) {
+//         // Reject the connection by not sending the headers
+//         // and terminating the socket.
+//         console.log(`Connection from forbidden origin: ${origin} rejected.`);
+//         request.destroy();
+//         return;
+//     }
+
+//     console.log(`Connection from allowed origin: ${origin} accepted.`);
+// });
 
 wss.on('connection', ws => {
     console.log('Client connected.');
@@ -47,9 +65,6 @@ wss.on('connection', ws => {
         player1 = ws;
         connectedClients.set(ws, 'player1');
         ws.send(JSON.stringify({ type: 'player_assignment', player: 'player1' }));
-        if (player2) {
-            initializeGameState();
-        }
     } else if (!player2) {
         player2 = ws;
         connectedClients.set(ws, 'player2');

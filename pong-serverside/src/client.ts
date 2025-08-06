@@ -12,7 +12,17 @@ interface GameState {
     winningPlayer?: 'leftPlayer' | 'rightPlayer';
 }
 
+const GAME_WIDTH = 1000;
+const CANVAS_HEIGHT = 800;
+const SIDEBAR_WIDTH = 100;
+const GRID_SIZE = 20;
+const PADDLE_HEIGHT = 100;
+const PADDLE_SPEED = 8;
+const BALL_SPEED = 6;
+const WIN_SCORE = 5;
+
 class PongClient {
+    
     private _canvas!: HTMLCanvasElement | null;
     private _context!: CanvasRenderingContext2D | null;
 
@@ -31,16 +41,16 @@ class PongClient {
     private _winningPlayer: 'leftPlayer' | 'rightPlayer' | undefined = undefined;
 
     constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number) {
+        this.createCanvas(gameWidth, sideWidth, cHeight);
         this._gridSizeInPx = gridSize;
         this._gameWidth = gameWidth;
         this._sidebarWidth = sideWidth;
         this._cavnasHeight = cHeight;
 
-        this._leftPaddle = new Paddle("leftPlayer", gridSize, paddleHeight, 0, 0);
-        this._rightPaddle = new Paddle("rightPlayer", gridSize, paddleHeight, 0, 0);
+        this._leftPaddle = new Paddle("leftPlayer", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GRID_SIZE * 2, CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
+        this._rightPaddle = new Paddle("rightPlayer", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GAME_WIDTH - GRID_SIZE * 2, CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
         this._ball = new Ball(gridSize, gridSize, 0, 0, 0, 0);
 
-        this.createCanvas(this._gameWidth, sideWidth, cHeight);
         this.setupWebSocket();
         this.loadFont();
         this.setupEventListeners();
@@ -48,10 +58,6 @@ class PongClient {
 
     private createCanvas(gameWidth: number, sideWidth: number, cHeight: number): void {
         this._canvas = document.createElement("canvas");
-        if (!this._canvas) {
-            console.error("Failed to create canvas.")
-        }
-        
         document.body.appendChild(this._canvas);
 
         this._canvasWidth = gameWidth + sideWidth * 2;
@@ -63,7 +69,7 @@ class PongClient {
 
         this._context = this._canvas.getContext('2d')!;
         if (!this._context) {
-            console.error("Failed to get 2D context for canvas.");
+            console.error("Failed to get 2D context.");
         }
     }
 
@@ -86,7 +92,7 @@ class PongClient {
     }
 
     private setupWebSocket(): void {
-        // Need to run a server, e.g. `node server.js`
+        // You'll need to run a server, e.g. `node server.js`
         this._socket = new WebSocket("ws://localhost:8080");
 
         this._socket.onopen = () => {
