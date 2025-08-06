@@ -162,7 +162,7 @@ services:
     networks:
       - mainnet
       - elk-net
-    ports: 
+    expose:
       - 5601
     depends_on:
       - elasticsearch
