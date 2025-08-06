@@ -12,8 +12,10 @@ services:
     environment:
       - WAF_ADDR=http://nginx-waf:8080
     volumes:
-      - ./services/nginx_ssl/templates/:/etc/nginx/templates/:ro
-      - ./services/nginx_ssl/rules.d/:/etc/nginx/rules.d/:ro
+      - ./services/nginx/shared/rules.d/:/etc/nginx/rules.d/:ro
+      - ./services/nginx/ssl/templates/:/etc/nginx/templates/:ro
+      - ./services/nginx/ssl/includes/:/etc/nginx/includes/:ro
+      - ./logs/nginx_ssl/:/var/log/nginx:rw
     secrets:
       - ssl-cert
       - ssl-key
@@ -26,8 +28,8 @@ services:
   nginx-waf:
     container_name: nginx-waf
     build:
-      context: ./services/nginx_waf
-      dockerfile: Dockerfile
+      context: ./services/nginx/
+      dockerfile: ./waf/Dockerfile
     restart: always
     env_file:
       - env/.no_sensitive.env
@@ -52,8 +54,9 @@ services:
       - dmz-net
       - vault-net
     volumes:
-      - ./services/nginx_gateway/templates/:/etc/nginx/templates/:ro
-      - ./services/nginx_gateway/rules.d/:/etc/nginx/rules.d/:ro
+      - ./services/nginx/shared/rules.d/:/etc/nginx/rules.d/:ro
+      - ./services/nginx/gateway/routes.d/:/etc/nginx/routes.d/:ro
+      - ./services/nginx/gateway/templates/:/etc/nginx/templates/:ro
       - ./logs/nginx_gateway/:/var/log/nginx/:rw
     expose:
       - 8080
