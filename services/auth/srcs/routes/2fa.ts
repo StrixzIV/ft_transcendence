@@ -172,7 +172,7 @@ export async function twoFactorRoute(app: FastifyInstance, options: FastifyPlugi
         });
 
         if (!valid) {
-            return { valid };
+            return response.code(401).send({ error: "2FA token invalid" });
         }
 
         const secrets = await get_JWT_secret();
