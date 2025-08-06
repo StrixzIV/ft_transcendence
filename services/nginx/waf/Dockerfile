@@ -78,10 +78,10 @@ RUN ln -s /usr/local/modsecurity/lib/libmodsecurity.so.${MODSECURITY_VERSION} /u
 USER nginx
 
 # Copy thing from host
-COPY --chown=nginx:nginx ./nginx.conf /etc/nginx/nginx.conf
-COPY --chown=nginx:nginx ./includes/ /etc/nginx/includes/
-COPY --chown=nginx:nginx ./rules.d/ /etc/nginx/rules.d/
-COPY --chown=nginx:nginx ./templates/ /etc/nginx/templates/
-COPY --chown=nginx:nginx ./modsecurity.d/ /etc/nginx/modsecurity.d/
+COPY --chown=nginx:nginx ./shared/rules.d/ /etc/nginx/rules.d/
+COPY --chown=nginx:nginx ./waf/nginx.conf /etc/nginx/nginx.conf
+COPY --chown=nginx:nginx ./waf/includes/ /etc/nginx/includes/
+COPY --chown=nginx:nginx ./waf/templates/ /etc/nginx/templates/
+COPY --chown=nginx:nginx ./waf/modsecurity.d/ /etc/nginx/modsecurity.d/
 
 EXPOSE 8080
