@@ -134,7 +134,7 @@ services:
     networks:
       - elk-net
     environment:
-      - ES_JAVA_OPTS=-Xms4g -Xmx4g
+      - ES_JAVA_OPTS=-Xms512m -Xmx2g
       - discovery.type=single-node
       - xpack.security.enabled=false
     expose:
