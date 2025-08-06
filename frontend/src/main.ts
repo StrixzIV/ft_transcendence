@@ -128,6 +128,7 @@ export async function mainPage() {
                     <button id="copy-code" class="text-xs mt-4 px-2 py-1 bg-gray-400 hover:bg-gray-300 text-black rounded">📋</button>
                 </div>
                 
+                <button id="enable-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded mt-2">Enable 2FA</button>
                 <button id="disable-2fa" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-2">Disable 2FA</button>
             
             </div>
@@ -142,6 +143,7 @@ export async function mainPage() {
     const closeModalBtn = document.getElementById('close-qr') as HTMLButtonElement;
     const qrImg = document.getElementById('qr-image') as HTMLImageElement;
     const manualCode = document.getElementById('manual-code') as HTMLParagraphElement;
+    const enable2fa = document.getElementById('enable-2fa') as HTMLButtonElement;
     const disable2fa = document.getElementById('disable-2fa') as HTMLButtonElement;
     const copyBtn = document.getElementById('copy-code') as HTMLButtonElement;
 
@@ -215,7 +217,7 @@ export async function mainPage() {
 
         try {
 
-            const response = await secureFetch(auth_endpoint('/2fa/enable'), {
+            const response = await secureFetch(auth_endpoint('/2fa/generate'), {
                 method: 'POST'
             });
 
@@ -244,8 +246,31 @@ export async function mainPage() {
 
             const data = await response.json();
             qrImg.src = data.qr_data_url;
-            manualCode.textContent = `Manual code (backup): ${data.base32}`;
+            manualCode.textContent = `Manual code (backup): ${data.totp_token}`;
             modal.classList.remove('hidden');
+        }
+        
+        catch (error) {
+            console.error(error);
+            alert('Error loading QR code.');
+        }
+
+    })
+
+    enable2fa.addEventListener('click', async () => {
+
+        try {
+
+            const response = await secureFetch(auth_endpoint('/2fa/enable'), {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch QR code.');
+            }
+
+            modal.classList.add('hidden');
+
         }
         
         catch (error) {
