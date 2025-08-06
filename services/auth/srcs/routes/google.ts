@@ -139,7 +139,7 @@ export async function googleRoute(fastify: FastifyInstance) {
         response.setCookie('access_token', token, access_cookie_properties);
         response.setCookie('refresh_token', raw_refresh_token, refresh_cookie_properties);
 
-        publishUserCreated(cascade_data);
         response.redirect(`${FRONTEND_URI}/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`);
+        
     });
 }
