@@ -97,7 +97,7 @@ create_vault() {
     touch $file
     chmod 600 $file
 
-    append_env $file VAULT_DEV_ROOT_TOKEN_ID $(openssl rand -base64 $token_size)
+    append_env $file VAULT_DEV_ROOT_TOKEN_ID "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
 }
 
 create_token() {
@@ -111,8 +111,9 @@ create_token() {
     touch $file
     chmod 600 $file
 
-    append_env $file JWT_ACCESS_TOKEN_SECRETS $(openssl rand -base64 $token_size)
-    append_env $file JWT_REFRESH_TOKEN_SECRETS $(openssl rand -base64 $token_size)
+    append_env $file JWT_ACCESS_TOKEN_SECRET "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
+    append_env $file JWT_REFRESH_TOKEN_SECRET "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
+    append_env $file TOTP_ENCRYPT_SECRET "\"$(openssl rand -base64 24 | tr -d '\n')\"" # use for aes-256, so change = break whole codebase
 }
 
 create_google() {
@@ -126,8 +127,8 @@ create_google() {
     touch $file
     chmod 600 $file
 
-    append_env $file GOOGLE_CLIENT_ID ""
-    append_env $file GOOGLE_CLIENT_SECRET ""
+    append_env $file GOOGLE_CLIENT_ID "\"\""
+    append_env $file GOOGLE_CLIENT_SECRET "\"\""
 }
 
 # Exit on error
