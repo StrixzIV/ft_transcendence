@@ -93,6 +93,16 @@ export async function googleRoute(fastify: FastifyInstance) {
                     pasword_hash: null,
                 }
             });
+
+            const cascade_data = {
+                id: user.id,
+                username: user.username,
+                mail: user.email,
+                created_at: user.created_at
+            } as { id: string; username: string; mail: string; created_at: Date; }
+
+            await publishUserCreated(cascade_data)
+            
         }
 
         if (user.twofa_enable) {
@@ -128,13 +138,6 @@ export async function googleRoute(fastify: FastifyInstance) {
 
         response.setCookie('access_token', token, access_cookie_properties);
         response.setCookie('refresh_token', raw_refresh_token, refresh_cookie_properties);
-
-        const cascade_data = {
-            id: user.id,
-            username: user.username,
-            mail: user.email,
-            created_at: user.created_at
-        } as CascadeUserData;
 
         publishUserCreated(cascade_data);
         response.redirect(`${FRONTEND_URI}/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`);
