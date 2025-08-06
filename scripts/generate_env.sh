@@ -26,7 +26,8 @@ create_no_sensitive() {
     local file=$env_dir/.no_sensitive.env
 
     if [ -f $file ]; then
-        return 1
+        echo "$file files have already been generated."
+        return 0
     fi
 
     touch $file
@@ -37,11 +38,41 @@ create_no_sensitive() {
     append_env $file DOMAIN_NAME $DOMAIN_NAME
 }
 
+create_s3() {
+    local file=$env_dir/.s3.env
+
+    if [ -f $file ]; then
+        echo "$file files have already been generated."
+        return 0
+    fi
+
+    touch $file
+    chmod 600 $file
+
+    MINIO_ROOT_USER=$(input_with_default "MINIO_ROOT_USER [default: user]: " "user")
+
+    # Enforcing 8 characters password
+    while true; do
+        read -s -p "MINIO_ROOT_PASSWORD (At least 8 characters): " MINIO_ROOT_PASSWORD
+        echo ""
+
+        if [ ${#MINIO_ROOT_PASSWORD} -lt 8 ]; then
+            echo "❌ Password must be at least 8 characters long. Please try again."
+        else
+            break
+        fi
+    done
+
+    append_env $file MINIO_ROOT_USER $MINIO_ROOT_USER
+    append_env $file MINIO_ROOT_PASSWORD $MINIO_ROOT_PASSWORD
+}
+
 create_broker() {
     local file=$env_dir/.broker.env
 
     if [ -f $file ]; then
-        return 1
+        echo "$file files have already been generated."
+        return 0
     fi
 
     touch $file
@@ -58,7 +89,8 @@ create_vault() {
     local file=$env_dir/.vault.env
 
     if [ -f $file ]; then
-        return 1
+        echo "$file files have already been generated."
+        return 0
     fi
 
     echo "Creating $file"
@@ -72,7 +104,8 @@ create_token() {
     local file=$env_dir/.token.env
 
     if [ -f $file ]; then
-        return 1
+        echo "$file files have already been generated."
+        return 0
     fi
 
     touch $file
@@ -87,7 +120,8 @@ create_google() {
     local file=$env_dir/.google.env
 
     if [ -f $file ]; then
-        return 1
+	    echo "$file files have already been generated."
+        return 0
     fi
 
     touch $file
@@ -99,23 +133,19 @@ create_google() {
 
 # Exit on error
 set -e
+echo "Generating env..."
 
-if [ -d ./env ]; then
-	echo "env files have already been generated."
-else
-	echo "Generating env..."
+# Create env dir
+mkdir -p env
+chmod 700 env
 
-    # Create env dir
-    mkdir -p env
-    chmod 700 env
+# Create env
+echo "============== CREATE ENV ================"
+create_no_sensitive
+create_broker
+create_vault
+create_token
+create_google
+create_s3
 
-    # Create env
-    echo "============== CREATE ENV ================"
-    create_no_sensitive
-    create_broker
-    create_vault
-    create_token
-    create_google
-
-	echo "Done! .env files are located at ./env/"
-fi
+echo "Done! .env files are located at ./env/"

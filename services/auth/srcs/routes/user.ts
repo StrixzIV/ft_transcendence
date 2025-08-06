@@ -84,7 +84,7 @@ export async function userRoute(fastify: FastifyInstance) {
             created_at: user_data.created_at
         } as CascadeUserData;
 
-        publishUserCreated(cascade_data);
+        await publishUserCreated(cascade_data)
 
         return response.code(201).send({
             user: {
