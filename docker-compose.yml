@@ -237,7 +237,7 @@ services:
       - vault-net
     volumes:
       - ./logs/auth-backend/:/logs/:rw
-      - ./data/auth/:/prisma/db/:rw
+      - ./data/auth-backend/:/prisma/db/:rw
     environment:
       - NODE_ENV=production
     depends_on:
