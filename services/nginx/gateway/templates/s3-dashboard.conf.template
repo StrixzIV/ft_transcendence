@@ -12,6 +12,6 @@ server {
     }
 
     # Logs
-    access_log /var/log/nginx/nginx_vault_access.log;
-    error_log  /var/log/nginx/nginx_vault_error.log;
+    access_log /var/log/nginx/nginx_s3_access.log;
+    error_log  /var/log/nginx/nginx_s3_error.log;
 }

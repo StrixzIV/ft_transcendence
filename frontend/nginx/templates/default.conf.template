@@ -5,20 +5,10 @@ server {
     # Main properties
     server_name ${DOMAIN_NAME};
     root /var/www/html;
-    index index.html index.htm;
-
-    # # Health
-    # location /health {
-    #     access_log off;
-    #     return 200;
-    # }
+    index index.html;
 
     # For fetching frontend page
     location / {
         try_files $uri $uri/ =404;
     }
-
-    # Logs
-    access_log /var/log/nginx/nginx_frontend_access.log;
-    error_log /var/log/nginx/nginx_frontend_error.log;
 }
