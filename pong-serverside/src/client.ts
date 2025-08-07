@@ -40,7 +40,10 @@ class PongClient {
     private _isGameOver: boolean = true;
     private _winningPlayer: 'leftPlayer' | 'rightPlayer' | undefined = undefined;
 
-    constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number) {
+    constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number, private _gid: string) {
+
+        this._gid = _gid;
+    
         this.createCanvas(gameWidth, sideWidth, cHeight);
         this._gridSizeInPx = gridSize;
         this._gameWidth = gameWidth;
@@ -54,6 +57,7 @@ class PongClient {
         this.setupWebSocket();
         this.loadFont();
         this.setupEventListeners();
+    
     }
 
     private createCanvas(gameWidth: number, sideWidth: number, cHeight: number): void {
@@ -92,11 +96,21 @@ class PongClient {
     }
 
     private setupWebSocket(): void {
+
         // You'll need to run a server, e.g. `node server.js`
         this._socket = new WebSocket("ws://localhost:8080");
 
         this._socket.onopen = () => {
-            console.log("Connected to WebSocket server.");
+
+            console.log(`Connected to WebSocket server. Joining gid: ${this._gid}`);
+            
+            this._socket.send(JSON.stringify({
+                type: "join",
+                gid: this._gid
+            }));
+            
+            console.log(`Current gid: ${this._gid}`);
+
         };
 
         this._socket.onmessage = (event) => {
@@ -111,6 +125,7 @@ class PongClient {
         this._socket.onerror = (error) => {
             console.error("WebSocket error:", error);
         };
+
     }
 
     private sendInput(keyCode: string, isPressed: boolean): void {
@@ -193,4 +208,4 @@ class PongClient {
 }
 
 // Start the client
-new PongClient(1000, 100, 800, 20, 100);
+new PongClient(1000, 100, 800, 20, 100, "0e2b05b2-8944-471e-887a-07618486307b");
