@@ -3,22 +3,18 @@ import { auth_endpoint } from "./provider/api";
 export function registerPage() {
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
-      <div class="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <form id="register-form" class="form">
 
-        <form id="register-form" class="bg-gray-800 p-8 rounded shadow-md space-y-4 w-80">
+        <h2 class="text-large">REGISTER</h2>
 
-          <h2 class="text-2xl font-bold mb-4 text-center">Register</h2>
+        <input type="text" id="username" placeholder="Username" required class="form-field"/>
+        <input type="email" id="email" placeholder="Email" required class="form-field"/>
+        <input type="password" id="password" placeholder="Password" required class="form-field"/>
+        <input type="password" id="password-confirm" placeholder="Confirm Password" required class="form-field"/>
 
-          <input type="text" id="username" placeholder="Username" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          <input type="email" id="email" placeholder="Email" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          <input type="password" id="password" placeholder="Password" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          <input type="password" id="password-confirm" placeholder="Confirm Password" required class="w-full p-2 rounded bg-gray-700 text-white"/>
+        <button type="submit" class="form-button">Submit</button>
 
-          <button type="submit" class="w-full bg-green-500 hover:bg-green-600 p-2 rounded">Submit</button>
-
-        </form>
-
-      </div>
+      </form>
     `;
 
     const form = document.getElementById('register-form') as HTMLFormElement;
