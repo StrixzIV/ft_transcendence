@@ -72,6 +72,9 @@
 .dropdown   { @apply absolute right-0 w-40 hidden z-10 bg-[#2a2a2a] rounded shadow-lg divide-y divide-[#444] group-hover:block; }
 .sidebar    { @apply p-4 w-64 min-h-screen border-r border-[#444] bg-[#1a1a1a]; }  /* assume parent is flex */
 
+/* Dividers: for child */
+.dividers-1 { @apply divide-y divide-[#444]; }
+.dividers-2 { @apply divide-y divide-[#333]; }
 
 /* Card, part of the bento-box-type page */
 .card           { @apply p-4 border border-[#444] rounded bg-[#1a1a1a]; }

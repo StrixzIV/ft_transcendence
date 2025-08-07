@@ -80,60 +80,197 @@ export async function mainPage() {
     const image_uri = URL.createObjectURL(blob)
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-
-        <div class="text-white bg-gray-900 min-h-screen flex flex-col items-center justify-center space-y-4">
-            <img 
-                src="${image_uri}" 
-                id="profile-img"
-                alt="Profile Image"
-                class="w-24 h-24 rounded-full border border-gray-500"
-            />
-            <h1>Welcome ${user.username ? user.username : 'Guest'}!</h1>
-            ${user.username ? `<p class="text-sm text-gray-400">UUID: ${user.id}</p>` : ''}
-            <div class="card">
-                <button id="counter" type="button"></button>
-            </div>
-            <p class="read-the-docs">
-                Click on the Vite and TypeScript logos to learn more
-            </p>
-
-            <button id="show-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded">Enable 2FA</button>
-            
-            <input 
-                type="file" 
-                id="upload-input" 
-                accept="image/*" 
-                class="hidden"
-            />
-            <button id="upload-btn" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded">
-                Upload New Profile Image
-            </button>
-
-            <button id="logout" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mt-2">Logout</button>
-
-        </div>
     
-        <div id="qr-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-            <div class="bg-white p-6 rounded shadow-md text-black relative">
-                
-                <button id="close-qr" class="absolute top-2 right-2 text-xl">&times;</button>
-                <h2 class="text-lg mb-4">Scan this QR Code</h2>
-                
-                <div class="flex justify-center">
-                    <img id="qr-image" src="" alt="2FA QR Code" class="w-48 h-48"/>
+    <!-- Header-->
+    <div class="header">
+        <!-- Site name -->
+        <header class="tracking-widest text-xl">FT_TRANSCENDENCE</header>
+
+        <!-- Right side -->
+        <div class="flex gap-4">
+            <!-- Login name, dropdown menu -->
+             <div class="relative group inline-block p-1">
+                <span class="cursor-pointer">nteechar ▾</span>
+
+                <!-- Dropdown menu -->
+                <div class="dropdown">
+                    <p id="show-2fa" class="cursor-pointer block p-4 hover:bg-[#444]">Enable 2FA</p>
+                    <p id="upload-btn" class="cursor-pointer block p-4 hover:bg-[#444]">Update Profile</p>
+                    <p id="logout" class="cursor-pointer block p-4 hover:bg-[#444] text-red">Log out</p>
+
+                    <div id="qr-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
+                        <div class="bg-white p-6 rounded shadow-md text-black relative">
+                            
+                            <button id="close-qr" class="absolute top-2 right-2 text-xl">&times;</button>
+                            <h2 class="text-lg mb-4">Scan this QR Code</h2>
+                            
+                            <div class="flex justify-center">
+                                <img id="qr-image" src="" alt="2FA QR Code" class="w-48 h-48"/>
+                            </div>
+                            
+                            <div class="mt-4 flex items-center space-x-2">
+                                <p id="manual-code" class="text-sm mt-4 break-all"></p>
+                                <button id="copy-code" class="text-xs mt-4 px-2 py-1 bg-gray-400 hover:bg-gray-300 text-black rounded">📋</button>
+                            </div>
+                            
+                            <button id="enable-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded mt-2">Enable 2FA</button>
+                            <button id="disable-2fa" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-2">Disable 2FA</button>
+                        
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="mt-4 flex items-center space-x-2">
-                    <p id="manual-code" class="text-sm mt-4 break-all"></p>
-                    <button id="copy-code" class="text-xs mt-4 px-2 py-1 bg-gray-400 hover:bg-gray-300 text-black rounded">📋</button>
-                </div>
-                
-                <button id="enable-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded mt-2">Enable 2FA</button>
-                <button id="disable-2fa" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-2">Disable 2FA</button>
-            
             </div>
         </div>
+    </div>
+
+    <main class="flex">
+        <!-- FRIEND Sidebar -->
+        <aside class="sidebar">
+            <header class="card-title">> FRIENDS</header>
+
+            <div class="dividers-2">
+                <div class="friends-row-item"><span>opponent_minirt</span></div>
+                <div class="friends-row-item"><span>opponent_minishell</span></div>
+                <div class="friends-row-item"><span>opponent_fractol</span></div>
+                <div class="friends-row-item"><span>opponent_get-next-line</span></div>
+                <div class="friends-row-item"><span>opponent_libft</span></div>
+            </div>
+
+            <div class="flex gap-2 items-center justify-center card-button mt-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14"/>
+                    <path d="M12 5v14"/>
+                </svg>
+                <span class="mr-2">ADD FRIEND</span>
+            </div>
+        </aside>
+
+        <!-- Main Area -->
+        <section class="flex-1 p-4 space-y-4">
+            <!-- FT_TRANSCENDENCE Card -->
+            <section class="card space-y-4">
+                <header class="card-title">> USER</header>
     
+                <div class="flex gap-3">
+                    <!-- Picture -->
+                    <div class="relative inline-block w-32 h-32 flex-shrink-0">
+                        <img class="image" src="${image_uri}" alt="User avatar">
+                        <span class="online-dot"></span>
+                    </div>
+                    
+                    <!-- Info -->
+                    <div class="flex-1 space-y-2">
+                        <div class="card-field">
+                            <p class="text-gray">USERNAME</p>
+                            <p>${user.username ? user.username : 'Guest'}</p>
+                        </div>
+                        
+                        <div class="card-field">
+                            <p class="text-gray">UID</p>
+                            <p>${user.username ? `<p>UUID: ${user.id}</p>` : ''}</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Play games button row -->
+            <section class="grid grid-cols-3">
+                <a href="#" class="card-button mr-1.5">
+                    <div>
+                        <span>LOCAL</span>
+                        <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 8h.01"/>
+                            <path d="M12 12h.01"/>
+                            <path d="M14 8h.01"/>
+                            <path d="M16 12h.01"/>
+                            <path d="M18 8h.01"/>
+                            <path d="M6 8h.01"/>
+                            <path d="M7 16h10"/>
+                            <path d="M8 12h.01"/>
+                            <rect width="20" height="16" x="2" y="4" rx="2"/>
+                        </svg>
+                    </div>
+                </a>
+                <a href="#" class="card-button text-center mx-1.5">
+                    <div>
+                        <span>REMOTE</span>
+                        <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                            <path d="M2 12h20"/>
+                        </svg>
+                    </div>
+                </a>
+                <a href="#" class="card-button text-center ml-1.5">
+                    <div>
+                        <span>TOURNAMENT</span>
+                        <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/>
+                            <path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/>
+                            <path d="M18 9h1.5a1 1 0 0 0 0-5H18"/>
+                            <path d="M4 22h16"/>
+                            <path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/>
+                            <path d="M6 9H4.5a1 1 0 0 1 0-5H6"/>
+                        </svg>
+                    </div>
+                </a>
+            </section>
+
+            <!-- STAT Card -->
+            <section class="card">
+                <header class="card-title">> STATS</header>
+
+                <div class="dividers-2">
+                    <div class="row-item-indent">
+                        <span>WIN</span>
+                        <span>42</span>
+                    </div>
+                    <div class="row-item-indent">
+                        <span>LOSS</span>
+                        <span>8</span>
+                    </div>
+                    <div class="row-item-indent">
+                        <span>WIN RATE</span>
+                        <span>84%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GAME LOG Card -->
+            <section class="card">
+                <header class="card-title">> GAME LOG</header>
+    
+                <div class="dividers-2">
+                    <div class="game-log-row-item">
+                        <span>opponent_minirt</span>
+                        <span class="text-green">WIN</span>
+                    </div>
+                    <div class="game-log-row-item">
+                        <span>opponent_minishell</span>
+                        <span class="text-red">LOSS</span>
+                    </div>
+                    <div class="game-log-row-item">
+                        <span>opponent_fractol</span>
+                        <span class="text-green">WIN</span>
+                    </div>
+                    <div class="game-log-row-item">
+                        <span>opponent_get-next-line</span>
+                        <span class="text-red">LOSS</span>
+                    </div>
+                    <div class="game-log-row-item">
+                        <span>opponent_libft</span>
+                        <span class="text-green">WIN</span>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+    </main>
     `;
 
     const loginBtn = document.getElementById('logout') as HTMLButtonElement;
