@@ -47,12 +47,12 @@ export function twoFactorPage() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ token, uid })
+                body: JSON.stringify({ token, id: uid })
             });
 
             const json = await response.json();
 
-            if (!json.valid) {
+            if (!json.user) {
                 errorDisplay.textContent = "Invalid token. Please try again.";
                 errorDisplay.classList.remove("hidden");
                 return;
