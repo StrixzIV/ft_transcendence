@@ -9,6 +9,7 @@ interface GameState {
     leftScore: number;
     rightScore: number;
     isGameOver: boolean;
+    isGameStarted: boolean;
     winningPlayer?: 'leftPlayer' | 'rightPlayer';
 }
 
@@ -17,9 +18,6 @@ const CANVAS_HEIGHT = 800;
 const SIDEBAR_WIDTH = 100;
 const GRID_SIZE = 20;
 const PADDLE_HEIGHT = 100;
-const PADDLE_SPEED = 8;
-const BALL_SPEED = 6;
-const WIN_SCORE = 5;
 
 class PongClient {
     
@@ -28,7 +26,6 @@ class PongClient {
 
     private _canvasWidth!: number;
     private _cavnasHeight!: number;
-    private _gameWidth!: number;
     private _sidebarWidth!: number;
     private _gridSizeInPx!: number;
 
@@ -38,15 +35,18 @@ class PongClient {
 
     private _socket!: WebSocket;
     private _isGameOver: boolean = true;
+    private _isGameStarted: boolean = false;
+    private _opponentJoined: boolean = false;
+    private _isWaitingForHost: boolean = false;
+    private _assignedPlayerId: 'player1' | 'player2' | null = null;
     private _winningPlayer: 'leftPlayer' | 'rightPlayer' | undefined = undefined;
 
-    constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number, private _gid: string) {
+    constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, private _gid: string) {
 
         this._gid = _gid;
     
         this.createCanvas(gameWidth, sideWidth, cHeight);
         this._gridSizeInPx = gridSize;
-        this._gameWidth = gameWidth;
         this._sidebarWidth = sideWidth;
         this._cavnasHeight = cHeight;
 
@@ -78,12 +78,24 @@ class PongClient {
     }
 
     private setupEventListeners(): void {
+
         document.addEventListener('keydown', (event: KeyboardEvent) => {
+
+            // Send a new 'start_game' message to the server
+            if (event.code === 'Enter' && this._opponentJoined && !this._isGameStarted) {
+                if (this._socket.readyState === WebSocket.OPEN) {
+                    this._socket.send(JSON.stringify({ type: 'start_game' }));
+                }
+            }
+
             this.sendInput(event.code, true);
+
         });
+
         document.addEventListener('keyup', (event: KeyboardEvent) => {
             this.sendInput(event.code, false);
         });
+
     }
 
     private loadFont(): void {
@@ -114,8 +126,63 @@ class PongClient {
         };
 
         this._socket.onmessage = (event) => {
-            const gameState: GameState = JSON.parse(event.data);
-            this.updateClientState(gameState);
+            
+            const gameState = JSON.parse(event.data);
+        
+            switch (gameState.type) {
+
+            case 'player_assignment':
+                this._assignedPlayerId = gameState.player;
+                console.log(`Assigned as ${this._assignedPlayerId}`);
+                this.drawGame();
+                break;
+            
+            case 'waiting_for_player':
+                this._isGameStarted = false;
+                this._isGameOver = false;
+                this._opponentJoined = false;
+                this._isWaitingForHost = false;
+                this.drawWaitingScreen();
+                break;
+
+            case 'opponent_joined':
+                this._opponentJoined = true;
+                this._isWaitingForHost = false;
+                this._isGameStarted = false;
+                this._isGameOver = false;
+                this.drawWaitingScreen();
+                break;
+
+            case 'waiting_for_host':
+                this._isWaitingForHost = true;
+                this._opponentJoined = false;
+                this._isGameStarted = false;
+                this._isGameOver = false;
+                this.drawWaitingForHostScreen();
+                break;
+
+            case 'game_start':
+                this._isGameStarted = true;
+                this._isGameOver = false;
+                this._opponentJoined = false;
+                this._isWaitingForHost = false;
+                console.log("Game is starting!");
+                break;
+
+            case 'error':
+                console.error("Server error:", gameState.message);
+                break;
+
+            default:
+
+                if (this._isGameStarted) {
+                    this.updateClientState(gameState);
+                }
+
+                break;
+
+            }
+        
         };
 
         this._socket.onclose = () => {
@@ -145,8 +212,71 @@ class PongClient {
         this._winningPlayer = gameState.winningPlayer;
         this.drawGame();
     }
+
+    private drawWaitingScreen(): void {
+
+        let ctx = this._context!;
+        let cWidth = this._canvasWidth;
+        let cHeight = this._cavnasHeight;
+
+        ctx.clearRect(0, 0, cWidth, cHeight);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, cWidth, cHeight);
+
+        ctx.fillStyle = 'white';
+        ctx.font = '40px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Waiting for another player...', cWidth / 2, cHeight / 2 - 50);
+        
+        if (this._opponentJoined) {
+
+            ctx.clearRect(0, 0, cWidth, cHeight);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, cWidth, cHeight);
+            
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText('Opponent joined! Press Enter to start.', cWidth / 2, cHeight / 2 - 50);
+
+        }
+        
+        else {
+            ctx.fillText('Waiting for another player...', cWidth / 2, cHeight / 2 - 50);
+            ctx.font = '20px Arial';
+            ctx.fillText(`Share this room ID with a friend: ${this._gid}`, cWidth / 2, cHeight / 2 + 20);
+        }
+
+    }
+
+    private drawWaitingForHostScreen(): void {
+
+        let ctx = this._context!;
+        let cWidth = this._canvasWidth;
+        let cHeight = this._cavnasHeight;
+
+        ctx.clearRect(0, 0, cWidth, cHeight);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, cWidth, cHeight);
+
+        ctx.fillStyle = 'white';
+        ctx.font = '40px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Waiting for host to start...', cWidth / 2, cHeight / 2 - 50);
+    
+    }
     
     private drawGame(): void {
+
+        if (!this._isGameStarted && !this._isGameOver && this._isWaitingForHost) {
+            this.drawWaitingForHostScreen();
+            return;
+        }
+
+        if (!this._isGameStarted && !this._isGameOver && this._assignedPlayerId === 'player1') {
+            this.drawWaitingScreen();
+            return;
+        }
+
         let ctx = this._context!;
         let cWidth = this._canvasWidth;
         let cHeight = this._cavnasHeight;
@@ -208,4 +338,4 @@ class PongClient {
 }
 
 // Start the client
-new PongClient(1000, 100, 800, 20, 100, "0e2b05b2-8944-471e-887a-07618486307b");
+new PongClient(1000, 100, 800, 20, "bd01eac8-97c0-4874-b512-bb80a23012be");

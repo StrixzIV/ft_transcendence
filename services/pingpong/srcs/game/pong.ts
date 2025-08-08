@@ -180,14 +180,12 @@ function joinRoom(ws: WebSocket, roomId: string): { room: GameRoom; playerId: 'p
         return { room, playerId: 'player1' };
     }
 
-    // Starting game logic on 2nd player join
     if (!room.player2) {
 
         room.player2 = ws;
         room.players.set(ws, 'player2');
-
-        room.isGameReady = true;
-        room.loop = setInterval(() => gameLoop(room), 1000 / 60);
+        room.player1.send(JSON.stringify({ type: 'opponent_joined' }));
+        room.player2.send(JSON.stringify({ type: 'waiting_for_host' }));
 
         return { room, playerId: 'player2' };
     
@@ -252,11 +250,7 @@ wss.on('connection', (ws) => {
             ws.send(JSON.stringify({ type: 'player_assignment', player: playerId, roomId: joinedRoom.gid }));
             console.log(`${playerId} joined room ${joinedRoom.gid}`);
 
-            if (joinedRoom.isGameReady) {
-                broadcastState(joinedRoom);
-            }
-
-            else {
+            if (!joinedRoom.isGameReady) {
                 ws.send(JSON.stringify({ type: 'waiting_for_player' }));
             }
 
@@ -264,8 +258,19 @@ wss.on('connection', (ws) => {
             ws.on('message', (msg) => {
         
                 const input = JSON.parse(msg.toString());
+
+                if (input.type === 'start_game' && joinedRoom && playerId == 'player1') {
+
+                    joinedRoom.isGameReady = true;
+                    joinedRoom.loop = setInterval(() => gameLoop(joinedRoom!), 1000 / 60);
+                
+                    joinedRoom.players.forEach((_, client) => {
+                        client.send(JSON.stringify({ type: 'game_start' }));
+                    });
+                
+                }
         
-                if (input.type === 'input' && joinedRoom && playerId) {
+                else if (input.type === 'input' && joinedRoom && playerId) {
                     handleInput(joinedRoom, playerId, input.key, input.pressed);
                 }
         
