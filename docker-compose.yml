@@ -193,6 +193,8 @@ services:
     env_file:
       - env/.vault.env
       - env/.token.env
+      - env/.google.env
+      - env/.broker.env
     networks:
       - vault-init-net
     volumes:
@@ -225,9 +227,8 @@ services:
       context: ./services/auth
       dockerfile: Dockerfile
     env_file:
+      - env/.no_sensitive.env
       - env/.vault.env
-      - env/.google.env
-      - env/.broker.env
     restart: always
     networks:
       - mainnet

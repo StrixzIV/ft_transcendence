@@ -26,7 +26,7 @@ export async function userRoute(fastify: FastifyInstance) {
             for (let attempt = 0; attempt < 5; attempt++) {
                 const user = await prisma.users.findUnique({ where: { id: uid } });
                 if (user) return user;
-                await new Promise(r => setTimeout(r, 50));
+                await new Promise(r => setTimeout(r, 200));
             }
 
             return response.status(404).send({ error: "User not found" });
@@ -63,7 +63,7 @@ export async function userRoute(fastify: FastifyInstance) {
             for (let attempt = 0; attempt < 5; attempt++) {
                 const user = await prisma.users.findUnique({ where: { id: uid } });
                 if (user)  return user;
-                await new Promise(r => setTimeout(r, 50));
+                await new Promise(r => setTimeout(r, 200));
             }
 
             return null;
