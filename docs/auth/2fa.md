@@ -63,8 +63,6 @@ Turn off 2FA mode
 
 ## `POST` - /auth/2fa/verify
 
-**Note:** JWT access and refresh token is an HTTP-only cookie. (This cookie cannot be accessed with JavaScript. Include it as a credential before request.)
-
 ### Request JSON schema
 
 ```typescript
