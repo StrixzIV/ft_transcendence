@@ -225,79 +225,81 @@ function handleInput(room: GameRoom, playerId: 'player1' | 'player2', key: strin
 
 }
 
-wss.on('connection', (ws) => {
+export function setupWebSocket() {
+    wss.on('connection', (ws) => {
 
-    let joinedRoom: GameRoom | null = null;
-    let playerId: 'player1' | 'player2' | null = null;
+        let joinedRoom: GameRoom | null = null;
+        let playerId: 'player1' | 'player2' | null = null;
 
-    ws.once('message', (message) => {
+        ws.once('message', (message) => {
 
-        const data = JSON.parse(message.toString());
+            const data = JSON.parse(message.toString());
 
-        if (data.type === 'join' && typeof data.gid === 'string') {
-        
-            const result = joinRoom(ws, data.gid);
+            if (data.type === 'join' && typeof data.gid === 'string') {
+            
+                const result = joinRoom(ws, data.gid);
 
-            if (!result) {
-                ws.send(JSON.stringify({ type: 'error', message: 'Room not found or full' }));
+                if (!result) {
+                    ws.send(JSON.stringify({ type: 'error', message: 'Room not found or full' }));
+                    ws.close();
+                    return;
+                }
+
+                joinedRoom = result.room;
+                playerId = result.playerId;
+
+                ws.send(JSON.stringify({ type: 'player_assignment', player: playerId, roomId: joinedRoom.gid }));
+                console.log(`${playerId} joined room ${joinedRoom.gid}`);
+
+                if (!joinedRoom.isGameReady) {
+                    ws.send(JSON.stringify({ type: 'waiting_for_player' }));
+                }
+
+                // Register input handler
+                ws.on('message', (msg) => {
+            
+                    const input = JSON.parse(msg.toString());
+
+                    if (input.type === 'start_game' && joinedRoom && playerId == 'player1') {
+
+                        joinedRoom.isGameReady = true;
+                        joinedRoom.loop = setInterval(() => gameLoop(joinedRoom!), 1000 / 60);
+                    
+                        joinedRoom.players.forEach((_, client) => {
+                            client.send(JSON.stringify({ type: 'game_start' }));
+                        });
+                    
+                    }
+            
+                    else if (input.type === 'input' && joinedRoom && playerId) {
+                        handleInput(joinedRoom, playerId, input.key, input.pressed);
+                    }
+            
+                });
+
+                ws.on('close', () => {
+            
+                    console.log(`${playerId} disconnected from room ${joinedRoom!.gid}`);
+            
+                    if (joinedRoom!.players.has(ws)) joinedRoom!.players.delete(ws);
+                    if (playerId === 'player1') joinedRoom!.player1 = null;
+                    if (playerId === 'player2') joinedRoom!.player2 = null;
+
+                    if (!joinedRoom!.player1 && !joinedRoom!.player2) {
+                        deleteRoom(joinedRoom!.gid);
+                        console.log(`Room ${joinedRoom!.gid} closed.`);
+                    }
+            
+                });
+            
+            }
+            
+            else {
+                ws.send(JSON.stringify({ type: 'error', message: 'Invalid join request' }));
                 ws.close();
-                return;
             }
+            
+        });
 
-            joinedRoom = result.room;
-            playerId = result.playerId;
-
-            ws.send(JSON.stringify({ type: 'player_assignment', player: playerId, roomId: joinedRoom.gid }));
-            console.log(`${playerId} joined room ${joinedRoom.gid}`);
-
-            if (!joinedRoom.isGameReady) {
-                ws.send(JSON.stringify({ type: 'waiting_for_player' }));
-            }
-
-            // Register input handler
-            ws.on('message', (msg) => {
-        
-                const input = JSON.parse(msg.toString());
-
-                if (input.type === 'start_game' && joinedRoom && playerId == 'player1') {
-
-                    joinedRoom.isGameReady = true;
-                    joinedRoom.loop = setInterval(() => gameLoop(joinedRoom!), 1000 / 60);
-                
-                    joinedRoom.players.forEach((_, client) => {
-                        client.send(JSON.stringify({ type: 'game_start' }));
-                    });
-                
-                }
-        
-                else if (input.type === 'input' && joinedRoom && playerId) {
-                    handleInput(joinedRoom, playerId, input.key, input.pressed);
-                }
-        
-            });
-
-            ws.on('close', () => {
-        
-                console.log(`${playerId} disconnected from room ${joinedRoom!.gid}`);
-        
-                if (joinedRoom!.players.has(ws)) joinedRoom!.players.delete(ws);
-                if (playerId === 'player1') joinedRoom!.player1 = null;
-                if (playerId === 'player2') joinedRoom!.player2 = null;
-
-                if (!joinedRoom!.player1 && !joinedRoom!.player2) {
-                    deleteRoom(joinedRoom!.gid);
-                    console.log(`Room ${joinedRoom!.gid} closed.`);
-                }
-        
-            });
-        
-        }
-        
-        else {
-            ws.send(JSON.stringify({ type: 'error', message: 'Invalid join request' }));
-            ws.close();
-        }
-        
     });
-
-});
+}

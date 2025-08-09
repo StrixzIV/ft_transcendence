@@ -7,7 +7,7 @@ export async function getRabbitMQConnection() {
 
     if (!conn) {
 
-        conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
+        conn = await amqp.connect(`amqp://${process.env['RABBITMQ_DEFAULT_USER'] ?? ''}:${process.env['RABBITMQ_DEFAULT_PASS'] ?? ''}@broker:5672`);
         
         conn.on('error', (err) => {
             console.error('RabbitMQ connection error:', err);
