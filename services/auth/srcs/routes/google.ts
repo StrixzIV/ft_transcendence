@@ -4,18 +4,22 @@ import jwtLib from 'jsonwebtoken';
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
-import { get_JWT_secret } from '../utils/jwt';
-import { publishUserCreated } from '../utils/rabbitmq';
+import { FRONTEND_URI } from '../config/urls';
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? "";
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
-const REDIRECT_URI = "https://localhost:8443/auth/google/callback";
+import { access_cookie_properties, get_JWT_secret, refresh_cookie_properties } from '../utils/jwt';
+import { publishUserCreated } from '../utils/rabbitmq';
+import { get_google_secret } from '../utils/google';
+import { JWTInfo } from '../interfaces/jwt';
+import { CascadeUserData } from '../interfaces/cascade_data';
 
 export async function googleRoute(fastify: FastifyInstance) {
+    const google_secrets = await get_google_secret();
+    const GOOGLE_CLIENT_ID = google_secrets.google_client_id;
+    const GOOGLE_CLIENT_SECRET = google_secrets.google_client_secret;
+    const REDIRECT_URI = `${FRONTEND_URI}/auth/google/callback`;
 
     fastify.get('/google', async (request, response) => {
-
-        const random_state = crypto.randomUUID()
+        const random_state = crypto.randomUUID();
         const auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams({
             client_id: GOOGLE_CLIENT_ID,
             redirect_uri: REDIRECT_URI,
@@ -26,16 +30,14 @@ export async function googleRoute(fastify: FastifyInstance) {
             random_state
         });
 
-        response.redirect(auth_url)
-
+        response.redirect(auth_url);
     });
 
     fastify.get('/google/callback', async (request, response) => {
-
         const { code } = request.query as { code: string };
 
         if (!code) {
-            return response.redirect('https://localhost:8443/')
+            return response.redirect(FRONTEND_URI);
         }
 
         const token_callback = await fetch("https://oauth2.googleapis.com/token", {
@@ -50,31 +52,29 @@ export async function googleRoute(fastify: FastifyInstance) {
                 redirect_uri: REDIRECT_URI,
                 grant_type: "authorization_code",
             })
-        })
+        });
 
-        const token_data = await token_callback.json()
+        const token_data = await token_callback.json();
 
         if (token_data.error) {
-            fastify.log.error(token_data)
-            return response.code(500).send({ error: "Failed to excahgne code for tokens" })
+            fastify.log.error(token_data.error);
+
+            return response.code(500).send({ error: "Failed to exchange code for tokens" });
         }
 
         const id_token = token_data.id_token;
-
         const base64_data = id_token.split(".")[1];
         const buffer = Buffer.from(base64_data, "base64");
         const user_data = JSON.parse(buffer.toString());
-
-        const { email, name, picture, sub: googleId } = user_data
+        const { email, name, picture, sub: googleId } = user_data;
 
         let user = await prisma.users.findUnique({
             where: {
                 google_id: googleId,
             }
-        })
+        });
 
         if (!user) {
-
             const basename = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
             let username = basename;
             let counter = 1;
@@ -92,20 +92,28 @@ export async function googleRoute(fastify: FastifyInstance) {
                     profile_url: picture,
                     pasword_hash: null,
                 }
-            })
+            });
+
+            const cascade_data = {
+                id: user.id,
+                username: user.username,
+                mail: user.email,
+                created_at: user.created_at
+            } as { id: string; username: string; mail: string; created_at: Date; }
+
+            await publishUserCreated(cascade_data)
+            
         }
 
-        if (user.totp_secret) {
-            return response.redirect(`https://localhost:8443/?id=${user.id}&twofa=true`)
+        if (user.twofa_enable) {
+            return response.redirect(`${FRONTEND_URI}/?id=${user.id}&twofa=true`);
         }
 
-        const secrets = await get_JWT_secret()
-
+        const secrets = await get_JWT_secret();
         const token = fastify.jwt.sign({
             id: user.id,
             username: user.username
-        })
-
+        });
         const raw_refresh_token = jwtLib.sign(
             { id: user.id },
             secrets.refresh_secret,
@@ -113,10 +121,10 @@ export async function googleRoute(fastify: FastifyInstance) {
         );
 
         const hashed_refresh_token = await bcrypt.hash(raw_refresh_token, 10);
-        const decoded = fastify.jwt.decode(raw_refresh_token) as { iat: number, exp: number }
+        const decoded = fastify.jwt.decode(raw_refresh_token) as JWTInfo;
 
         if (!decoded) {
-            return response.code(500).send({ error: 'Cannot get iat field from JWT' });
+            return response.code(500).send({ error: 'Cannot generate login credential' });
         }
 
         await prisma.refreshToken.create({
@@ -128,32 +136,10 @@ export async function googleRoute(fastify: FastifyInstance) {
             }
         });
 
-        response.setCookie('access_token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 15 * 60
-        });
+        response.setCookie('access_token', token, access_cookie_properties);
+        response.setCookie('refresh_token', raw_refresh_token, refresh_cookie_properties);
 
-        response.setCookie('refresh_token', raw_refresh_token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 30 * 24 * 60 * 60
-        });
-
-        const cascade_data = {
-            id: user.id,
-            username: user.username,
-            mail: user.email,
-            created_at: user.created_at
-        } as { id: string; username: string; mail: string; created_at: Date; }
-
-        publishUserCreated(cascade_data)
-        response.redirect(`https://localhost:8443/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`)
-
+        response.redirect(`${FRONTEND_URI}/?id=${user.id}&username=${user.username}&expires_at=${decoded.exp}`);
+        
     });
-
 }

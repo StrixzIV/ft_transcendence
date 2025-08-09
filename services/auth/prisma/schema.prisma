@@ -15,15 +15,16 @@ datasource db {
 
 model Users {
 
-    id              String   @id @default(uuid())
-    username        String   @unique
-    email           String
-    pasword_hash    String?
-    totp_secret     String?
-    google_id       String?  @unique
-    profile_url     String?
-    refresh_tokens  RefreshToken[]
-    created_at      DateTime @default(now())
+    id                          String  @id @default(uuid())
+    username                    String  @unique
+    email                       String
+    pasword_hash                String?
+    totp_encerypted_secret      String? @unique
+    twofa_enable                Boolean @default(false)
+    google_id                   String? @unique
+    profile_url                 String?
+    refresh_tokens              RefreshToken[]
+    created_at                  DateTime @default(now())
 
     @@map("users")
 
