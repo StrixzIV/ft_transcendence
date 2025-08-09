@@ -34,7 +34,7 @@ class PongClient {
     private _ball: Ball;
 
     private _socket!: WebSocket;
-    private _isGameOver: boolean = true;
+    private _isGameOver: boolean = false;
     private _isGameStarted: boolean = false;
     private _opponentJoined: boolean = false;
     private _isWaitingForHost: boolean = false;
@@ -49,6 +49,8 @@ class PongClient {
         this._gridSizeInPx = gridSize;
         this._sidebarWidth = sideWidth;
         this._cavnasHeight = cHeight;
+
+        this.createPopup();
 
         this._leftPaddle = new Paddle("leftPlayer", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GRID_SIZE * 2, CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
         this._rightPaddle = new Paddle("rightPlayer", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GAME_WIDTH - GRID_SIZE * 2, CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
@@ -77,6 +79,60 @@ class PongClient {
         }
     }
 
+    private createPopup(): void {
+
+        const popup = document.createElement("div");
+        popup.id = "popup-overlay";
+
+        Object.assign(popup.style, {
+            position: "fixed",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.85)",
+            color: "white",
+            fontFamily: "Arial, sans-serif",
+            textAlign: "center",
+            zIndex: "1000",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            visibility: "hidden"
+        });
+
+        const title = document.createElement("h1");
+        title.id = "popup-title";
+
+        const message = document.createElement("p");
+        message.id = "popup-message";
+
+        popup.appendChild(title);
+        popup.appendChild(message);
+        document.body.appendChild(popup);
+
+    }
+
+    private showPopup(title: string, message: string) {
+
+        const popup = document.getElementById("popup-overlay") as HTMLDivElement;
+        const titleEl = document.getElementById("popup-title") as HTMLHeadingElement;
+        const msgEl = document.getElementById("popup-message") as HTMLParagraphElement;
+
+        if (popup && titleEl && msgEl) {
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+            popup.style.visibility = "visible";
+        }
+
+    }
+
+    private hidePopup() {
+        const popup = document.getElementById("popup-overlay") as HTMLDivElement;
+        if (popup) popup.style.visibility = "hidden";
+    }
+
     private setupEventListeners(): void {
 
         document.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -85,6 +141,13 @@ class PongClient {
             if (event.code === 'Enter' && this._opponentJoined && !this._isGameStarted) {
                 if (this._socket.readyState === WebSocket.OPEN) {
                     this._socket.send(JSON.stringify({ type: 'start_game' }));
+                }
+            }
+            
+            // Reload on game over
+            if (event.code === 'Enter' && this._isGameOver) {
+                if (this._socket.readyState === WebSocket.OPEN) {
+                    window.location.reload();
                 }
             }
 
@@ -166,6 +229,7 @@ class PongClient {
                 this._isGameOver = false;
                 this._opponentJoined = false;
                 this._isWaitingForHost = false;
+                this.hidePopup();
                 console.log("Game is starting!");
                 break;
 
@@ -215,65 +279,26 @@ class PongClient {
 
     private drawWaitingScreen(): void {
 
-        let ctx = this._context!;
-        let cWidth = this._canvasWidth;
-        let cHeight = this._cavnasHeight;
-
-        ctx.clearRect(0, 0, cWidth, cHeight);
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, cWidth, cHeight);
-
-        ctx.fillStyle = 'white';
-        ctx.font = '40px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Waiting for another player...', cWidth / 2, cHeight / 2 - 50);
-        
         if (this._opponentJoined) {
-
-            ctx.clearRect(0, 0, cWidth, cHeight);
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, cWidth, cHeight);
-            
-            ctx.font = '20px Arial';
-            ctx.fillStyle = 'white';
-            ctx.fillText('Opponent joined! Press Enter to start.', cWidth / 2, cHeight / 2 - 50);
-
+            this.showPopup("Opponent joined!", "Press Enter to start.");
         }
-        
+
         else {
-            ctx.fillText('Waiting for another player...', cWidth / 2, cHeight / 2 - 50);
-            ctx.font = '20px Arial';
-            ctx.fillText(`Share this room ID with a friend: ${this._gid}`, cWidth / 2, cHeight / 2 + 20);
+            this.showPopup(
+                "Waiting for another player...",
+                `Share this room ID with a friend: ${this._gid}`
+            );
         }
 
     }
 
     private drawWaitingForHostScreen(): void {
-
-        let ctx = this._context!;
-        let cWidth = this._canvasWidth;
-        let cHeight = this._cavnasHeight;
-
-        ctx.clearRect(0, 0, cWidth, cHeight);
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, cWidth, cHeight);
-
-        ctx.fillStyle = 'white';
-        ctx.font = '40px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Waiting for host to start...', cWidth / 2, cHeight / 2 - 50);
-    
+        this.showPopup("Waiting for host to start...", "");
     }
     
     private drawGame(): void {
 
-        if (!this._isGameStarted && !this._isGameOver && this._isWaitingForHost) {
-            this.drawWaitingForHostScreen();
-            return;
-        }
-
-        if (!this._isGameStarted && !this._isGameOver && this._assignedPlayerId === 'player1') {
-            this.drawWaitingScreen();
+        if (!this._isGameStarted) {
             return;
         }
 
@@ -323,19 +348,11 @@ class PongClient {
     }
     
     private drawGameOverScreen(): void {
-        let ctx = this._context!;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, this._canvasWidth, this._cavnasHeight);
-        ctx.fillStyle = 'white';
-        ctx.font = '50px Arial';
-        ctx.textAlign = 'center';
-        
         let winnerMessage = this._winningPlayer === 'leftPlayer' ? 'Left Player Wins!' : 'Right Player Wins!';
-        ctx.fillText(winnerMessage, this._canvasWidth / 2, this._cavnasHeight / 2 - 50);
-        ctx.font = '20px Arial';
-        ctx.fillText('Press Enter to Play Again', this._canvasWidth / 2, this._cavnasHeight / 2 + 20);
+        this.showPopup(winnerMessage, "Press Enter to exit");
     }
 }
 
 // Start the client
-new PongClient(1000, 100, 800, 20, "bd01eac8-97c0-4874-b512-bb80a23012be");
+const gid = prompt("Enter Game ID:") ?? "";
+new PongClient(1000, 100, 800, 20, gid);
