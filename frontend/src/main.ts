@@ -1,8 +1,5 @@
 import './style.css'
 
-import viteLogo from '/vite.svg'
-import typescriptLogo from './typescript.svg'
-
 import { loginPage } from './emailLogin.ts'
 import { auth_endpoint, users_endpoint } from './provider/api.ts'
 import { twoFactorPage } from './2fa.ts'
@@ -74,17 +71,23 @@ export async function mainPage() {
         method: 'GET'
     });
 
+    const user_image = await secureFetch(users_endpoint('/image'), {
+        method: 'GET'
+    });
+
     const user = await userdata.json()
+    const blob = await user_image.blob()
+    const image_uri = URL.createObjectURL(blob)
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
         <div class="text-white bg-gray-900 min-h-screen flex flex-col items-center justify-center space-y-4">
-            <a href="https://vite.dev" target="_blank">
-                <img src="${viteLogo}" class="logo" alt="Vite logo" />
-            </a>
-            <a href="https://www.typescriptlang.org/" target="_blank">
-                <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-            </a>
+            <img 
+                src="${image_uri}" 
+                id="profile-img"
+                alt="Profile Image"
+                class="w-24 h-24 rounded-full border border-gray-500"
+            />
             <h1>Welcome ${user.username ? user.username : 'Guest'}!</h1>
             ${user.username ? `<p class="text-sm text-gray-400">UUID: ${user.id}</p>` : ''}
             <div class="card">
@@ -95,6 +98,17 @@ export async function mainPage() {
             </p>
 
             <button id="show-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded">Enable 2FA</button>
+            
+            <input 
+                type="file" 
+                id="upload-input" 
+                accept="image/*" 
+                class="hidden"
+            />
+            <button id="upload-btn" class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded">
+                Upload New Profile Image
+            </button>
+
             <button id="logout" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mt-2">Logout</button>
 
         </div>
@@ -114,6 +128,7 @@ export async function mainPage() {
                     <button id="copy-code" class="text-xs mt-4 px-2 py-1 bg-gray-400 hover:bg-gray-300 text-black rounded">📋</button>
                 </div>
                 
+                <button id="enable-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded mt-2">Enable 2FA</button>
                 <button id="disable-2fa" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-2">Disable 2FA</button>
             
             </div>
@@ -128,8 +143,13 @@ export async function mainPage() {
     const closeModalBtn = document.getElementById('close-qr') as HTMLButtonElement;
     const qrImg = document.getElementById('qr-image') as HTMLImageElement;
     const manualCode = document.getElementById('manual-code') as HTMLParagraphElement;
+    const enable2fa = document.getElementById('enable-2fa') as HTMLButtonElement;
     const disable2fa = document.getElementById('disable-2fa') as HTMLButtonElement;
     const copyBtn = document.getElementById('copy-code') as HTMLButtonElement;
+
+    const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+    const uploadInput = document.getElementById('upload-input') as HTMLInputElement;
+    const profileImg = document.getElementById('profile-img') as HTMLImageElement;
     
     loginBtn.addEventListener('click', () => {
 
@@ -147,11 +167,57 @@ export async function mainPage() {
         
     });
 
+    uploadBtn.addEventListener('click', () => uploadInput.click());
+
+    uploadInput.addEventListener('change', async () => {
+
+        if (!uploadInput.files || uploadInput.files.length === 0) return;
+
+        const file = uploadInput.files[0];
+
+        if (!file.type.startsWith("image/")) {
+            alert("Please upload a valid image file.");
+            return;
+        }
+
+        // 5MB limit
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Image must be smaller than 5MB.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+
+            const res = await secureFetch(users_endpoint('/image'), {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                throw new Error("Upload failed");
+            }
+
+            const newBlob = await secureFetch(users_endpoint('/image')).then(r => r.blob());
+            const newUri = URL.createObjectURL(newBlob);
+            profileImg.src = newUri;
+
+        }
+        
+        catch (err) {
+            alert("Failed to upload image.");
+            console.error(err);
+        }
+
+    });
+
     showQrBtn.addEventListener('click', async () => {
 
         try {
 
-            const response = await secureFetch(auth_endpoint('/2fa/enable'), {
+            const response = await secureFetch(auth_endpoint('/2fa/generate'), {
                 method: 'POST'
             });
 
@@ -180,8 +246,31 @@ export async function mainPage() {
 
             const data = await response.json();
             qrImg.src = data.qr_data_url;
-            manualCode.textContent = `Manual code (backup): ${data.base32}`;
+            manualCode.textContent = `Manual code (backup): ${data.totp_token}`;
             modal.classList.remove('hidden');
+        }
+        
+        catch (error) {
+            console.error(error);
+            alert('Error loading QR code.');
+        }
+
+    })
+
+    enable2fa.addEventListener('click', async () => {
+
+        try {
+
+            const response = await secureFetch(auth_endpoint('/2fa/enable'), {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch QR code.');
+            }
+
+            modal.classList.add('hidden');
+
         }
         
         catch (error) {

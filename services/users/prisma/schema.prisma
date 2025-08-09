@@ -20,6 +20,7 @@ model Users {
     mail                        String
     created_at                  DateTime @default(now())
 
+    profile_url                 String?
     preferences                 Json?
 
     incoming_friend_request     Friendship[] @relation("IncomingFriendRequests")
