@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 
 import { gameRoomRoute } from './routes/gameRoom';
+import { setupWebSocket } from './game/pong';
 
 const endpoint_prefix = '/game'
 
@@ -25,10 +26,14 @@ async function createServer() {
 }
 
 createServer().then((app) => {
+
+    setupWebSocket();
+
     app.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
         if (err) {
             app.log.error(err.message);
             process.exit(1);
         }
     });
+
 });

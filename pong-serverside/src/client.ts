@@ -173,7 +173,7 @@ class PongClient {
     private setupWebSocket(): void {
 
         // You'll need to run a server, e.g. `node server.js`
-        this._socket = new WebSocket("ws://localhost:8080");
+        this._socket = new WebSocket("wss://localhost:8443/ws/game");
 
         this._socket.onopen = () => {
 
