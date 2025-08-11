@@ -100,6 +100,13 @@ export async function mainPage() {
                     <p id="upload-btn" class="cursor-pointer block p-4 hover:bg-[#444]">Update Profile</p>
                     <p id="logout" class="cursor-pointer block p-4 hover:bg-[#444] text-red">Log out</p>
 
+                    <input 
+                        type="file" 
+                        id="upload-input" 
+                        accept="image/*" 
+                        class="hidden"
+                    />
+
                     <div id="qr-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
                         <div class="bg-white p-6 rounded shadow-md text-black relative">
                             
@@ -170,7 +177,7 @@ export async function mainPage() {
                         
                         <div class="card-field">
                             <p class="text-gray">UID</p>
-                            <p>${user.username ? `<p>UUID: ${user.id}</p>` : ''}</p>
+                            <p>${user.username ? `<p>${user.id}</p>` : ''}</p>
                         </div>
                     </div>
 
