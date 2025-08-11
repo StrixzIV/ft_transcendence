@@ -78,8 +78,8 @@
 
 /* Card, part of the bento-box-type page */
 .card           { @apply p-4 border border-[#444] rounded bg-[#1a1a1a]; }
-.card-title     { @apply pb-2 border-b border-[#444] font-bold text-lg; }
-.card-field     { @apply p-2 border border-[#444]; }
+.card-title     { @apply pb-2 border-b border-[#444] font-bold text-lg text-left; }
+.card-field     { @apply p-2 border border-[#444] text-left; }
 .card-button    { @apply p-4 border border-[#444] rounded bg-[#1a1a1a] text-center cursor-pointer hover:bg-[#2a2a2a] transition; }
 
 /* Avatar */
@@ -102,5 +102,5 @@
 .row-item           { @apply py-2; } /* might remove */
 .row-item-indent    { @apply py-2 flex justify-between px-4; }
 
-.friends-row-item   { @apply py-2; }
+.friends-row-item   { @apply py-2 text-left; }
 .game-log-row-item  { @apply py-2 flex justify-between px-4; }
