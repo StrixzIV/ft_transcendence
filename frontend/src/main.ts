@@ -92,13 +92,13 @@ export async function mainPage() {
         <div class="flex gap-4">
             <!-- Login name, dropdown menu -->
              <div class="relative group inline-block p-1">
-                <span class="cursor-pointer">nteechar ▾</span>
+                <span class="cursor-pointer">${user.username ? user.username : 'Guest'} ▾</span>
 
                 <!-- Dropdown menu -->
                 <div class="dropdown">
-                    <p id="show-2fa" class="cursor-pointer block p-4 hover:bg-[#444]">Enable 2FA</p>
-                    <p id="upload-btn" class="cursor-pointer block p-4 hover:bg-[#444]">Update Profile</p>
-                    <p id="logout" class="cursor-pointer block p-4 hover:bg-[#444] text-red">Log out</p>
+                    <p id="show-2fa" class="cursor-pointer block p-2 hover:bg-[#444]">Enable 2FA</p>
+                    <p id="upload-btn" class="cursor-pointer block p-2 hover:bg-[#444]">Update Profile</p>
+                    <p id="logout" class="cursor-pointer block p-2 hover:bg-[#444] text-red">Log out</p>
 
                     <input 
                         type="file" 
@@ -108,7 +108,7 @@ export async function mainPage() {
                     />
 
                     <div id="qr-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-                        <div class="bg-white p-6 rounded shadow-md text-black relative">
+                        <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444]">
                             
                             <button id="close-qr" class="absolute top-2 right-2 text-xl">&times;</button>
                             <h2 class="text-lg mb-4">Scan this QR Code</h2>
@@ -119,7 +119,7 @@ export async function mainPage() {
                             
                             <div class="mt-4 flex items-center space-x-2">
                                 <p id="manual-code" class="text-sm mt-4 break-all"></p>
-                                <button id="copy-code" class="text-xs mt-4 px-2 py-1 bg-gray-400 hover:bg-gray-300 text-black rounded">📋</button>
+                                <button id="copy-code" class="text-xs mt-4 px-2 py-1 border border-[#444] bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white rounded">📋</button>
                             </div>
                             
                             <button id="enable-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded mt-2">Enable 2FA</button>
