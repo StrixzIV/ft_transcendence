@@ -7,7 +7,7 @@ export function tournamentSetupPage() {
         <div id="player-setup" class="mb-8 p-6 bg-gray-50 rounded-xl">
             <h2 class="text-xl font-semibold text-gray-700 mb-4">Add Players</h2>
             <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                <input type="text" id="player-name-input" placeholder="Enter player name" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                <input type="text" id="player-name-input" placeholder="Enter player name" class="text-gray-600 flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                 <button id="add-player-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:bg-gray-400">Add Player</button>
             </div>
             <div id="player-list-container" class="mt-4">
@@ -22,7 +22,7 @@ export function tournamentSetupPage() {
         </div>
     `;
 
-    if (!localStorage.getItem('players')) {
+    if (localStorage.getItem('players') && !localStorage.getItem('matches')) {
         localStorage.setItem('players', JSON.stringify([]))
     }
 

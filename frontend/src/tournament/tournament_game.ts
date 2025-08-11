@@ -1,6 +1,7 @@
+import { navigate } from "../router";
 import { Paddle, Ball } from "./pong_paddle_ball";
 
-class Pong {
+export class Pong {
 
     private _canvas!: HTMLCanvasElement | null;
     private _context!: CanvasRenderingContext2D | null;
@@ -21,6 +22,9 @@ class Pong {
     private _rightPaddle!: Paddle;
 
     private _winScore!: number;
+    private _matchID!: number;
+    private _leftPlayerName!: string;
+    private _rightPlayerName!: string;
     private _winningPlayer: 'leftPlayer' | 'rightPlayer' | undefined = undefined;
 
     private _pressedKeys = new Set<string>();
@@ -28,8 +32,11 @@ class Pong {
 
     constructor (
         gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number,
-        paddleSpeed: number, ballSpeed: number, winScore: number
+        paddleSpeed: number, ballSpeed: number, winScore: number, leftPlayerName: string, rightPlayerName: string, matchID: number
     ) {
+        this._matchID = matchID
+        this._leftPlayerName = leftPlayerName;
+        this._rightPlayerName = rightPlayerName;
         this.createCanvas(gameWidth, sideWidth, cHeight);
         this.initialize(gridSize, paddleHeight, paddleSpeed, ballSpeed, winScore);
     }
@@ -281,8 +288,9 @@ class Pong {
             let startScreenHTML = "";
 
             if (!this._winningPlayer) {
-                startScreenTitleHTML = "Control";
+                startScreenTitleHTML = `${this._leftPlayerName} VS ${this._rightPlayerName}`;
                 startScreenHTML = `
+                    <h2>Controls</h2>
                     <p>W/S for left player</p>
                     <p>Up/Down Arrows for right player</p>
                     <p>Press Enter to start the game</p>
@@ -292,12 +300,18 @@ class Pong {
             else {
                 startScreenTitleHTML = "Game End!";
                 startScreenHTML = `
-                    <p>${this._winningPlayer === "leftPlayer" ? "Left Player" : "Right Player"} wins!</p>
-                    <p>Press Enter to start another match</p>
+                    <p>${this._winningPlayer === "leftPlayer" ? this._leftPlayerName : this._rightPlayerName} wins!</p>
+                    <p>Press Enter to exit the match</p>
                 `
             }
 
             this.showPopup(startScreenTitleHTML, startScreenHTML)
+
+            if (keys.has("Enter") && this._winningPlayer) {
+                this.hidePopup();
+                navigate('/tournament').then();
+                return;
+            }
 
             if (keys.has("Enter")) {
                 leftPaddle.setScore(0);
@@ -426,13 +440,27 @@ class Pong {
 
         // Check if winScore is reached
         if (leftPaddle.getScore() >= winScore) {
+            
             this._winningPlayer = "leftPlayer";
+            
+            let match_data = JSON.parse(localStorage.getItem('matches') ?? '[]')
+            match_data[this._matchID - 1].winner = this._leftPlayerName
+            localStorage.setItem('matches', JSON.stringify(match_data))
+
             this._isGameOver = true;
+
         }
 
         else if (rightPaddle.getScore() >= winScore) {
+            
             this._winningPlayer = "rightPlayer";
+            
+            let match_data = JSON.parse(localStorage.getItem('matches') ?? '[]')
+            match_data[this._matchID - 1].winner = this._rightPlayerName
+            localStorage.setItem('matches', JSON.stringify(match_data))
+
             this._isGameOver = true;
+
         }
 
         // Next frame
@@ -443,7 +471,19 @@ class Pong {
 }
 
 export function loadTournamentGame() {
+
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = "" 
-    let pong = new Pong(1000, 100, 800, 20, 100, 8, 6, 5);
+
+    const params = new URLSearchParams(window.location.search);
+    const matchId = Number(params.get("matchId"));
+
+    const matches = JSON.parse(localStorage.getItem("matches") ?? "[]");
+    const match = matches[matchId - 1];
+
+    const leftPlayerName = match.players[0];
+    const rightPlayerName = match.players[1];
+
+    let pong = new Pong(1000, 100, 800, 20, 100, 8, 6, 5, leftPlayerName, rightPlayerName, matchId);
     pong.startGameLoop();
+
 }
