@@ -157,14 +157,13 @@ export async function mainPage() {
 
         <!-- Main Area -->
         <section class="flex-1 p-4 space-y-4">
-            <!-- FT_TRANSCENDENCE Card -->
             <section class="card space-y-4">
                 <header class="card-title">> USER</header>
     
                 <div class="flex gap-3">
                     <!-- Picture -->
                     <div class="relative inline-block w-32 h-32 flex-shrink-0">
-                        <img class="image" src="${image_uri}" alt="User avatar">
+                        <img id="profile-img" class="image" src="${image_uri}" alt="User avatar">
                         <span class="online-dot"></span>
                     </div>
                     
