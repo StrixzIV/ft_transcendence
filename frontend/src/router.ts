@@ -3,6 +3,9 @@ import { loginPage } from "./emailLogin";
 import { loadLocalGame } from "./local-game/local_game";
 import { mainPage } from "./main";
 import { registerPage } from "./register";
+import { loadTournamentGame } from "./tournament/tournament_game";
+import { tournamentSetupPage } from "./tournament/tournament_init";
+import { tournamentMainPage } from "./tournament/tournament_main";
 
 type RouteHandler = () => Promise<void> | void;
 
@@ -13,6 +16,9 @@ const routes: Record<string, RouteHandler> = {
     "/2fa": twoFactorPage,
     "/register": registerPage,
     "/local-game": loadLocalGame,
+    "/tournament-setup": tournamentSetupPage,
+    "/tournament": tournamentMainPage,
+    "/tournament-game": loadTournamentGame
 };
 
 export async function initRouter() {
