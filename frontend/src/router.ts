@@ -1,5 +1,6 @@
 import { twoFactorPage } from "./2fa";
 import { loginPage } from "./emailLogin";
+import { loadLocalGame } from "./local-game/local_game";
 import { mainPage } from "./main";
 import { registerPage } from "./register";
 
@@ -11,6 +12,7 @@ const routes: Record<string, RouteHandler> = {
     "/login": loginPage,
     "/2fa": twoFactorPage,
     "/register": registerPage,
+    "/local-game": loadLocalGame,
 };
 
 export async function initRouter() {
