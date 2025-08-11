@@ -1,3 +1,4 @@
+import { navigate } from "./router";
 import { auth_endpoint } from "./provider/api";
 
 export function registerPage() {
@@ -67,7 +68,7 @@ export function registerPage() {
             localStorage.setItem('uid', json.user.id);
             localStorage.setItem('username', json.user.username);
             localStorage.setItem('expires_at', json.expires_at);
-            window.location.reload();
+            await navigate('/');
         }
         catch (err) {
             console.error(err);

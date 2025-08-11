@@ -1,9 +1,9 @@
 import './style.css'
 
-import { loginPage } from './emailLogin.ts'
-import { auth_endpoint, users_endpoint } from './provider/api.ts'
-import { twoFactorPage } from './2fa.ts'
 import { secureFetch } from './utils/secureFetch.ts'
+import { auth_endpoint, users_endpoint } from './provider/api.ts'
+
+import { initRouter, navigate } from './router.ts'
 
 async function on_startup() {
 
@@ -25,7 +25,7 @@ async function on_startup() {
     if (uid && twofa && twofa === 'true') {
         localStorage.setItem('uid', uid);
         window.history.replaceState({}, document.title, window.location.pathname);
-        twoFactorPage();
+        await navigate('/2fa');
         return ;
     }
 
@@ -41,15 +41,15 @@ async function on_startup() {
             method: 'POST',
             credentials: 'include'
         });
-    
-        window.location.reload();
+
+        await navigate('/login');
     
     }
 
     const is_login = localStorage.getItem('is_login');
 
     if (is_login) {
-        await mainPage();
+        await navigate('/');
     }
 
     else {
@@ -59,9 +59,11 @@ async function on_startup() {
             credentials: 'include'
         });
 
-        loginPage();
+        await navigate('/login');
     
     }
+
+    await initRouter();
 
 }
 
@@ -288,7 +290,7 @@ export async function mainPage() {
     const uploadInput = document.getElementById('upload-input') as HTMLInputElement;
     const profileImg = document.getElementById('profile-img') as HTMLImageElement;
     
-    loginBtn.addEventListener('click', () => {
+    loginBtn.addEventListener('click', async () => {
 
         if (user.username) {
             localStorage.removeItem('uid');
@@ -299,7 +301,7 @@ export async function mainPage() {
         }
         
         else {
-            loginPage();
+            await navigate('/login');
         }
         
     });
@@ -370,9 +372,8 @@ export async function mainPage() {
                     localStorage.removeItem('username');
                     localStorage.removeItem('is_login');
                     localStorage.removeItem('expires_at');
-                    window.location.reload();
             
-                    loginPage();
+                    await navigate('/login');
                     return ;
                     
                 }
