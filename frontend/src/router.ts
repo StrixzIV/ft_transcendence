@@ -27,7 +27,8 @@ export async function initRouter() {
 }
 
 export async function renderRoute() {
-    const path = window.location.pathname;
+    const url = new URL(window.location.href);
+    const path = url.pathname;
     const route = routes[path] || routes["/login"];
     await route();
 }
