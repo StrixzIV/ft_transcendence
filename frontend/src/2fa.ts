@@ -1,3 +1,4 @@
+import { navigate } from "./router";
 import { auth_endpoint } from "./provider/api";
 
 export function twoFactorPage() {
@@ -59,8 +60,10 @@ export function twoFactorPage() {
             localStorage.setItem('username', json.user.username);
             localStorage.setItem('expires_at', json.expires_at);
 
-            window.location.reload();
+            await navigate('/');
+
         } 
+
         catch (err) {
             console.error('2FA error', err);
             errorDisplay.textContent = "Something went wrong. Try again.";

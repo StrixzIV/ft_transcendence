@@ -1,6 +1,5 @@
-import { twoFactorPage } from "./2fa";
+import { navigate } from "./router";
 import { auth_endpoint } from "./provider/api";
-import { registerPage } from "./register";
 
 export function loginPage() {
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -52,7 +51,7 @@ export function loginPage() {
             const json = await response.json();
             localStorage.setItem('uid', json.uid);
 
-            twoFactorPage();
+            navigate('/2fa');
             return;
 
         }
@@ -65,14 +64,14 @@ export function loginPage() {
         localStorage.setItem('username', json.user.username);
         localStorage.setItem('expires_at', json.expires_at);
 
-        window.location.reload();
+        await navigate('/');
 
     });
 
     const registerBtn = document.getElementById('register') as HTMLButtonElement;
 
-    registerBtn.addEventListener('click', () => {
-        registerPage();
+    registerBtn.addEventListener('click', async () => {
+        await navigate('/register');
     })
 
     // Handle Google login
