@@ -21,6 +21,7 @@ class Pong {
     private _rightPaddle!: Paddle;
 
     private _winScore!: number;
+    private _winningPlayer: 'leftPlayer' | 'rightPlayer' | undefined = undefined;
 
     private _pressedKeys = new Set<string>();
     private _isGameOver!: boolean;
@@ -170,8 +171,8 @@ class Pong {
             left: "0",
             width: "100%",
             height: "100%",
-            background: "rgba(0,0,0,0.85)",
-            color: "white",
+            background: "rgba(20, 20, 20, 0.8)", // slightly lighter than pure black
+            color: "#222", // darker text for contrast
             fontFamily: "Arial, sans-serif",
             textAlign: "center",
             zIndex: "1000",
@@ -179,14 +180,27 @@ class Pong {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            visibility: "hidden"
+            visibility: "hidden",
+            padding: "2rem",
+            boxSizing: "border-box",
+            backdropFilter: "blur(5px)" // subtle blur effect
         });
 
         const title = document.createElement("h1");
         title.id = "popup-title";
+        title.style.fontSize = "2.5rem";
+        title.style.fontWeight = "bold";
+        title.style.marginBottom = "1rem";
+        title.style.color = "#ddd";
+        title.style.textShadow = "0 2px 4px rgba(0,0,0,0.6)";
 
         const message = document.createElement("p");
         message.id = "popup-message";
+        message.style.fontSize = "1.2rem";
+        message.style.maxWidth = "600px";
+        message.style.lineHeight = "1.5";
+        message.style.color = "#ddd";
+        message.style.textShadow = "0 1px 3px rgba(0,0,0,0.5)";
 
         popup.appendChild(title);
         popup.appendChild(message);
@@ -202,7 +216,7 @@ class Pong {
 
         if (popup && titleEl && msgEl) {
             titleEl.textContent = title;
-            msgEl.textContent = message;
+            msgEl.innerHTML = message;
             popup.style.visibility = "visible";
         }
 
@@ -263,7 +277,27 @@ class Pong {
         
         if (this._isGameOver) {
 
-            this.showPopup("Controls", "W/S for left player\nUp/Down Arrows for right player\nPress Enter to start the game")
+            let startScreenTitleHTML = "";
+            let startScreenHTML = "";
+
+            if (!this._winningPlayer) {
+                startScreenTitleHTML = "Control";
+                startScreenHTML = `
+                    <p>W/S for left player</p>
+                    <p>Up/Down Arrows for right player</p>
+                    <p>Press Enter to start the game</p>
+                `
+            }
+
+            else {
+                startScreenTitleHTML = "Game End!";
+                startScreenHTML = `
+                    <p>${this._winningPlayer === "leftPlayer" ? "Left Player" : "Right Player"} wins!</p>
+                    <p>Press Enter to start another match</p>
+                `
+            }
+
+            this.showPopup(startScreenTitleHTML, startScreenHTML)
 
             if (keys.has("Enter")) {
                 leftPaddle.setScore(0);
@@ -391,7 +425,13 @@ class Pong {
         this.scoreboards();
 
         // Check if winScore is reached
-        if (leftPaddle.getScore() >= winScore || rightPaddle.getScore() >= winScore) {
+        if (leftPaddle.getScore() >= winScore) {
+            this._winningPlayer = "leftPlayer";
+            this._isGameOver = true;
+        }
+
+        else if (rightPaddle.getScore() >= winScore) {
+            this._winningPlayer = "rightPlayer";
             this._isGameOver = true;
         }
 
