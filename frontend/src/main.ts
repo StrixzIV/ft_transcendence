@@ -196,7 +196,7 @@ export async function mainPage() {
                         </svg>
                     </div>
                 </a>
-                <a href="#" class="card-button text-center ml-1.5">
+                <a id="tournament-game-btn" class="card-button text-center ml-1.5">
                     <div>
                         <span>TOURNAMENT</span>
                         <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -279,10 +279,15 @@ export async function mainPage() {
     const uploadInput = document.getElementById('upload-input') as HTMLInputElement;
     const profileImg = document.getElementById('profile-img') as HTMLImageElement;
 
-    const localGameBtn = document.getElementById('local-game-btn') as HTMLImageElement;
+    const localGameBtn = document.getElementById('local-game-btn') as HTMLAnchorElement;
+    const tournamentGameBtn = document.getElementById('tournament-game-btn') as HTMLAnchorElement;
     
     localGameBtn.addEventListener('click', async () => {
         await navigate('/local-game');
+    });
+
+    tournamentGameBtn.addEventListener('click', async () => {
+        await navigate('/tournament-setup');
     });
 
     loginBtn.addEventListener('click', async () => {
