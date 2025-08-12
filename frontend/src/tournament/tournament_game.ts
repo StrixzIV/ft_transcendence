@@ -1,6 +1,6 @@
 import { navigate } from "../router";
 import { Paddle, Ball } from "./pong_paddle_ball";
-import scoreFontUrl from './pong-score.otf.woff2?url';
+import scoreFontUrl from './Pixel-UniCode.ttf?url';
 
 export class Pong {
 
@@ -105,7 +105,7 @@ export class Pong {
             this._ballSpeed, -this._ballSpeed
         );
 
-        const myFont = new FontFace('pong-score', `url(${scoreFontUrl}) format('woff2')`);
+        const myFont = new FontFace('pong-score', `url(${scoreFontUrl}) format('truetype')`);
 
         myFont.load().then(function(loadedFont) {
             document.fonts.add(loadedFont);
