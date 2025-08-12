@@ -11,61 +11,65 @@ export async function tournamentMainPage() {
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <!-- Tournament Bracket Section -->
-        <div id="tournament-bracket">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Tournament Bracket</h2>
-
+        <div id="tournament-bracket" class="m-6">
+            <h2 class="text-3xl font-bold text-center mb-6">TOURNAMENT BRACKET</h2>
+            
             <!-- Semi-finals -->
+            <h3 class="font-bold text-2xl text-center mb-4">SEMI-FINAL MATCHES</h3>
             <div id="semifinals" class="flex flex-col md:flex-row justify-center items-center gap-8 mb-8">
-                <!-- Match 1 -->
-                <div class="bg-gray-100 p-4 rounded-xl w-full md:w-1/2 shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-lg text-center text-gray-700 mb-2">Semi-Final 1</h3>
+                <!-- Match: Semi-Final 1 -->
+                <div class="card md:w-1/2">
+                    <h3 class="font-bold text-lg text-center mb-2">SEMI-FINAL #1</h3>
                     <div id="match-1" class="flex flex-col items-center gap-2">
-                        <div class="player text-gray-800 p-2 bg-white rounded-md w-full text-center">Player A</div>
-                        <span class="text-gray-500 font-bold text-sm">vs</span>
-                        <div class="player text-gray-800 p-2 bg-white rounded-md w-full text-center">Player B</div>
+                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">Player A</div>
+                        <span class="font-bold text-sm">VS</span>
+                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">Player B</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
-                        <button class="semifinals-btn disabled:bg-gray-400 bg-yellow-500 text-white py-1 px-4 rounded-md shadow-sm hover:bg-yellow-600 transition-colors" data-match-id="1">Start semi-finals #1</button>
+                        <button class="semifinals-btn disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2" data-match-id="1">START SEMI-FINAL #1</button>
                     </div>
                 </div>
-                <!-- Match 2 -->
-                <div class="bg-gray-100 p-4 rounded-xl w-full md:w-1/2 shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-lg text-center text-gray-700 mb-2">Semi-Final 2</h3>
+                <!-- Match: Semi-Final 2 -->
+                <div class="card md:w-1/2">
+                    <h3 class="font-bold text-lg text-center mb-2">SEMI-FINAL #2</h3>
                     <div id="match-2" class="flex flex-col items-center gap-2">
-                        <div class="player text-gray-800 p-2 bg-white rounded-md w-full text-center">Player C</div>
-                        <span class="text-gray-500 font-bold text-sm">vs</span>
-                        <div class="player text-gray-800 p-2 bg-white rounded-md w-full text-center">Player D</div>
+                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">Player C</div>
+                        <span class="font-bold text-sm">VS</span>
+                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">Player D</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
-                        <button class="semifinals-btn disabled:bg-gray-400 bg-yellow-500 text-white py-1 px-4 rounded-md shadow-sm hover:bg-yellow-600 transition-colors" data-match-id="2">Start semi-finals #2</button>
+                        <button class="semifinals-btn disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2" data-match-id="2">START SEMI-FINAL #2</button>
                     </div>
                 </div>
             </div>
 
             <!-- Final -->
             <div id="final-round" class="mt-12 flex flex-col items-center">
-                <h3 class="font-bold text-2xl text-center text-gray-800 mb-4">Finals</h3>
-                <div class="bg-gray-100 p-6 rounded-xl w-full max-w-sm shadow-md border border-gray-200">
+                <h3 class="font-bold text-2xl text-center mb-4">FINAL MATCH</h3>
+                <div class="card w-full max-w-sm">
+                    <h3 class="font-bold text-lg text-center mb-2">FINAL</h3>
                     <div id="final-match" class="flex flex-col items-center gap-2">
-                        <div id="finalist-1" class="finalist p-2 text-gray-800 bg-white rounded-md w-full text-center">Winner of SF1</div>
-                        <span class="text-gray-500 font-bold text-sm">vs</span>
-                        <div id="finalist-2" class="finalist p-2 text-gray-800 bg-white rounded-md w-full text-center">Winner of SF2</div>
+                        <div id="finalist-1" class="finalist p-2 text-gray-800 bg-[#ddd] rounded-md w-full text-center">Winner of SF1</div>
+                        <span class="font-bold text-sm">VS</span>
+                        <div id="finalist-2" class="finalist p-2 text-gray-800 bg-[#ddd] rounded-md w-full text-center">Winner of SF2</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
-                        <button id="start-final-btn" class="disabled:bg-gray-400 bg-yellow-500 text-white py-1 px-4 rounded-md shadow-sm hover:bg-yellow-600 transition-colors hidden" data-match-id="3">Start finals</button>
+                        <button id="start-final-btn" class="disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2 hidden" data-match-id="3">START FINAL</button>
                     </div>
                 </div>
             </div>
 
-            <div id="tournament-winner" class="hidden mt-8 text-center p-6 bg-green-100 rounded-xl">
-                <h2 class="text-2xl font-bold text-green-700">🏆 The Winner Is: <span id="winner-name"></span> 🏆</h2>
+            <div id="tournament-winner" class="caret-red-50 mt-8 text-center p-6 !bg-green-900 border border-green-800 rounded-xl hidden">
+                <h2 class="text-2xl font-bold">🏆 THE WINNER: <span id="winner-name"></span> 🏆</h2>
             </div>
+        
             
             <div class="mt-8 flex justify-center">
-                <button id="reset-btn" class="bg-red-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-red-700 transition-colors">Leave</button>
+                <button id="reset-btn" class="form-button-red !font-bold !w-40">LEAVE</button>
             </div>
 
         </div>
+    
     `;
 
     const resetBtn = document.getElementById('reset-btn') as HTMLButtonElement;
