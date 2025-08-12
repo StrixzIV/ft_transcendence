@@ -287,8 +287,8 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./logs/game-backend/:/logs/:rw
-      - ./data/game-backend/:/prisma/db/:rw
+      - ./logs/game-backend/:/app/logs/:rw
+      - ./data/game-backend/:/app/prisma/db/:rw
     environment:
       - NODE_ENV=production
     depends_on:

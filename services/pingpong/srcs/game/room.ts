@@ -28,5 +28,6 @@ export interface GameRoom {
     isGameOver: boolean;
     isGameReady: boolean;
     winningPlayer: string | undefined;
+    winningUID: string | undefined;
     loop: NodeJS.Timeout;
 }
