@@ -151,14 +151,18 @@ export async function mainPage() {
         </aside>
 
         <div id="remote-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-            <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444]">
+            <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
                 
                 <button id="close-remote" class="absolute top-2 right-2 text-xl">&times;</button>
-                <h2 class="text-lg mb-4">REMOTE GAME</h2>
+                <h2 class="text-xl mb-4 font-semibold">REMOTE GAME</h2>
 
-
-                
-
+                <div class="flex gap-4">
+                    <input type="text" id="player-name-input" placeholder="Enter player name" class="form-field w-4/5">
+                    <button id="add-player-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">JOIN ROOM</button>
+                </div>
+                <div class="mt-6 flex justify-center">
+                    <button id="start-tournament-btn" class="form-button cursor-pointer">CREATE ROOM</button>
+                </div>
             
             </div>
         </div>
