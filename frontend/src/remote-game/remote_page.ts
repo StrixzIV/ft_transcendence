@@ -3,6 +3,11 @@ import { navigate } from "../router";
 import { Paddle, Ball } from "./pong_paddle_ball";
 import scoreFontUrl from './Pixel-UniCode.ttf?url';
 
+import type { User } from "../interfaces/user";
+
+import { secureFetch } from "../utils/secureFetch";
+import { users_endpoint, websocket_endpoint } from "../provider/api";
+
 interface GameState {
     leftPaddleY: number;
     rightPaddleY: number;
@@ -60,7 +65,7 @@ class PongClient {
         this._rightPaddle = new Paddle("rightPlayer", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GAME_WIDTH - GRID_SIZE * 2, CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
         this._ball = new Ball(gridSize, gridSize, 0, 0, 0, 0);
 
-        this.setupWebSocket();
+        this.setupWebSocket().then();
         this.loadFont();
         this.setupEventListeners();
     
@@ -174,10 +179,15 @@ class PongClient {
         });
     }
 
-    private setupWebSocket(): void {
+    private async setupWebSocket(): Promise<void> {
 
-        // You'll need to run a server, e.g. `node server.js`
-        this._socket = new WebSocket("wss://localhost:8443/ws/game");
+        this._socket = new WebSocket(websocket_endpoint('/game'));
+
+        const user = await secureFetch(users_endpoint("/data"), {
+            method: 'GET'
+        });
+
+        const userData = await user.json() as User;
 
         this._socket.onopen = () => {
 
@@ -187,7 +197,7 @@ class PongClient {
                 type: "join",
                 gid: this._gid,
                 uid: localStorage.getItem('uid'),
-                username: localStorage.getItem('username')
+                username: userData.username
             }));
             
             console.log(`Current gid: ${this._gid}`);
