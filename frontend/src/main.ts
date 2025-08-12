@@ -76,6 +76,11 @@ export async function mainPage() {
     const blob = await user_image.blob()
     const image_uri = URL.createObjectURL(blob)
 
+    const win_count = 0;
+    const loss_count = 0;
+    const games_count = win_count + loss_count;
+    const win_percent = Math.round((win_count / games_count) * 100 * 100) / 100;
+
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     
     <!-- Header-->
@@ -249,16 +254,25 @@ export async function mainPage() {
 
                 <div class="dividers-2">
                     <div class="row-item-indent">
+                        <span>GAMES PLAYED</span>
+                        <span>${games_count}</span>
+                    </div>
+                    <div class="row-item-indent">
                         <span>WIN</span>
-                        <span>42</span>
+                        <span>${win_count}</span>
                     </div>
                     <div class="row-item-indent">
                         <span>LOSS</span>
-                        <span>8</span>
+                        <span>${loss_count}</span>
                     </div>
                     <div class="row-item-indent">
                         <span>WIN RATE</span>
-                        <span>84%</span>
+                        <span>${win_percent}%</span>
+                    </div>
+
+                    <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden">
+                        <div class="flex items-center justify-center text-xs font-bold bg-green-700 rounded-sm" style="width: ${win_percent}%;">${win_count}</div>
+                        <div class="flex items-center justify-center text-xs font-bold bg-red-700 rounded-sm" style="width: ${100 - win_percent}%;">${loss_count}</div>
                     </div>
                 </div>
             </section>
