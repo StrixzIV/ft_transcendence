@@ -117,8 +117,8 @@ export async function mainPage() {
                                 <button id="copy-code" class="text-xs mt-4 px-2 py-1 border border-[#444] bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white rounded">📋</button>
                             </div>
                             
-                            <button id="enable-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded mt-2">Enable 2FA</button>
-                            <button id="disable-2fa" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-2">Disable 2FA</button>
+                            <button id="enable-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded mt-2 mr-2">Enable 2FA</button>
+                            <button id="disable-2fa" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-2 ml-2">Disable 2FA</button>
                         
                         </div>
                     </div>
@@ -344,9 +344,15 @@ export async function mainPage() {
     });
 
     joinRoomBtn.addEventListener('click', async () => {
+        
         const gid = roomField.value;
-        // TODO: validate input!!!
+        
+        if (!gid) {
+            return;
+        }
+
         await navigate(`/remote-game?gid=${gid}`);
+    
     });
 
 
