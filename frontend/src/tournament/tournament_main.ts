@@ -21,9 +21,9 @@ export async function tournamentMainPage() {
                 <div class="card md:w-1/2">
                     <h3 class="font-bold text-lg text-center mb-2">SEMI-FINAL #1</h3>
                     <div id="match-1" class="flex flex-col items-center gap-2">
-                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">Player A</div>
+                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">[ Player A ]</div>
                         <span class="font-bold text-sm">VS</span>
-                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">Player B</div>
+                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">[ Player B ]</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
                         <button class="semifinals-btn disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2" data-match-id="1">START SEMI-FINAL #1</button>
@@ -33,9 +33,9 @@ export async function tournamentMainPage() {
                 <div class="card md:w-1/2">
                     <h3 class="font-bold text-lg text-center mb-2">SEMI-FINAL #2</h3>
                     <div id="match-2" class="flex flex-col items-center gap-2">
-                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">Player C</div>
+                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">[ Player C ]</div>
                         <span class="font-bold text-sm">VS</span>
-                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">Player D</div>
+                        <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">[ Player D ]</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
                         <button class="semifinals-btn disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2" data-match-id="2">START SEMI-FINAL #2</button>
@@ -49,9 +49,9 @@ export async function tournamentMainPage() {
                 <div class="card w-full max-w-sm">
                     <h3 class="font-bold text-lg text-center mb-2">FINAL</h3>
                     <div id="final-match" class="flex flex-col items-center gap-2">
-                        <div id="finalist-1" class="finalist p-2 text-gray-800 bg-[#ddd] rounded-md w-full text-center">Winner of SF1</div>
+                        <div id="finalist-1" class="finalist p-2 text-gray-800 bg-[#ddd] rounded-md w-full text-center">[ Winner of SF1 ]</div>
                         <span class="font-bold text-sm">VS</span>
-                        <div id="finalist-2" class="finalist p-2 text-gray-800 bg-[#ddd] rounded-md w-full text-center">Winner of SF2</div>
+                        <div id="finalist-2" class="finalist p-2 text-gray-800 bg-[#ddd] rounded-md w-full text-center">[ Winner of SF2 ]</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
                         <button id="start-final-btn" class="disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2 hidden" data-match-id="3">START FINAL</button>
