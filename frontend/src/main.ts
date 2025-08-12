@@ -6,6 +6,7 @@ import { auth_endpoint, game_endpoint, users_endpoint } from './provider/api.ts'
 import { initRouter, navigate } from './router.ts'
 
 import { type User } from './interfaces/user.ts'
+import { type WinRateData } from './interfaces/winrate.ts'
 
 async function on_startup() {
 
@@ -339,9 +340,15 @@ function gameLogCard() {
 }
 
 async function mainPageHTML(user_image: Response, user: User) {
-    // NOTE: Mock values! Fetch from backend!
-    const win_count = 42;
-    const loss_count = 24;
+
+    const winrate = await secureFetch(game_endpoint('/stats/winrate'), {
+        method: 'GET'
+    });
+
+    const winrate_data = await winrate.json() as WinRateData;
+
+    const win_count = winrate_data.wins;
+    const loss_count = winrate_data.losses;
 
     return `
 
@@ -375,7 +382,6 @@ export async function mainPage() {
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = await mainPageHTML(user_image, user);
 
-    
     const loginBtn = document.getElementById('logout') as HTMLButtonElement;
 
     const showQrBtn = document.getElementById('show-2fa') as HTMLButtonElement;

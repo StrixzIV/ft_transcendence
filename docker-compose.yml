@@ -81,6 +81,7 @@ services:
     depends_on:
       - auth-backend
       - users-backend
+      - game-backend
 
   # S3
   minio:
