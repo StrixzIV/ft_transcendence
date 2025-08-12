@@ -1,9 +1,12 @@
 import { WebSocketServer, WebSocket } from 'ws';
 
+
 import { Ball } from './ball';
 import { Paddle } from './paddle';
 import { GameRoom } from './room';
 import { config } from './pong.config';
+
+import { prisma } from '../db';
 
 const rooms: Record<string, GameRoom> = {};
 const wss = new WebSocketServer({ port: 8080 });
@@ -49,9 +52,43 @@ function resetBall(room: GameRoom): void {
 function gameLoop(room: GameRoom): void {
 
     if (room.isGameOver) {
+
         broadcastState(room);
         clearInterval(room.loop);
+    
+        try {
+
+            const players = Array.from(room.playersState.values());
+            const player1 = players.find(p => p.playerId === 'player1');
+            const player2 = players.find(p => p.playerId === 'player2');
+
+            if (player1 && player2) {
+                prisma.match.create({
+                    data: {
+                        gid: room.gid,
+                        left_score: room.leftPaddle.getScore(),
+                        right_score: room.rightPaddle.getScore(),
+                        ended_at: new Date(),
+                        winner_id: room.winningUID,
+                        status: "completed",
+                        players: {
+                            create: [
+                                { uid: player1.uid, side: 'leftPlayer' },
+                                { uid: player2.uid, side: 'rightPlayer' }
+                            ]
+                        }
+                    }
+                }).then();
+            }
+
+        }
+        
+        catch (error) {
+            console.error("Failed to save match data to the database:", error);
+        }
+        
         return;
+    
     }
 
     const { leftPaddle, rightPaddle, ball } = room;
@@ -109,6 +146,7 @@ function gameLoop(room: GameRoom): void {
     
         const leftPlayerState = Array.from(room.playersState.values()).find(p => p.playerId === 'player1');
         room.winningPlayer = leftPlayerState ? leftPlayerState.username : 'leftPlayer';
+        room.winningUID = leftPlayerState?.uid;
     
     }
     
@@ -118,6 +156,7 @@ function gameLoop(room: GameRoom): void {
 
         const rightPlayerState = Array.from(room.playersState.values()).find(p => p.playerId === 'player2');
         room.winningPlayer = rightPlayerState ? rightPlayerState.username : 'rightPlayer';
+        room.winningUID = rightPlayerState?.uid;
     
     }
 
@@ -170,6 +209,7 @@ export function createRoom(gid: string): GameRoom {
         isGameOver: false,
         isGameReady: false,
         winningPlayer: undefined,
+        winningUID: undefined,
         loop: null!
     
     } as GameRoom;
