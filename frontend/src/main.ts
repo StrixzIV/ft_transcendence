@@ -5,6 +5,8 @@ import { auth_endpoint, game_endpoint, users_endpoint } from './provider/api.ts'
 
 import { initRouter, navigate } from './router.ts'
 
+import { type User } from './interfaces/user.ts'
+
 async function on_startup() {
 
     const params = new URLSearchParams(window.location.search)
@@ -78,43 +80,26 @@ function winLossBarGraph(win_count: number, loss_count: number) {
     const games_count = gamesCount(win_count, loss_count);
     if (games_count == 0) {
         return `
-            <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden bg-[#555] rounded-sm items-center justify-center text-xs font-bold text-white">
-                0
-            </div>
+        <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden bg-[#555] rounded-sm items-center justify-center text-xs font-bold text-white">
+            0
+        </div>
         `;
     }
 
     const win_percent = winPercent(win_count, loss_count);
     return `
-        <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden">
-            <div class="flex items-center justify-center text-xs font-bold bg-green-700 rounded-sm" style="width: ${win_percent}%;">${win_count}</div>
-            <div class="flex items-center justify-center text-xs font-bold bg-red-700 rounded-sm" style="width: ${100 - win_percent}%;">${loss_count}</div>
-        </div>
+    <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden">
+        <div class="flex items-center justify-center text-xs font-bold bg-green-700 rounded-sm" style="width: ${win_percent}%;">${win_count}</div>
+        <div class="flex items-center justify-center text-xs font-bold bg-red-700 rounded-sm" style="width: ${100 - win_percent}%;">${loss_count}</div>
+    </div>
     `
 }
 
 
-export async function mainPage() {
+// COMPONENTS
 
-    const userdata = await secureFetch(users_endpoint('/data'), {
-        method: 'GET'
-    });
-
-    const user_image = await secureFetch(users_endpoint('/image'), {
-        method: 'GET'
-    });
-
-    const user = await userdata.json()
-    const blob = await user_image.blob()
-    const image_uri = URL.createObjectURL(blob)
-
-    // NOTE: Mock values! Fetch from backend!
-    const win_count = 42;
-    const loss_count = 24;
-
-    document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-    
-    <!-- Header-->
+function headerSection(user: User) {
+    return `
     <div class="header">
         <!-- Site name -->
         <header class="tracking-widest text-xl font-bold">FT_TRANSCENDENCE</header>
@@ -162,181 +147,235 @@ export async function mainPage() {
             </div>
         </div>
     </div>
+    `
+}
 
-    <main class="flex">
-        <!-- FRIEND Sidebar -->
-        <aside class="sidebar">
-            <header class="card-title">> FRIENDS</header>
+function friendsSideBar() {
+    return `
+    <aside class="sidebar">
+        <header class="card-title">> FRIENDS</header>
 
-            <div class="dividers-2">
-                <div class="friends-row-item"><span>opponent_minirt</span></div>
-                <div class="friends-row-item"><span>opponent_minishell</span></div>
-                <div class="friends-row-item"><span>opponent_fractol</span></div>
-                <div class="friends-row-item"><span>opponent_get-next-line</span></div>
-                <div class="friends-row-item"><span>opponent_libft</span></div>
-            </div>
-
-            <div class="flex gap-2 items-center justify-center card-button mt-4">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14"/>
-                    <path d="M12 5v14"/>
-                </svg>
-                <span class="mr-2">ADD FRIEND</span>
-            </div>
-        </aside>
-
-        <!-- Remote Game modal -->
-        <div id="remote-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-            <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
-                
-                <button id="close-remote" class="absolute top-2 right-2 text-xl">&times;</button>
-                <h2 class="text-2xl mb-4 font-semibold">REMOTE GAME</h2>
-
-                <div class="flex gap-4">
-                    <input type="text" id="room-field" placeholder="Enter player name" class="form-field w-4/5">
-                    <button id="join-room-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">JOIN ROOM</button>
-                </div>
-                <p class="text-l m-4">OR</p>
-                <div class="flex justify-center">
-                    <button id="create-room-btn" class="form-button cursor-pointer">CREATE ROOM</button>
-                </div>
-            
-            </div>
+        <div class="dividers-2">
+            <div class="friends-row-item"><span>opponent_minirt</span></div>
+            <div class="friends-row-item"><span>opponent_minishell</span></div>
+            <div class="friends-row-item"><span>opponent_fractol</span></div>
+            <div class="friends-row-item"><span>opponent_get-next-line</span></div>
+            <div class="friends-row-item"><span>opponent_libft</span></div>
         </div>
 
-        <!-- Main Area -->
+        <div class="flex gap-2 items-center justify-center card-button mt-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"/>
+                <path d="M12 5v14"/>
+            </svg>
+            <span class="mr-2">ADD FRIEND</span>
+        </div>
+    </aside>
+    `
+}
+
+async function userCard(user: User, user_image: Response) {
+    const blob = await user_image.blob()
+    const image_uri = URL.createObjectURL(blob)
+    return `
+    <section class="card space-y-4">
+        <header class="card-title">> USER</header>
+
+        <div class="flex gap-3">
+            <!-- Picture -->
+            <div class="relative inline-block w-32 h-32 flex-shrink-0">
+                <img id="profile-img" class="image" src="${image_uri}" alt="User avatar">
+                <span class="online-dot"></span>
+            </div>
+            
+            <!-- Info -->
+            <div class="flex-1 space-y-2">
+                <div class="card-field">
+                    <p class="text-gray">USERNAME</p>
+                    <p>${user.username ? user.username : 'Guest'}</p>
+                </div>
+                
+                <div class="card-field">
+                    <p class="text-gray">UID</p>
+                    <p>${user.username ? `<p>${user.id}</p>` : ''}</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    `
+}
+
+function remoteGameModal() {
+    return `
+    <div id="remote-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
+        <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
+            
+            <button id="close-remote" class="absolute top-2 right-2 text-xl">&times;</button>
+            <h2 class="text-2xl mb-4 font-semibold">REMOTE GAME</h2>
+
+            <div class="flex gap-4">
+                <input type="text" id="room-field" placeholder="Enter player name" class="form-field w-4/5">
+                <button id="join-room-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">JOIN ROOM</button>
+            </div>
+            <p class="text-l m-4">OR</p>
+            <div class="flex justify-center">
+                <button id="create-room-btn" class="form-button cursor-pointer">CREATE ROOM</button>
+            </div>
+        
+        </div>
+    </div>
+    `
+}
+
+function gameButtonsRow() {
+    return `
+    <section class="grid grid-cols-3">
+        <a id="local-game-btn" class="card-button mr-1.5">
+            <div>
+                <span>LOCAL</span>
+                <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 8h.01"/>
+                    <path d="M12 12h.01"/>
+                    <path d="M14 8h.01"/>
+                    <path d="M16 12h.01"/>
+                    <path d="M18 8h.01"/>
+                    <path d="M6 8h.01"/>
+                    <path d="M7 16h10"/>
+                    <path d="M8 12h.01"/>
+                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                </svg>
+            </div>
+        </a>
+        <a id="remote-game-btn" class="card-button text-center mx-1.5">
+            <div>
+                <span>REMOTE</span>
+                <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                    <path d="M2 12h20"/>
+                </svg>
+            </div>
+        </a>
+        <a id="tournament-game-btn" class="card-button text-center ml-1.5">
+            <div>
+                <span>TOURNAMENT</span>
+                <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/>
+                    <path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/>
+                    <path d="M18 9h1.5a1 1 0 0 0 0-5H18"/>
+                    <path d="M4 22h16"/>
+                    <path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/>
+                    <path d="M6 9H4.5a1 1 0 0 1 0-5H6"/>
+                </svg>
+            </div>
+        </a>
+    </section>
+    `
+}
+
+function statCard(win_count: number, loss_count: number) {
+    return `
+    <section class="card">
+        <header class="card-title">> STATS</header>
+
+        <div class="dividers-2">
+            <div class="row-item-indent">
+                <span>GAMES PLAYED</span>
+                <span>${gamesCount(win_count, loss_count)}</span>
+            </div>
+            <div class="row-item-indent">
+                <span>WIN</span>
+                <span>${win_count}</span>
+            </div>
+            <div class="row-item-indent">
+                <span>LOSS</span>
+                <span>${loss_count}</span>
+            </div>
+            <div class="row-item-indent">
+                <span>WIN RATE</span>
+                <span>${winPercent(win_count, loss_count)}%</span>
+            </div>
+
+            ${winLossBarGraph(win_count, loss_count)}
+        </div>
+    </section>
+    `
+}
+
+function gameLogCard() {
+    return `
+    <section class="card">
+        <header class="card-title">> GAME LOG</header>
+
+        <div class="dividers-2">
+            <div class="game-log-row-item">
+                <span>opponent_minirt</span>
+                <span class="text-green">WIN</span>
+            </div>
+            <div class="game-log-row-item">
+                <span>opponent_minishell</span>
+                <span class="text-red">LOSS</span>
+            </div>
+            <div class="game-log-row-item">
+                <span>opponent_fractol</span>
+                <span class="text-green">WIN</span>
+            </div>
+            <div class="game-log-row-item">
+                <span>opponent_get-next-line</span>
+                <span class="text-red">LOSS</span>
+            </div>
+            <div class="game-log-row-item">
+                <span>opponent_libft</span>
+                <span class="text-green">WIN</span>
+            </div>
+        </div>
+    </section>
+    `
+}
+
+async function mainPageHTML(user_image: Response, user: User) {
+    // NOTE: Mock values! Fetch from backend!
+    const win_count = 42;
+    const loss_count = 24;
+
+    return `
+
+    ${headerSection(user)}
+    <main class="flex">
+        ${friendsSideBar()}
+
+        ${remoteGameModal()}
         <section class="flex-1 p-4 space-y-4">
-            <section class="card space-y-4">
-                <header class="card-title">> USER</header>
-    
-                <div class="flex gap-3">
-                    <!-- Picture -->
-                    <div class="relative inline-block w-32 h-32 flex-shrink-0">
-                        <img id="profile-img" class="image" src="${image_uri}" alt="User avatar">
-                        <span class="online-dot"></span>
-                    </div>
-                    
-                    <!-- Info -->
-                    <div class="flex-1 space-y-2">
-                        <div class="card-field">
-                            <p class="text-gray">USERNAME</p>
-                            <p>${user.username ? user.username : 'Guest'}</p>
-                        </div>
-                        
-                        <div class="card-field">
-                            <p class="text-gray">UID</p>
-                            <p>${user.username ? `<p>${user.id}</p>` : ''}</p>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-
-            <!-- Play games button row -->
-            <section class="grid grid-cols-3">
-                <a id="local-game-btn" class="card-button mr-1.5">
-                    <div>
-                        <span>LOCAL</span>
-                        <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M10 8h.01"/>
-                            <path d="M12 12h.01"/>
-                            <path d="M14 8h.01"/>
-                            <path d="M16 12h.01"/>
-                            <path d="M18 8h.01"/>
-                            <path d="M6 8h.01"/>
-                            <path d="M7 16h10"/>
-                            <path d="M8 12h.01"/>
-                            <rect width="20" height="16" x="2" y="4" rx="2"/>
-                        </svg>
-                    </div>
-                </a>
-                <a id="remote-game-btn" class="card-button text-center mx-1.5">
-                    <div>
-                        <span>REMOTE</span>
-                        <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                            <path d="M2 12h20"/>
-                        </svg>
-                    </div>
-                </a>
-                <a id="tournament-game-btn" class="card-button text-center ml-1.5">
-                    <div>
-                        <span>TOURNAMENT</span>
-                        <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/>
-                            <path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/>
-                            <path d="M18 9h1.5a1 1 0 0 0 0-5H18"/>
-                            <path d="M4 22h16"/>
-                            <path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/>
-                            <path d="M6 9H4.5a1 1 0 0 1 0-5H6"/>
-                        </svg>
-                    </div>
-                </a>
-            </section>
-
-            <!-- STAT Card -->
-            <section class="card">
-                <header class="card-title">> STATS</header>
-
-                <div class="dividers-2">
-                    <div class="row-item-indent">
-                        <span>GAMES PLAYED</span>
-                        <span>${gamesCount(win_count, loss_count)}</span>
-                    </div>
-                    <div class="row-item-indent">
-                        <span>WIN</span>
-                        <span>${win_count}</span>
-                    </div>
-                    <div class="row-item-indent">
-                        <span>LOSS</span>
-                        <span>${loss_count}</span>
-                    </div>
-                    <div class="row-item-indent">
-                        <span>WIN RATE</span>
-                        <span>${winPercent(win_count, loss_count)}%</span>
-                    </div>
-
-                    ${winLossBarGraph(win_count, loss_count)}
-                </div>
-            </section>
-
-            <!-- GAME LOG Card -->
-            <section class="card">
-                <header class="card-title">> GAME LOG</header>
-    
-                <div class="dividers-2">
-                    <div class="game-log-row-item">
-                        <span>opponent_minirt</span>
-                        <span class="text-green">WIN</span>
-                    </div>
-                    <div class="game-log-row-item">
-                        <span>opponent_minishell</span>
-                        <span class="text-red">LOSS</span>
-                    </div>
-                    <div class="game-log-row-item">
-                        <span>opponent_fractol</span>
-                        <span class="text-green">WIN</span>
-                    </div>
-                    <div class="game-log-row-item">
-                        <span>opponent_get-next-line</span>
-                        <span class="text-red">LOSS</span>
-                    </div>
-                    <div class="game-log-row-item">
-                        <span>opponent_libft</span>
-                        <span class="text-green">WIN</span>
-                    </div>
-                </div>
-            </section>
+            ${await userCard(user, user_image)}
+            ${gameButtonsRow()}
+            ${statCard(win_count, loss_count)}
+            ${gameLogCard()}
         </section>
 
     </main>
-    `;
+    `
+}
 
+export async function mainPage() {
+
+    const userdata = await secureFetch(users_endpoint('/data'), {
+        method: 'GET'
+    });
+
+    const user_image = await secureFetch(users_endpoint('/image'), {
+        method: 'GET'
+    });
+
+    const user = await userdata.json() as User;
+
+    document.querySelector<HTMLDivElement>('#app')!.innerHTML = await mainPageHTML(user_image, user);
+
+    
     const loginBtn = document.getElementById('logout') as HTMLButtonElement;
 
     const showQrBtn = document.getElementById('show-2fa') as HTMLButtonElement;
