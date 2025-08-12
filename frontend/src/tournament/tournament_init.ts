@@ -54,7 +54,13 @@ export function tournamentSetupPage() {
 
     addPlayerBtn.addEventListener('click', () => {
 
+        const specialCharPattern = /[^a-zA-Z0-9 ]/;
         const playerName = playerNameInput.value.trim();
+
+        if (specialCharPattern.test(playerName)) {
+            alert('Player name cannot contain special characters.');
+            return;
+        }
         
         if (playerName && players.length < 4) {
             players.push(playerName);
