@@ -1,2 +1,3 @@
 export const auth_endpoint = (endpoint: String) => `https://${process.env.DOMAIN_NAME ?? "localhost"}:8443/auth/${endpoint.replace('/', '')}`
 export const users_endpoint = (endpoint: String) => `https://${process.env.DOMAIN_NAME ?? "localhost"}:8443/user/${endpoint.replace('/', '')}`
+export const game_endpoint = (endpoint: String) => `https://${process.env.DOMAIN_NAME ?? "localhost"}:8443/game/${endpoint.replace('/', '')}`
