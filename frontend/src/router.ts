@@ -3,6 +3,7 @@ import { loginPage } from "./emailLogin";
 import { loadLocalGame } from "./local-game/local_game";
 import { mainPage } from "./main";
 import { registerPage } from "./register";
+import { loadRemoteGame } from "./remote-game/remote_page";
 import { loadTournamentGame } from "./tournament/tournament_game";
 import { tournamentSetupPage } from "./tournament/tournament_init";
 import { tournamentMainPage } from "./tournament/tournament_main";
@@ -18,7 +19,8 @@ const routes: Record<string, RouteHandler> = {
     "/local-game": loadLocalGame,
     "/tournament-setup": tournamentSetupPage,
     "/tournament": tournamentMainPage,
-    "/tournament-game": loadTournamentGame
+    "/tournament-game": loadTournamentGame,
+    "/remote-game": loadRemoteGame
 };
 
 export async function initRouter() {

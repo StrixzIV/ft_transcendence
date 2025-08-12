@@ -1,7 +1,7 @@
 import './style.css'
 
 import { secureFetch } from './utils/secureFetch.ts'
-import { auth_endpoint, users_endpoint } from './provider/api.ts'
+import { auth_endpoint, game_endpoint, users_endpoint } from './provider/api.ts'
 
 import { initRouter, navigate } from './router.ts'
 
@@ -81,7 +81,7 @@ export async function mainPage() {
     <!-- Header-->
     <div class="header">
         <!-- Site name -->
-        <header class="tracking-widest text-xl">FT_TRANSCENDENCE</header>
+        <header class="tracking-widest text-xl font-bold">FT_TRANSCENDENCE</header>
 
         <!-- Right side -->
         <div class="flex gap-4">
@@ -150,18 +150,20 @@ export async function mainPage() {
             </div>
         </aside>
 
+        <!-- Remote Game modal -->
         <div id="remote-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
             <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
                 
                 <button id="close-remote" class="absolute top-2 right-2 text-xl">&times;</button>
-                <h2 class="text-xl mb-4 font-semibold">REMOTE GAME</h2>
+                <h2 class="text-2xl mb-4 font-semibold">REMOTE GAME</h2>
 
                 <div class="flex gap-4">
                     <input type="text" id="player-name-input" placeholder="Enter player name" class="form-field w-4/5">
-                    <button id="add-player-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">JOIN ROOM</button>
+                    <button id="join-room-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">JOIN ROOM</button>
                 </div>
-                <div class="mt-6 flex justify-center">
-                    <button id="start-tournament-btn" class="form-button cursor-pointer">CREATE ROOM</button>
+                <p class="text-l m-4">OR</p>
+                <div class="flex justify-center">
+                    <button id="create-room-btn" class="form-button cursor-pointer">CREATE ROOM</button>
                 </div>
             
             </div>
@@ -314,6 +316,8 @@ export async function mainPage() {
     const remoteGameBtn = document.getElementById('remote-game-btn') as HTMLAnchorElement;
     const remoteModal = document.getElementById('remote-modal')!;
     const closeRemoteModalBtn = document.getElementById('close-remote') as HTMLButtonElement;
+    const createRoomBtn = document.getElementById('create-room-btn') as HTMLButtonElement;
+    const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
     
     localGameBtn.addEventListener('click', async () => {
         await navigate('/local-game');
@@ -321,6 +325,25 @@ export async function mainPage() {
 
     tournamentGameBtn.addEventListener('click', async () => {
         await navigate('/tournament-setup');
+    });
+
+    createRoomBtn.addEventListener('click', async () => {
+        
+        const response = await secureFetch(game_endpoint('/room/create'), {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create new room.');
+        }
+
+        const data = await response.json();
+        await navigate(`/remote-game?gid=${data.gid}`);
+
+    });
+
+    joinRoomBtn.addEventListener('click', async () => {
+
     });
 
 
