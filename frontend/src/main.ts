@@ -15,8 +15,25 @@ async function on_startup() {
 
     const has_uid = localStorage.getItem('uid');
     const has_expires_at = localStorage.getItem('expires_at');
-
-    if (!has_uid || !has_expires_at) {
+    
+    if (uid && expires_at && !has_uid && !has_expires_at) {
+        localStorage.setItem('uid', uid);
+        localStorage.setItem('expires_at', expires_at);
+        localStorage.setItem('is_login', 'true');
+    }
+    
+    if (uid && twofa && twofa === 'true') {
+        localStorage.setItem('uid', uid);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        await navigate('/2fa');
+        return ;
+    }
+    
+    const is_login = localStorage.getItem('is_login');
+    
+    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    if ((!has_uid || !has_expires_at) && !is_login) {
 
         localStorage.removeItem('uid');
         localStorage.removeItem('is_login');
@@ -25,24 +42,9 @@ async function on_startup() {
         await navigate('/login');
     
     }
-
-    if (uid && expires_at && !has_uid && !has_expires_at) {
-        localStorage.setItem('uid', uid);
-        localStorage.setItem('expires_at', expires_at);
-        localStorage.setItem('is_login', 'true');
-    }
-
-    if (uid && twofa && twofa === 'true') {
-        localStorage.setItem('uid', uid);
-        window.history.replaceState({}, document.title, window.location.pathname);
-        await navigate('/2fa');
-        return ;
-    }
-
-    window.history.replaceState({}, document.title, window.location.pathname);
     
     if (has_expires_at && parseInt(has_expires_at) < Math.floor(Date.now() / 1000)) {
-
+        
         localStorage.removeItem('uid');
         localStorage.removeItem('is_login');
         localStorage.removeItem('expires_at');
@@ -51,7 +53,7 @@ async function on_startup() {
             method: 'POST',
             credentials: 'include'
         });
-
+        
         await navigate('/login');
     
     }
