@@ -4,20 +4,20 @@ export function tournamentSetupPage() {
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <!-- Player Input and List Section -->
-        <div id="player-setup" class="mb-8 p-6 bg-gray-50 rounded-xl">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Add Players</h2>
-            <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                <input type="text" id="player-name-input" placeholder="Enter player name" class="text-gray-600 flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-                <button id="add-player-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:bg-gray-400">Add Player</button>
+        <div id="player-setup" class="m-8 p-6 card text-xl">
+            <h2 class="mb-4 text-large font-semibold">ADD PLAYERS</h2>
+            <div class="flex gap-4">
+                <input type="text" id="player-name-input" placeholder="Enter player name" class="form-field w-4/5">
+                <button id="add-player-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555]">Add Player</button>
             </div>
             <div id="player-list-container" class="mt-4">
-                <h3 class="text-lg font-medium text-gray-600 mb-2">Players Added (<span id="player-count">0</span>/4):</h3>
+                <h3 class="text-lg font-medium mb-2">Players Added (<span id="player-count">0</span>/4):</h3>
                 <ul id="player-list" class="space-y-2">
                     <!-- Player list items will be inserted here -->
                 </ul>
             </div>
             <div class="mt-6 flex justify-center">
-                <button id="start-tournament-btn" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:bg-gray-400" disabled>Start Tournament</button>
+                <button id="start-tournament-btn" class="bg-green-600 text-white disabled:text-[#999] font-bold py-3 px-8 rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:bg-[#222] border border-[#444]" disabled>Start Tournament</button>
             </div>
         </div>
     `;
@@ -40,7 +40,7 @@ export function tournamentSetupPage() {
         
         players.forEach(player => {
             const li = document.createElement('li');
-            li.className = "bg-white p-3 rounded-md shadow-sm border border-gray-200 text-gray-800";
+            li.className = "bg-[#ddd] p-3 rounded-md shadow-sm border border-gray-200 text-gray-800";
             li.textContent = player;
             playerList.appendChild(li);
         });
