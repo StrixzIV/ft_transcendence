@@ -104,13 +104,21 @@ function gameLoop(room: GameRoom): void {
     }
 
     if (leftPaddle.getScore() >= config.win_score) {
+
         room.isGameOver = true;
-        room.winningPlayer = 'leftPlayer';
+    
+        const leftPlayerState = Array.from(room.playersState.values()).find(p => p.playerId === 'player1');
+        room.winningPlayer = leftPlayerState ? leftPlayerState.username : 'leftPlayer';
+    
     }
     
     else if (rightPaddle.getScore() >= config.win_score) {
+        
         room.isGameOver = true;
-        room.winningPlayer = 'rightPlayer';
+
+        const rightPlayerState = Array.from(room.playersState.values()).find(p => p.playerId === 'player2');
+        room.winningPlayer = rightPlayerState ? rightPlayerState.username : 'rightPlayer';
+    
     }
 
     broadcastState(room);
