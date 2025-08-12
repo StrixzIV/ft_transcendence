@@ -83,6 +83,8 @@ export class Pong {
     }
 
     private initialize(gridSize: number, paddleHeight: number, paddleSpeed: number, ballSpeed: number, winScore: number): void {
+        
+        this._winningPlayer = undefined;
         this._gridSizeInPx = gridSize;
         this._maxPaddleY = this._cavnasHeight - gridSize - paddleHeight;
         this._paddleSpeed = paddleSpeed;
