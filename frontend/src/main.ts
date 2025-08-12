@@ -150,6 +150,19 @@ export async function mainPage() {
             </div>
         </aside>
 
+        <div id="remote-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
+            <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444]">
+                
+                <button id="close-remote" class="absolute top-2 right-2 text-xl">&times;</button>
+                <h2 class="text-lg mb-4">REMOTE GAME</h2>
+
+
+                
+
+            
+            </div>
+        </div>
+
         <!-- Main Area -->
         <section class="flex-1 p-4 space-y-4">
             <section class="card space-y-4">
@@ -197,7 +210,7 @@ export async function mainPage() {
                         </svg>
                     </div>
                 </a>
-                <a href="#" class="card-button text-center mx-1.5">
+                <a id="remote-game-btn" class="card-button text-center mx-1.5">
                     <div>
                         <span>REMOTE</span>
                         <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -293,6 +306,10 @@ export async function mainPage() {
 
     const localGameBtn = document.getElementById('local-game-btn') as HTMLAnchorElement;
     const tournamentGameBtn = document.getElementById('tournament-game-btn') as HTMLAnchorElement;
+
+    const remoteGameBtn = document.getElementById('remote-game-btn') as HTMLAnchorElement;
+    const remoteModal = document.getElementById('remote-modal')!;
+    const closeRemoteModalBtn = document.getElementById('close-remote') as HTMLButtonElement;
     
     localGameBtn.addEventListener('click', async () => {
         await navigate('/local-game');
@@ -301,6 +318,7 @@ export async function mainPage() {
     tournamentGameBtn.addEventListener('click', async () => {
         await navigate('/tournament-setup');
     });
+
 
     loginBtn.addEventListener('click', async () => {
 
@@ -407,6 +425,11 @@ export async function mainPage() {
 
     })
 
+    remoteGameBtn.addEventListener('click', async () => {
+
+        remoteModal.classList.remove('hidden');
+    })
+
     enable2fa.addEventListener('click', async () => {
 
         try {
@@ -476,6 +499,10 @@ export async function mainPage() {
 
     closeModalBtn.addEventListener('click', () => {
         modal.classList.add('hidden');
+    });
+
+    closeRemoteModalBtn.addEventListener('click', () => {
+        remoteModal.classList.add('hidden');
     });
 
 }
