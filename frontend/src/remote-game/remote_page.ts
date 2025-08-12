@@ -185,7 +185,9 @@ class PongClient {
             
             this._socket.send(JSON.stringify({
                 type: "join",
-                gid: this._gid
+                gid: this._gid,
+                uid: localStorage.getItem('uid'),
+                username: localStorage.getItem('username')
             }));
             
             console.log(`Current gid: ${this._gid}`);
@@ -237,13 +239,20 @@ class PongClient {
                 console.log("Game is starting!");
                 break;
 
+            case 'rejoin_success':
+                this._assignedPlayerId = gameState.player;
+                this._isGameStarted = true;
+                console.log(`Rejoined as ${this._assignedPlayerId}`);
+                this.hidePopup();
+                break;
+
             case 'error':
                 console.error("Server error:", gameState.message);
                 break;
 
             default:
 
-                if (this._isGameStarted) {
+                if (this._isGameStarted || gameState.isGameReady) {
                     this.updateClientState(gameState);
                 }
 

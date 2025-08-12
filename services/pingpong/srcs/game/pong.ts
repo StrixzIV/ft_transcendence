@@ -130,6 +130,7 @@ export function createRoom(gid: string): GameRoom {
         player1: null,
         player2: null,
         players: new Map(),
+        playersState: new Map(),
 
         leftPaddle: new Paddle(
             "leftPlayer",
@@ -168,30 +169,83 @@ export function createRoom(gid: string): GameRoom {
 
 }
 
-function joinRoom(ws: WebSocket, roomId: string): { room: GameRoom; playerId: 'player1' | 'player2' } | null {
+function joinRoom(ws: WebSocket, roomId: string, uid: string, username: string): { room: GameRoom; playerId: 'player1' | 'player2' } | null {
 
     const room = rooms[roomId];
-    
+
     if (!room) return null;
 
-    if (!room.player1) {
-        room.player1 = ws;
-        room.players.set(ws, 'player1');
-        return { room, playerId: 'player1' };
+    let existingPlayerState = Array.from(room.playersState.values()).find(p => p.uid === uid);
+
+    if (existingPlayerState) {
+
+        console.log(`Player ${username} (UID: ${uid}) is rejoining room ${roomId}.`);
+        existingPlayerState.ws = ws;
+        room.players.set(ws, existingPlayerState);
+        
+        ws.send(JSON.stringify({
+            type: 'rejoin_success',
+            player: existingPlayerState.playerId,
+            roomId: roomId
+        }));
+        
+        const currentState = {
+            leftPaddleY: room.leftPaddle.getY(),
+            rightPaddleY: room.rightPaddle.getY(),
+            ballX: room.ball.getX(),
+            ballY: room.ball.getY(),
+            leftScore: room.leftPaddle.getScore(),
+            rightScore: room.rightPaddle.getScore(),
+            isGameOver: room.isGameOver,
+            winningPlayer: room.winningPlayer
+        };
+
+        ws.send(JSON.stringify(currentState));
+        return { room, playerId: existingPlayerState.playerId };
     }
 
-    if (!room.player2) {
+    if (room.playersState.size < 2) {
 
-        room.player2 = ws;
-        room.players.set(ws, 'player2');
-        room.player1.send(JSON.stringify({ type: 'opponent_joined' }));
-        room.player2.send(JSON.stringify({ type: 'waiting_for_host' }));
+        let playerId: 'player1' | 'player2';
 
-        return { room, playerId: 'player2' };
-    
+        const hasPlayer1 = Array.from(room.playersState.values()).some(p => p.playerId === 'player1');
+        
+        if (!hasPlayer1) {
+            playerId = 'player1';
+        }
+        
+        else {
+            playerId = 'player2';
+        }
+
+        const newPlayerState = { ws, playerId, uid, username };
+        room.playersState.set(uid, newPlayerState);
+        room.players.set(ws, newPlayerState);
+
+        if (room.playersState.size === 2 && hasPlayer1) {
+            
+            const otherPlayerState = Array.from(room.playersState.values()).find(p => p.playerId === 'player1')!;
+            
+            if (otherPlayerState.ws) {
+                otherPlayerState.ws.send(JSON.stringify({ type: 'opponent_joined' }));
+            }
+
+        }
+        
+        else if (room.playersState.size === 2 && !hasPlayer1) {
+            
+            const otherPlayerState = Array.from(room.playersState.values()).find(p => p.playerId === 'player2')!;
+            
+            if (otherPlayerState.ws) {
+                otherPlayerState.ws.send(JSON.stringify({ type: 'opponent_joined' }));
+            }
+
+        }
+        
+        return { room, playerId };
     }
 
-    return null; // Room full
+    return null;
 
 }
 
@@ -230,6 +284,7 @@ export function setupWebSocket() {
 
         let joinedRoom: GameRoom | null = null;
         let playerId: 'player1' | 'player2' | null = null;
+        let playerUid: string | null = null;
 
         ws.once('message', (message) => {
 
@@ -237,7 +292,7 @@ export function setupWebSocket() {
 
             if (data.type === 'join' && typeof data.gid === 'string') {
             
-                const result = joinRoom(ws, data.gid);
+                const result = joinRoom(ws, data.gid, data.uid, data.username);
 
                 if (!result) {
                     ws.send(JSON.stringify({ type: 'error', message: 'Room not found or full' }));
@@ -247,9 +302,10 @@ export function setupWebSocket() {
 
                 joinedRoom = result.room;
                 playerId = result.playerId;
+                playerUid = data.uid;
 
                 ws.send(JSON.stringify({ type: 'player_assignment', player: playerId, roomId: joinedRoom.gid }));
-                console.log(`${playerId} joined room ${joinedRoom.gid}`);
+                console.log(`${playerId} (${playerUid}) joined room ${joinedRoom.gid}`);
 
                 if (!joinedRoom.isGameReady) {
                     ws.send(JSON.stringify({ type: 'waiting_for_player' }));
@@ -265,8 +321,10 @@ export function setupWebSocket() {
                         joinedRoom.isGameReady = true;
                         joinedRoom.loop = setInterval(() => gameLoop(joinedRoom!), 1000 / 60);
                     
-                        joinedRoom.players.forEach((_, client) => {
-                            client.send(JSON.stringify({ type: 'game_start' }));
+                        joinedRoom.playersState.forEach(playerState => {
+                            if (playerState.ws && playerState.ws.readyState === WebSocket.OPEN) {
+                                playerState.ws.send(JSON.stringify({ type: 'game_start' }));
+                            }
                         });
                     
                     }
@@ -279,15 +337,29 @@ export function setupWebSocket() {
 
                 ws.on('close', () => {
             
-                    console.log(`${playerId} disconnected from room ${joinedRoom!.gid}`);
-            
-                    if (joinedRoom!.players.has(ws)) joinedRoom!.players.delete(ws);
-                    if (playerId === 'player1') joinedRoom!.player1 = null;
-                    if (playerId === 'player2') joinedRoom!.player2 = null;
+                    if (joinedRoom && playerUid) {
 
-                    if (!joinedRoom!.player1 && !joinedRoom!.player2) {
-                        deleteRoom(joinedRoom!.gid);
-                        console.log(`Room ${joinedRoom!.gid} closed.`);
+                        console.log(`${playerUid} disconnected from room ${joinedRoom.gid}`);
+                        
+                        const playerState = joinedRoom.playersState.get(playerUid);
+                        if (playerState) {
+                            playerState.ws = null;
+                        }
+                        
+                        if (joinedRoom.players.has(ws)) {
+                            joinedRoom.players.delete(ws);
+                        }
+
+                        if (joinedRoom.playersState.size === 0) {
+                            deleteRoom(joinedRoom.gid);
+                            console.log(`Room ${joinedRoom.gid} closed.`);
+                        }
+                        
+                        else {
+                            // Notify the remaining player that their opponent disconnected
+                            // You can add logic here to inform the other player
+                        }
+
                     }
             
                 });
