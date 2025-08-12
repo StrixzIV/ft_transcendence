@@ -158,7 +158,7 @@ export async function mainPage() {
                 <h2 class="text-2xl mb-4 font-semibold">REMOTE GAME</h2>
 
                 <div class="flex gap-4">
-                    <input type="text" id="player-name-input" placeholder="Enter player name" class="form-field w-4/5">
+                    <input type="text" id="room-field" placeholder="Enter player name" class="form-field w-4/5">
                     <button id="join-room-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">JOIN ROOM</button>
                 </div>
                 <p class="text-l m-4">OR</p>
@@ -318,6 +318,7 @@ export async function mainPage() {
     const closeRemoteModalBtn = document.getElementById('close-remote') as HTMLButtonElement;
     const createRoomBtn = document.getElementById('create-room-btn') as HTMLButtonElement;
     const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
+    const roomField = document.getElementById('room-field') as HTMLInputElement;
     
     localGameBtn.addEventListener('click', async () => {
         await navigate('/local-game');
@@ -343,7 +344,9 @@ export async function mainPage() {
     });
 
     joinRoomBtn.addEventListener('click', async () => {
-
+        const gid = roomField.value;
+        // TODO: validate input!!!
+        await navigate(`/remote-game?gid=${gid}`);
     });
 
 
