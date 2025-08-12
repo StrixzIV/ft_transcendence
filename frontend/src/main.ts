@@ -6,6 +6,7 @@ import { auth_endpoint, game_endpoint, users_endpoint } from './provider/api.ts'
 import { initRouter, navigate } from './router.ts'
 
 import { type User } from './interfaces/user.ts'
+import { type Match } from './interfaces/match.ts'
 import { type WinRateData } from './interfaces/winrate.ts'
 
 async function on_startup() {
@@ -308,35 +309,56 @@ function statCard(win_count: number, loss_count: number) {
     `
 }
 
-function gameLogCard() {
-    return `
-    <section class="card">
-        <header class="card-title">> GAME LOG</header>
+async function gameLogCard() {
 
+    const history = await secureFetch(game_endpoint('/stats/history'), {
+        method: 'GET'
+    });
+
+    const match_data = await history.json() as Array<Match>;
+
+    let gameLogItems = '';
+
+    for (const match_item of match_data) {
+
+        const isWinner = match_item.uid === match_item.match.winner_id;
+        const resultClass = isWinner ? 'text-green' : 'text-red';
+        const resultText = isWinner ? 'WIN' : 'LOSS';
+        const score = `${match_item.match.left_score}-${match_item.match.right_score}`;
+
+        const leftPlayer = match_item.match.players.find(player => player.side === 'leftPlayer')!;
+        const rightPlayer = match_item.match.players.find(player => player.side === 'rightPlayer')!;
+
+        const leftOpponent = await secureFetch(users_endpoint(`/data/${leftPlayer?.uid}`), {
+            method: 'GET'
+        });
+
+        const rightOpponent = await secureFetch(users_endpoint(`/data/${rightPlayer?.uid}`), {
+            method: 'GET'
+        });
+
+        const leftOpponentData = await leftOpponent.json() as User;
+        const rightOpponentData = await rightOpponent.json() as User;
+
+        gameLogItems += `
+            <div class="game-log-row-item">
+            <span>${leftOpponentData.username} vs ${rightOpponentData.username}</span>
+            <span class="${resultClass}">${resultText}</span>
+            <span>${score}</span>
+            </div>
+        `;
+
+    }
+
+    return `
+      <section class="card">
+        <header class="card-title">> GAME LOG</header>
         <div class="dividers-2">
-            <div class="game-log-row-item">
-                <span>opponent_minirt</span>
-                <span class="text-green">WIN</span>
-            </div>
-            <div class="game-log-row-item">
-                <span>opponent_minishell</span>
-                <span class="text-red">LOSS</span>
-            </div>
-            <div class="game-log-row-item">
-                <span>opponent_fractol</span>
-                <span class="text-green">WIN</span>
-            </div>
-            <div class="game-log-row-item">
-                <span>opponent_get-next-line</span>
-                <span class="text-red">LOSS</span>
-            </div>
-            <div class="game-log-row-item">
-                <span>opponent_libft</span>
-                <span class="text-green">WIN</span>
-            </div>
+          ${gameLogItems}
         </div>
-    </section>
-    `
+      </section>
+    `;
+
 }
 
 async function mainPageHTML(user_image: Response, user: User) {
@@ -361,7 +383,7 @@ async function mainPageHTML(user_image: Response, user: User) {
             ${await userCard(user, user_image)}
             ${gameButtonsRow()}
             ${statCard(win_count, loss_count)}
-            ${gameLogCard()}
+            ${await gameLogCard()}
         </section>
 
     </main>
