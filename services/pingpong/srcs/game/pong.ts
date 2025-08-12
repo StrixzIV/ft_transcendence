@@ -49,7 +49,9 @@ function resetBall(room: GameRoom): void {
 function gameLoop(room: GameRoom): void {
 
     if (room.isGameOver) {
-        return broadcastState(room);
+        broadcastState(room);
+        clearInterval(room.loop);
+        return;
     }
 
     const { leftPaddle, rightPaddle, ball } = room;
