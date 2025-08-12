@@ -16,6 +16,16 @@ async function on_startup() {
     const has_uid = localStorage.getItem('uid');
     const has_expires_at = localStorage.getItem('expires_at');
 
+    if (!has_uid || !has_expires_at) {
+
+        localStorage.removeItem('uid');
+        localStorage.removeItem('is_login');
+        localStorage.removeItem('expires_at');
+
+        await navigate('/login');
+    
+    }
+
     if (uid && expires_at && !has_uid && !has_expires_at) {
         localStorage.setItem('uid', uid);
         localStorage.setItem('expires_at', expires_at);
