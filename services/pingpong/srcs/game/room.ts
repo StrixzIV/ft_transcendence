@@ -27,6 +27,6 @@ export interface GameRoom {
     ball: Ball;
     isGameOver: boolean;
     isGameReady: boolean;
-    winningPlayer: 'leftPlayer' | 'rightPlayer' | undefined;
+    winningPlayer: string | undefined;
     loop: NodeJS.Timeout;
 }

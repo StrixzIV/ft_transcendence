@@ -43,7 +43,7 @@ class PongClient {
     private _opponentJoined: boolean = false;
     private _isWaitingForHost: boolean = false;
     private _assignedPlayerId: 'player1' | 'player2' | null = null;
-    private _winningPlayer: 'leftPlayer' | 'rightPlayer' | undefined = undefined;
+    private _winningPlayer: string | undefined = undefined;
 
     constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, _gid: string) {
 
@@ -367,8 +367,7 @@ class PongClient {
     }
     
     private drawGameOverScreen(): void {
-        let winnerMessage = this._winningPlayer === 'leftPlayer' ? 'Left Player Wins!' : 'Right Player Wins!';
-        this.showPopup(winnerMessage, "Press Enter to exit");
+        this.showPopup(`${this._winningPlayer} wins!`, "Press Enter to exit");
     }
 }
 
