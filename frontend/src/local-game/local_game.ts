@@ -7,10 +7,13 @@ class Pong {
     private _context!: CanvasRenderingContext2D | null;
 
     private _canvasWidth!: number;
-    private _cavnasHeight!: number;
+    private _canvasHeight!: number;
     
     private _gameWidth!: number;
     private _sidebarWidth!: number;
+
+    private _gameHeight!: number;
+    private _topbarHeight!: number;
 
     private _gridSizeInPx!: number;
     private _maxPaddleY!: number;
@@ -28,47 +31,50 @@ class Pong {
     private _isGameOver!: boolean;
 
     constructor (
-        gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, paddleHeight: number,
+        gameWidth: number, sideWidth: number, gameHeight: number, topbarHeight: number, gridSize: number, paddleHeight: number,
         paddleSpeed: number, ballSpeed: number, winScore: number
     ) {
-        this.createCanvas(gameWidth, sideWidth, cHeight);
+        this.createCanvas(gameWidth, sideWidth, gameHeight, topbarHeight);
         this.initialize(gridSize, paddleHeight, paddleSpeed, ballSpeed, winScore);
     }
 
-    private createCanvas(gameWidth: number, sideWidth: number, cHeight: number): void {
-        // document.documentElement.style["overflow"] = "hidden";
-        // document.documentElement.style.overflow = "hidden";
-        // document.documentElement.style.width = "100%";
-        // document.documentElement.style.height = "100%";
-        // document.documentElement.style.margin = "0";
-        // document.documentElement.style.padding = "0";
-        // document.body.style.overflow = "hidden";
-        // document.body.style.width = "100%";
-        // document.body.style.height = "100%";
-        // document.body.style.margin = "0";
-        // document.body.style.padding = "0";
+    private createCanvas(gameWidth: number, sideWidth: number, gameHeight: number ,topbarHeight: number): void {
+
+        document.documentElement.style["overflow"] = "hidden";
+        document.documentElement.style.overflow = "hidden";
+        document.documentElement.style.width = "100%";
+        document.documentElement.style.height = "100%";
+        document.documentElement.style.margin = "0";
+        document.documentElement.style.padding = "0";
+        document.body.style.overflow = "hidden";
+        document.body.style.width = "100%";
+        document.body.style.height = "100%";
+        document.body.style.margin = "0";
+        document.body.style.padding = "0";
 
         this._gameWidth = gameWidth;
         this._sidebarWidth = sideWidth;
+        this._gameHeight = gameHeight;
+        this._topbarHeight = topbarHeight;
         
         this._canvas = document.createElement("canvas");
         if (this._canvas == null) {
-            // Error handling here.
+            console.error("Failed to create game canvas.");
         }
 
         this._canvasWidth = gameWidth + sideWidth * 2;
         this._canvas.width = this._canvasWidth;
         this._canvas.style.width = `${this._canvasWidth}px`;
-        this._cavnasHeight = cHeight;
-        this._canvas.height = cHeight;
-        this._canvas.style.height = `${cHeight}px`;
+        this._canvasHeight = gameHeight + topbarHeight;
+        this._canvas.height = this._canvasHeight;
+        this._canvas.style.height = `${this._canvasHeight}px`;
         this._canvas.id = "pongTable";
         
         document.querySelector<HTMLDivElement>('#app')!.appendChild(this._canvas);
 
         this._context = this._canvas.getContext('2d')!;
         if (this._context == null) {
-            // Error handling here.
+            console.error("Failed to get 2D context for game canvas.");
         }
 
         this.createPopup();
@@ -77,7 +83,7 @@ class Pong {
 
     private initialize(gridSize: number, paddleHeight: number, paddleSpeed: number, ballSpeed: number, winScore: number): void {
         this._gridSizeInPx = gridSize;
-        this._maxPaddleY = this._cavnasHeight - gridSize - paddleHeight;
+        this._maxPaddleY = this._gameHeight - gridSize - paddleHeight;
         this._paddleSpeed = paddleSpeed;
         this._ballSpeed = ballSpeed;
         this._winScore = winScore;
@@ -85,17 +91,17 @@ class Pong {
         
         this._leftPaddle = new Paddle (
             "leftPlayer", gridSize, paddleHeight,
-            this._sidebarWidth + gridSize * 2, this._cavnasHeight / 2 - paddleHeight / 2
+            this._sidebarWidth + gridSize * 2, this._gameHeight / 2 - paddleHeight / 2
         );
 
         this._rightPaddle = new Paddle (
             "rightPlayer", gridSize, paddleHeight,
-            this._sidebarWidth + this._gameWidth - gridSize * 2, this._cavnasHeight / 2 - paddleHeight / 2
+            this._sidebarWidth + this._gameWidth - gridSize * 2, this._gameHeight / 2 - paddleHeight / 2
         );
 
         this._ball = new Ball (
-            gridSize, gridSize, this._canvasWidth / 2, this._cavnasHeight / 2,
-            this._ballSpeed, -this._ballSpeed
+            gridSize, gridSize, this._canvasWidth / 2, this._canvasHeight / 2,
+            this._ballSpeed, - this._ballSpeed
         );
 
         const myFont = new FontFace('pong-score', `url(${scoreFontUrl}) format('truetype')`);
@@ -149,16 +155,23 @@ class Pong {
     private scoreboards = (): void => {
         let ctx = this._context!;
         let cWidth = this._canvasWidth;
-        let sWidth = this._sidebarWidth;
+        let topHeight = this._topbarHeight;
         let gridSize = this._gridSizeInPx;
-        let leftScore = this._leftPaddle.getScore();
-        let rightScore = this._rightPaddle.getScore();
+        let lPaddle = this._leftPaddle;
+        let rPaddle = this._rightPaddle;
 
-        ctx.font = `${sWidth / 2}px pong-score`;
+        // ctx.font = `${sWidth / 2}px pong-score`;
+        // ctx.textAlign = "left";
+        // ctx.fillText(`${leftScore}`, gridSize, gridSize * 5, sWidth - gridSize);
+        // ctx.textAlign = "right";
+        // ctx.fillText(`${rightScore}`, cWidth, gridSize * 5, sWidth - gridSize);
+
+        ctx.font = `${topHeight * 4 / 5}px pong-score`;
+        ctx.fillStyle = "white";
         ctx.textAlign = "left";
-        ctx.fillText(`${leftScore}`, gridSize, gridSize * 5, sWidth - gridSize);
+        ctx.fillText(`${lPaddle.getScore()}    ${lPaddle.getPlayerId()}`, gridSize, topHeight * 4 / 5, cWidth / 2 - gridSize * 2);
         ctx.textAlign = "right";
-        ctx.fillText(`${rightScore}`, cWidth, gridSize * 5, sWidth - gridSize);
+        ctx.fillText(`${rPaddle.getPlayerId()}    ${rPaddle.getScore()}`, cWidth - gridSize , topHeight * 4 / 5, cWidth / 2 - gridSize * 2);
     }
 
     private createPopup(): void {
@@ -234,10 +247,12 @@ class Pong {
 
         let ctx = this._context!;
         let cWidth = this._canvasWidth!;
-        let cHeight = this._cavnasHeight;
+        let cHeight = this._canvasHeight;
         let gridSize = this._gridSizeInPx;
         let lPaddle = this._leftPaddle;
         let rPaddle = this._rightPaddle;
+
+        let topHeight = this._topbarHeight;
 
         // Clear canvas
         ctx.clearRect(0, 0, cWidth, cHeight);
@@ -254,8 +269,8 @@ class Pong {
         
         // Draw paddles
         ctx.fillStyle = 'white';
-        ctx.fillRect(lPaddle.getX(), lPaddle.getY(), lPaddle.getWidth(), lPaddle.getHeight());
-        ctx.fillRect(rPaddle.getX(), rPaddle.getY(), rPaddle.getWidth(), rPaddle.getHeight());
+        ctx.fillRect(lPaddle.getX(), lPaddle.getY() + topHeight, lPaddle.getWidth(), lPaddle.getHeight());
+        ctx.fillRect(rPaddle.getX(), rPaddle.getY() + topHeight, rPaddle.getWidth(), rPaddle.getHeight());
         
         requestAnimationFrame(this.gameLoop);
 
@@ -267,7 +282,9 @@ class Pong {
         let cWidth = this._canvasWidth!;
         let gWidth = this._gameWidth;
         let sWidth = this._sidebarWidth;
-        let cHeight = this._cavnasHeight;
+        let cHeight = this._canvasHeight;
+        let gHeight = this._gameHeight;
+        let topHeight = this._topbarHeight;
         let gridSize = this._gridSizeInPx;
         let maxPaddleY = this._maxPaddleY;
         let ball = this._ball;
@@ -275,6 +292,8 @@ class Pong {
         let rightPaddle = this._rightPaddle;
         let winScore = this._winScore;
         let keys = this._pressedKeys;
+
+        
         
         if (this._isGameOver) {
 
@@ -303,8 +322,8 @@ class Pong {
             if (keys.has("Enter")) {
                 leftPaddle.setScore(0);
                 rightPaddle.setScore(0);
-                leftPaddle.setY((cHeight - leftPaddle.getHeight()) / 2);
-                rightPaddle.setY((cHeight - rightPaddle.getHeight()) / 2);
+                leftPaddle.setY((gHeight - leftPaddle.getHeight()) / 2);
+                rightPaddle.setY((gHeight - rightPaddle.getHeight()) / 2);
                 this._isGameOver = false;
                 this.hidePopup()
             }
@@ -314,14 +333,13 @@ class Pong {
         
         }
         
-        // Clear the game board (center only commented out)
-        // ctx.clearRect(sWidth, 0, gWidth, cHeight);
+        // Clear the game board
         ctx.clearRect(0, 0, cWidth, cHeight);
         
         // Draw walls
         ctx.fillStyle = 'lightgrey';
-        ctx.fillRect(0, 0, cWidth, gridSize);
-        ctx.fillRect(0, cHeight - gridSize, cWidth, cHeight);
+        ctx.fillRect(0, topHeight, cWidth, gridSize);
+        ctx.fillRect(0, cHeight - gridSize, cWidth, gridSize);
 
         // Draw dotted line down the middle
         for (let i = gridSize; i < cHeight - gridSize; i += gridSize * 2) {
@@ -362,8 +380,8 @@ class Pong {
         
         // Draw paddles
         ctx.fillStyle = 'white';
-        ctx.fillRect(leftX, leftY, leftWidth, leftHeight);
-        ctx.fillRect(rightX, rightY, rightWidth, rightHeight);
+        ctx.fillRect(leftX, leftY + topHeight, leftWidth, leftHeight);
+        ctx.fillRect(rightX, rightY + topHeight, rightWidth, rightHeight);
 
         // Move ball
         ball.moveBall1Frame();
@@ -373,13 +391,13 @@ class Pong {
             ball.setY(gridSize);
             ball.setDy(ball.getDy() * -1);
         }
-        else if (ball.getY() + gridSize > cHeight - gridSize) {
-            ball.setY(cHeight - gridSize * 2);
+        else if (ball.getY() + ball.getHeight() > gHeight - gridSize) {
+            ball.setY(gHeight - gridSize * 2);
             ball.setDy(ball.getDy() * -1);
         }
 
         // Reset ball if it goes past paddle (but only if we haven't already done so)
-        if ( (ball.getX() < sWidth + gridSize || ball.getX() > sWidth + gWidth - gridSize) && ball.getToBeReset() == false ) {
+        if ( (ball.getX() < sWidth + leftPaddle.getWidth() || ball.getX() > sWidth + gWidth - rightPaddle.getWidth()) && ball.getToBeReset() == false ) {
             
             ball.setToBeReset(true);
             
@@ -400,8 +418,8 @@ class Pong {
             // Give some time for the player to recover before launching the ball again
             setTimeout(() => {
                 ball.setToBeReset(false);
-                ball.setX(cWidth / 2);
-                ball.setY(cHeight / 2);
+                ball.setX(gWidth / 2);
+                ball.setY(gHeight / 2);
                 ball.setDx(tmpDx);
                 ball.setDy(tmpDy);
             }, 1000);
@@ -420,7 +438,7 @@ class Pong {
         }
 
         // Draw ball
-        ctx.fillRect(ball.getX(), ball.getY(), ball.getWidth(), ball.getHeight());
+        ctx.fillRect(ball.getX(), ball.getY() + topHeight, ball.getWidth(), ball.getHeight());
 
         // Draw Scores
         this.scoreboards();
@@ -445,6 +463,6 @@ class Pong {
 
 export function loadLocalGame() {
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = "" 
-    let pong = new Pong(1000, 100, 800, 20, 100, 8, 6, 5);
+    let pong = new Pong(1000, 0, 800, 100, 20, 100, 8, 6, 5);
     pong.startGameLoop();
 }
