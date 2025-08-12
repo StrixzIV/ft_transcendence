@@ -2,8 +2,10 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 
-import { gameRoomRoute } from './routes/gameRoom';
 import { setupWebSocket } from './game/pong';
+
+import { statsRoute } from './routes/stats';
+import { gameRoomRoute } from './routes/gameRoom';
 
 const endpoint_prefix = '/game'
 
@@ -18,6 +20,10 @@ async function createServer() {
     app.register(cookie)
 
     app.register(gameRoomRoute, {
+        prefix: endpoint_prefix
+    });
+    
+    app.register(statsRoute, {
         prefix: endpoint_prefix
     });
 
