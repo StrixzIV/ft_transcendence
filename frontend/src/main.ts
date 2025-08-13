@@ -152,20 +152,34 @@ function headerSection(user: User) {
     `
 }
 
-function friendsSideBar() {
+
+// function addFriendModal() {
+//     return `
+    
+//     `
+// }
+
+async function friendsSideBar() {
+    const friends = await secureFetch(users_endpoint('/friends'), {
+        method: 'GET'
+    });
+    const friends_data = await friends.json() as Array<User>;
+    
+    console.log(friends_data);
+
+    let friendsItems = '';
+    // friendsItems
+    friendsItems += '<div class="friends-row-item"><span>friend1</span></div>'
+
     return `
     <aside class="sidebar">
         <header class="card-title">> FRIENDS</header>
 
         <div class="dividers-2">
-            <div class="friends-row-item"><span>opponent_minirt</span></div>
-            <div class="friends-row-item"><span>opponent_minishell</span></div>
-            <div class="friends-row-item"><span>opponent_fractol</span></div>
-            <div class="friends-row-item"><span>opponent_get-next-line</span></div>
-            <div class="friends-row-item"><span>opponent_libft</span></div>
+            ${friendsItems}
         </div>
 
-        <div class="flex gap-2 items-center justify-center card-button mt-4">
+        <div id="add-friend-btn" class="flex gap-2 items-center justify-center card-button mt-4">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14"/>
@@ -376,7 +390,7 @@ async function mainPageHTML(user_image: Response, user: User) {
 
     ${headerSection(user)}
     <main class="flex">
-        ${friendsSideBar()}
+        ${await friendsSideBar()}
 
         ${remoteGameModal()}
         <section class="flex-1 p-4 space-y-4">
@@ -428,6 +442,12 @@ export async function mainPage() {
     const createRoomBtn = document.getElementById('create-room-btn') as HTMLButtonElement;
     const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
     const roomField = document.getElementById('room-field') as HTMLInputElement;
+
+    const addFriendBtn = document.getElementById('add-friend-btn') as HTMLDivElement;
+
+    addFriendBtn.addEventListener('click', async () => {
+        console.log("add friend modal pop up!");
+    });
     
     localGameBtn.addEventListener('click', async () => {
         await navigate('/local-game');
