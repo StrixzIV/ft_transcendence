@@ -134,13 +134,13 @@ function headerSection(user: User) {
                                 <img id="qr-image" src="" alt="2FA QR Code" class="w-48 h-48"/>
                             </div>
                             
-                            <div class="mt-4 flex items-center space-x-2">
+                            <div class="mt-4 mb-2 flex items-center space-x-2">
                                 <p id="manual-code" class="text-sm break-all"></p>
                                 <button id="copy-code" class="text-xs px-2 py-1 border border-[#444] bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white rounded">📋</button>
                             </div>
                             
-                            <button id="enable-2fa" class="font-semibold py-2 px-4 rounded transition bg-green-700 hover:bg-green-600 mt-2 mr-2">Enable 2FA</button>
-                            <button id="disable-2fa" class="font-semibold py-2 px-4 rounded transition bg-red-700 hover:bg-red-600 mt-2 ml-2">Disable 2FA</button>
+                            <button id="enable-2fa" class="font-semibold py-2 px-4 rounded transition bg-green-700 hover:bg-green-600 mt-2 mr-2 cursor-pointer">Enable 2FA</button>
+                            <button id="disable-2fa" class="font-semibold py-2 px-4 rounded transition bg-red-700 hover:bg-red-600 mt-2 ml-2 cursor-pointer">Disable 2FA</button>
                         
                         </div>
                     </div>
@@ -189,7 +189,7 @@ async function getFriendsItems() {
         <div class="friends-row-item flex items-center justify-between" data-uid="${friend.id}">
             <span class="truncate">${user.username}</span>
             <div class="flex gap-2">
-                <button class="btn-unfriend form-button-base !px-1 !py-1 bg-[#444] hover:bg-[#555] rounded" data-uid="${friend.id}">
+                <button class="btn-unfriend form-button-base !px-1 !py-1 bg-[#444] hover:bg-[#555] rounded cursor-pointer" data-uid="${friend.id}">
                     <!-- minus sign -->
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14"/>
@@ -223,13 +223,13 @@ async function pendingRequestItems() {
         <div class="friends-row-item flex items-center justify-between gap-2" data-uid="${r.id}">
             <span class="truncate">${username}</span>
             <div class="flex gap-2">
-                <button class="btn-accept form-button-base !px-1 !py-1 bg-green-800 hover:bg-green-700 rounded" data-uid="${r.id}">
+                <button class="btn-accept form-button-base !px-1 !py-1 bg-green-800 hover:bg-green-700 rounded cursor-pointer" data-uid="${r.id}">
                     <!-- tick sign -->
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 6 9 17l-5-5"/>
                     </svg>
                 </button>
-                <button class="btn-decline form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded" data-uid="${r.id}">
+                <button class="btn-decline form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded cursor-pointer" data-uid="${r.id}">
                     <!-- cross sign -->    
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
