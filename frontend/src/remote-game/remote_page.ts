@@ -86,6 +86,9 @@ class PongClient {
         this._canvas.height = this._canvasHeight;
         this._canvas.style.height = `${this._canvasHeight}px`;
 
+        this._canvas.style.display = "block";
+        this._canvas.style.margin = "auto";
+
         this._context = this._canvas.getContext('2d')!;
         if (!this._context) {
             console.error("Failed to get 2D context.");

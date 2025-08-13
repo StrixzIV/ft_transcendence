@@ -69,6 +69,9 @@ class Pong {
         this._canvas.height = this._canvasHeight;
         this._canvas.style.height = `${this._canvasHeight}px`;
         this._canvas.id = "pongTable";
+
+        this._canvas.style.display = "block";
+        this._canvas.style.margin = "auto";
         
         document.querySelector<HTMLDivElement>('#app')!.appendChild(this._canvas);
 
