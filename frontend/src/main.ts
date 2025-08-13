@@ -171,20 +171,44 @@ function addFriendModal() {
 }
 
 async function getFriendsItems() {
-    const friends = await secureFetch(users_endpoint('/friends'), {
+    const res = await secureFetch(users_endpoint('/friends'), {
         method: 'GET'
     });
-    const friends_data = await friends.json() as Array<User>;
-    
-    console.log("friends_data", friends_data);
+    const data = await res.json();
+    if (!res.ok) {
+        alert(data.error || "Something went wrong");
+        return ;
+    }
 
+    const friends = data.friends;
     let friendsItems = '';
+    for (const friend of friends) {
+        console.log("friend", friend);
+        friendsItems += '<div class="friends-row-item"><span>friend</span></div>';
+    }
 
-    friendsItems += '<div class="friends-row-item"><span>friend1</span></div>'
     return (friendsItems);
 }
 
-// async function 
+async function pendingRequestItems() {
+    const res = await secureFetch(users_endpoint('/friends/requests'), {
+        method: 'GET'
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        alert(data.error || "Something went wrong");
+        return ;
+    }
+
+    const requests = data.requests;
+    let request_items = '';
+    for (const request of requests) {
+        console.log("request", request);
+        request_items += '<div class="friends-row-item"><span>request</span></div>';
+    }
+
+    return (request_items);
+}
 
 async function friendsSideBar() {
     return `
@@ -203,6 +227,10 @@ async function friendsSideBar() {
                 <path d="M12 5v14"/>
             </svg>
             <span class="mr-2">ADD FRIEND</span>
+        </div>
+
+        <div class="dividers-2">
+            ${await pendingRequestItems()}
         </div>
     </aside>
     `
@@ -482,11 +510,11 @@ export async function mainPage() {
         });
         const data = await res.json();
         if (!res.ok) {
-            alert(data.error);
+            alert(data.error || "Something went wrong");
             return ;
         }
 
-        console.log(data);
+        alert(data.message);
     });
 
     
