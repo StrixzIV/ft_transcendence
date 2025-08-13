@@ -82,7 +82,7 @@ function winLossBarGraph(win_count: number, loss_count: number) {
     const games_count = gamesCount(win_count, loss_count);
     if (games_count == 0) {
         return `
-        <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden bg-[#555] rounded-sm items-center justify-center text-xs font-bold text-white">0</div>
+        <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden bg-[#444] rounded-sm items-center justify-center text-xs font-bold text-white">0</div>
         `;
     }
 
@@ -127,7 +127,8 @@ function headerSection(user: User) {
                         <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444]">
                             
                             <button id="close-qr" class="absolute top-2 right-2 text-xl">&times;</button>
-                            <h2 class="text-lg mb-4">Scan this QR Code</h2>
+                            <h2 class="text-2xl font-semibold mb-4">2FA SETUP</h2>
+                            <p class="text-lg">Scan this QR Code to enable 2FA</p>
                             
                             <div class="flex justify-center">
                                 <img id="qr-image" src="" alt="2FA QR Code" class="w-48 h-48"/>
