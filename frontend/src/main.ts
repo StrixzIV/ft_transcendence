@@ -150,20 +150,110 @@ function headerSection(user: User) {
     `
 }
 
-function friendsSideBar() {
-    return `
-    <aside class="sidebar">
-        <header class="card-title">> FRIENDS</header>
 
-        <div class="dividers-2">
-            <div class="friends-row-item"><span>opponent_minirt</span></div>
-            <div class="friends-row-item"><span>opponent_minishell</span></div>
-            <div class="friends-row-item"><span>opponent_fractol</span></div>
-            <div class="friends-row-item"><span>opponent_get-next-line</span></div>
-            <div class="friends-row-item"><span>opponent_libft</span></div>
+function addFriendModal() {
+    return `
+    <div id="add-friend-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
+        <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
+            
+            <button id="close-add-friend-btn" class="absolute top-2 right-2 text-xl">&times;</button>
+            <h2 class="text-2xl mb-4 font-semibold">ADD FRIEND</h2>
+
+            <div class="flex gap-4">
+                <input type="text" id="add-friend-field" placeholder="Enter Friend's UID" class="form-field w-4/5">
+                <button id="add-friend-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">REQUEST</button>
+            </div>   
+        </div>
+    </div>
+    `
+}
+
+async function getFriendsItems() {
+    let res = await secureFetch(users_endpoint('/friends'), { method: 'GET' });
+    let data = await res.json();
+  
+    if (!res.ok) {
+      alert(data.error || "Something went wrong");
+      return '';
+    }
+  
+    const friends = data.friends;
+    let friend_items = '';
+  
+    for (const friend of friends) {
+      res = await secureFetch(users_endpoint(`/data/${friend.id}`));
+      const user = await res.json();
+  
+      friend_items += `
+        <div class="friends-row-item flex items-center justify-between" data-uid="${friend.id}">
+            <span class="truncate">${user.username}</span>
+            <div class="flex gap-2">
+                <button class="btn-unfriend form-button-base !px-1 !py-1 bg-[#444] hover:bg-[#555] rounded" data-uid="${friend.id}">
+                    <!-- minus sign -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+      `;
+    }
+  
+    return friend_items;
+}  
+
+async function pendingRequestItems() {
+    const res = await secureFetch(users_endpoint('/friends/requests'), { method: 'GET' });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || "Something went wrong");
+      return '';
+    }
+  
+    const requests: Array<User> = data.requests ?? [];
+  
+    // fetch usernames in parallel
+    const rows = await Promise.all(requests.map(async (r) => {
+      const ures = await secureFetch(users_endpoint(`/data/${r.id}`));
+      const user = await ures.json();
+      const username = user.username ?? r.id;
+      // each row has accept/decline buttons with the uid in data-uid
+      return `
+        <div class="friends-row-item flex items-center justify-between gap-2" data-uid="${r.id}">
+            <span class="truncate">${username}</span>
+            <div class="flex gap-2">
+                <button class="btn-accept form-button-base !px-1 !py-1 bg-green-800 hover:bg-green-700 rounded" data-uid="${r.id}">
+                    <!-- tick sign -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
+                </button>
+                <button class="btn-decline form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded" data-uid="${r.id}">
+                    <!-- cross sign -->    
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>`;
+    }));
+  
+    return rows.join('');
+}
+
+async function friendsSideBar() {
+    return `
+    ${addFriendModal()}
+    <aside class="sidebar">
+        <h2 class="card-title">
+            > FRIENDS
+        </h2>
+
+        <div class="dividers-2" id="friends-container">
+            ${await getFriendsItems()}
         </div>
 
-        <div class="flex gap-2 items-center justify-center card-button mt-4">
+        <div id="open-add-friend-btn" class="flex gap-2 items-center justify-center card-button mt-4">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14"/>
@@ -171,8 +261,32 @@ function friendsSideBar() {
             </svg>
             <span class="mr-2">ADD FRIEND</span>
         </div>
+
+        <h2 class="card-title mt-4">
+            > REQUESTS
+        </h2>
+
+        <div class="dividers-2" id="pending-requests">
+            ${await pendingRequestItems()}
+        </div>
     </aside>
-    `
+    `;
+}
+
+async function acceptFriend(uid: string) {
+    const res = await secureFetch(users_endpoint(`/friends/${uid}/accept`), { method: 'PUT' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Accept failed');
+    window.location.reload();
+    return data;
+}
+
+async function declineFriend(uid: string) {
+    const res = await secureFetch(users_endpoint(`/friends/${uid}/deny`), { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Decline failed');
+    window.location.reload();
+    return data;
 }
 
 async function userCard(user: User, user_image: Response) {
@@ -374,7 +488,7 @@ async function mainPageHTML(user_image: Response, user: User) {
 
     ${headerSection(user)}
     <main class="flex">
-        ${friendsSideBar()}
+        ${await friendsSideBar()}
 
         ${remoteGameModal()}
         <section class="flex-1 p-4 space-y-4">
@@ -426,6 +540,92 @@ export async function mainPage() {
     const createRoomBtn = document.getElementById('create-room-btn') as HTMLButtonElement;
     const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
     const roomField = document.getElementById('room-field') as HTMLInputElement;
+
+    const addFriendModal = document.getElementById('add-friend-modal')!;
+    const openAddFriendModalBtn = document.getElementById('open-add-friend-btn') as HTMLDivElement;
+    const closeAddFriendModalBtn = document.getElementById('close-add-friend-btn') as HTMLButtonElement;
+    const addFriendField = document.getElementById('add-friend-field') as HTMLInputElement;
+    const addFriendBtn = document.getElementById('add-friend-btn') as HTMLInputElement;
+
+    const requestsContainer = document.getElementById('pending-requests')!;
+
+    const friendsContainer = document.querySelector('.dividers-2')!; // container for friends list
+
+    friendsContainer.addEventListener('click', async (e) => {
+        const btn = (e.target as HTMLElement).closest('.btn-unfriend') as HTMLButtonElement | null;
+        if (!btn) return; // clicked something else
+
+        const uid = btn.dataset.uid!;
+        const row = btn.closest('.friends-row-item') as HTMLDivElement;
+
+        btn.disabled = true;
+
+        try {
+            const res = await secureFetch(users_endpoint(`/friends/${uid}`), { method: 'DELETE' });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Unfriend failed');
+
+            // Remove the friend from the list
+            row.remove();
+        } catch (err) {
+            alert((err as Error).message);
+            btn.disabled = false;
+        }
+    });
+
+    requestsContainer.addEventListener('click', async (e) => {
+        const target = e.target as HTMLElement;
+
+        // find the clicked button
+        const acceptBtn = target.closest('.btn-accept') as HTMLButtonElement | null;
+        const declineBtn = target.closest('.btn-decline') as HTMLButtonElement | null;
+
+        if (!acceptBtn && !declineBtn) return;
+
+        const uid = (acceptBtn ?? declineBtn)!.dataset.uid!;
+        const row = (acceptBtn ?? declineBtn)!.closest('.friends-row-item') as HTMLDivElement;
+
+        // optimistic UI: disable buttons
+        (row.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).forEach(b => b.disabled = true);
+
+        try {
+            if (acceptBtn) {
+                await acceptFriend(uid);
+                row.outerHTML = `<div class="friends-row-item">${row.querySelector('span')!.textContent} ✓</div>`;
+            } else {
+                await declineFriend(uid);
+                row.remove();
+            }
+        } catch (err) {
+            alert('Action failed. Please try again.');
+            (row.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).forEach(b => b.disabled = false);
+        }
+    });
+
+    openAddFriendModalBtn.addEventListener('click', async () => {
+        addFriendModal.classList.remove('hidden');
+    });
+    closeAddFriendModalBtn.addEventListener('click', async () => {
+        addFriendModal.classList.add('hidden');
+    });
+    addFriendBtn.addEventListener('click', async () => {
+        const uid = addFriendField.value;
+        if (!uid) {
+            return ;
+        }
+        const res = await secureFetch(users_endpoint(`/friends/${uid}`), {
+            "method": "POST"
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data.error || "Something went wrong");
+            return ;
+        }
+
+        alert(data.message);
+    });
+
     
     localGameBtn.addEventListener('click', async () => {
         await navigate('/local-game');
