@@ -163,14 +163,14 @@ function addFriendModal() {
 
             <div class="flex gap-4">
                 <input type="text" id="add-friend-field" placeholder="Enter Friend's UID" class="form-field w-4/5">
-                <button id="add-friend-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">ADD FRIEND</button>
+                <button id="add-friend-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">REQUEST</button>
             </div>   
         </div>
     </div>
     `
 }
 
-async function friendsSideBar() {
+async function getFriendsItems() {
     const friends = await secureFetch(users_endpoint('/friends'), {
         method: 'GET'
     });
@@ -179,16 +179,21 @@ async function friendsSideBar() {
     console.log("friends_data", friends_data);
 
     let friendsItems = '';
-    // friendsItems
-    friendsItems += '<div class="friends-row-item"><span>friend1</span></div>'
 
+    friendsItems += '<div class="friends-row-item"><span>friend1</span></div>'
+    return (friendsItems);
+}
+
+// async function 
+
+async function friendsSideBar() {
     return `
     ${addFriendModal()}
     <aside class="sidebar">
         <header class="card-title">> FRIENDS</header>
 
         <div class="dividers-2">
-            ${friendsItems}
+            ${await getFriendsItems()}
         </div>
 
         <div id="open-add-friend-btn" class="flex gap-2 items-center justify-center card-button mt-4">
@@ -472,7 +477,16 @@ export async function mainPage() {
         if (!uid) {
             return ;
         }
-        console.log(uid);
+        const res = await secureFetch(users_endpoint(`/friends/${uid}`), {
+            "method": "POST"
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data.error);
+            return ;
+        }
+
+        console.log(data);
     });
 
     
