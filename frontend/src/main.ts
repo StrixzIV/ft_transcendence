@@ -434,6 +434,8 @@ export async function mainPage() {
     });
 
     tournamentGameBtn.addEventListener('click', async () => {
+        localStorage.removeItem("matches");
+        localStorage.removeItem("players");
         await navigate('/tournament-setup');
     });
 
