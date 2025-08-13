@@ -65,7 +65,7 @@ class PongClient {
 
         this.createPopup();
 
-        this._leftPaddle = new Paddle("Host", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GRID_SIZE * 2, GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2);
+        this._leftPaddle = new Paddle("Host", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GRID_SIZE, GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2);
         this._rightPaddle = new Paddle("Guest", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GAME_WIDTH - GRID_SIZE * 2, GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2);
         this._ball = new Ball(gridSize, gridSize, 0, 0, 0, 0);
 

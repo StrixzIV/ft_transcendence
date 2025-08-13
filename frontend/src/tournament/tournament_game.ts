@@ -103,7 +103,7 @@ export class Pong {
         
         this._leftPaddle = new Paddle (
             leftPlayerName, gridSize, paddleHeight,
-            this._sidebarWidth + gridSize * 2, this._canvasHeight / 2 - paddleHeight / 2
+            this._sidebarWidth + gridSize, this._canvasHeight / 2 - paddleHeight / 2
         );
 
         this._rightPaddle = new Paddle (
