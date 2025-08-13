@@ -218,7 +218,7 @@ function remoteGameModal() {
             <h2 class="text-2xl mb-4 font-semibold">REMOTE GAME</h2>
 
             <div class="flex gap-4">
-                <input type="text" id="room-field" placeholder="Enter player name" class="form-field w-4/5">
+                <input type="text" id="room-field" placeholder="Enter Room ID" class="form-field w-4/5">
                 <button id="join-room-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">JOIN ROOM</button>
             </div>
             <p class="text-l m-4">OR</p>
