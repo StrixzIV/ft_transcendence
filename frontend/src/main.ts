@@ -171,30 +171,33 @@ function addFriendModal() {
 }
 
 async function getFriendsItems() {
-    const res = await secureFetch(users_endpoint('/friends'), {
-        method: 'GET'
-    });
-    const data = await res.json();
+    let res = await secureFetch(users_endpoint('/friends'), { method: 'GET' });
+    let data = await res.json();
+
     if (!res.ok) {
         alert(data.error || "Something went wrong");
         return ;
     }
 
     const friends = data.friends;
-    let friendsItems = '';
+    let friend_items = '';
+    
     for (const friend of friends) {
         console.log("friend", friend);
-        friendsItems += '<div class="friends-row-item"><span>friend</span></div>';
+
+        res = await secureFetch(users_endpoint(`/data/${friend.id}`))
+        data = await res.json();
+
+        friend_items += `<div class="friends-row-item"><span>${data.username}</span></div>`;
     }
 
-    return (friendsItems);
+    return (friend_items);
 }
 
 async function pendingRequestItems() {
-    const res = await secureFetch(users_endpoint('/friends/requests'), {
-        method: 'GET'
-    });
-    const data = await res.json();
+    let res = await secureFetch(users_endpoint('/friends/requests'), { method: 'GET' });
+    let data = await res.json();
+
     if (!res.ok) {
         alert(data.error || "Something went wrong");
         return ;
@@ -202,9 +205,14 @@ async function pendingRequestItems() {
 
     const requests = data.requests;
     let request_items = '';
+    
     for (const request of requests) {
         console.log("request", request);
-        request_items += '<div class="friends-row-item"><span>request</span></div>';
+
+        res = await secureFetch(users_endpoint(`/data/${request.id}`))
+        data = await res.json();
+
+        request_items += `<div class="friends-row-item"><span>${data.username}</span></div>`;
     }
 
     return (request_items);
