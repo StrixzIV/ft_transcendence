@@ -171,26 +171,36 @@ function addFriendModal() {
 async function getFriendsItems() {
     let res = await secureFetch(users_endpoint('/friends'), { method: 'GET' });
     let data = await res.json();
-
+  
     if (!res.ok) {
-        alert(data.error || "Something went wrong");
-        return ;
+      alert(data.error || "Something went wrong");
+      return '';
     }
-
+  
     const friends = data.friends;
     let friend_items = '';
-    
+  
     for (const friend of friends) {
-        console.log("friend", friend);
-
-        res = await secureFetch(users_endpoint(`/data/${friend.id}`))
-        data = await res.json();
-
-        friend_items += `<div class="friends-row-item"><span>${data.username}</span></div>`;
+      res = await secureFetch(users_endpoint(`/data/${friend.id}`));
+      const user = await res.json();
+  
+      friend_items += `
+        <div class="friends-row-item flex items-center justify-between" data-uid="${friend.id}">
+            <span class="truncate">${user.username}</span>
+            <div class="flex gap-2">
+                <button class="btn-unfriend form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded" data-uid="${friend.id}">
+                    <!-- minus sign -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+      `;
     }
-
-    return (friend_items);
-}
+  
+    return friend_items;
+}  
 
 async function pendingRequestItems() {
     const res = await secureFetch(users_endpoint('/friends/requests'), { method: 'GET' });
@@ -210,19 +220,21 @@ async function pendingRequestItems() {
       // each row has accept/decline buttons with the uid in data-uid
       return `
         <div class="friends-row-item flex items-center justify-between gap-2" data-uid="${r.id}">
-          <span class="truncate">${username}</span>
-          <div class="flex gap-2">
-            <button class="btn-accept form-button-base !px-1 !py-1 bg-green-800 hover:bg-green-700 rounded" data-uid="${r.id}">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 6 9 17l-5-5"/>
-                </svg>
-            </button>
-            <button class="btn-decline form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded" data-uid="${r.id}">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
-            </button>
-          </div>
+            <span class="truncate">${username}</span>
+            <div class="flex gap-2">
+                <button class="btn-accept form-button-base !px-1 !py-1 bg-green-800 hover:bg-green-700 rounded" data-uid="${r.id}">
+                    <!-- tick sign -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
+                </button>
+                <button class="btn-decline form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded" data-uid="${r.id}">
+                    <!-- cross sign -->    
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                    </svg>
+                </button>
+            </div>
         </div>`;
     }));
   
@@ -237,7 +249,7 @@ async function friendsSideBar() {
             > FRIENDS
         </h2>
 
-        <div class="dividers-2">
+        <div class="dividers-2" id="friends-container">
             ${await getFriendsItems()}
         </div>
 
@@ -535,9 +547,34 @@ export async function mainPage() {
     const addFriendField = document.getElementById('add-friend-field') as HTMLInputElement;
     const addFriendBtn = document.getElementById('add-friend-btn') as HTMLInputElement;
 
-    const container = document.getElementById('pending-requests')!;
+    const requestsContainer = document.getElementById('pending-requests')!;
 
-    container.addEventListener('click', async (e) => {
+    const friendsContainer = document.querySelector('.dividers-2')!; // container for friends list
+
+    friendsContainer.addEventListener('click', async (e) => {
+        const btn = (e.target as HTMLElement).closest('.btn-unfriend') as HTMLButtonElement | null;
+        if (!btn) return; // clicked something else
+
+        const uid = btn.dataset.uid!;
+        const row = btn.closest('.friends-row-item') as HTMLDivElement;
+
+        btn.disabled = true;
+
+        try {
+            const res = await secureFetch(users_endpoint(`/friends/${uid}`), { method: 'DELETE' });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Unfriend failed');
+
+            // Remove the friend from the list
+            row.remove();
+        } catch (err) {
+            alert((err as Error).message);
+            btn.disabled = false;
+        }
+    });
+
+    requestsContainer.addEventListener('click', async (e) => {
         const target = e.target as HTMLElement;
 
         // find the clicked button
