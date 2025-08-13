@@ -111,6 +111,21 @@ export async function consumeMQData() {
 
             }
 
+            else if (event.event === 'user.name_changed') {
+
+                const { id, username } = event.data;
+
+                await prisma.users.update({ 
+                    data: { 
+                        username: username
+                    },
+                    where: {
+                        id: id
+                    }
+                })
+
+            }
+
         }
         
         catch (error) {
