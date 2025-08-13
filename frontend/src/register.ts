@@ -34,6 +34,11 @@ export function registerPage() {
             return;
         }
 
+        if (username.length > 24) {
+            alert('Username must be in 24 characters');
+            return;
+        }
+
         if (password !== password_confirm) {
             alert('Password unmatched');
             return;
@@ -58,10 +63,11 @@ export function registerPage() {
             });
 
             if (!response.ok) {
-                const errorText = await response.text() as string;
-                alert(`Registration failed: ${errorText}`);
+                const errorText = await response.json();
+                alert(`Registration failed: ${errorText.error}`);
                 return;
             }
+
             const json = await response.json();
 
             localStorage.setItem('is_login', 'true');

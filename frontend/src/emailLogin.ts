@@ -41,8 +41,8 @@ export function loginPage() {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            alert(`Login failed: ${errorText}`);
+            const errorText = await response.json();
+            alert(`Login failed: ${errorText.error}`);
             return;
         }
         
