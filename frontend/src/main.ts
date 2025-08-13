@@ -188,7 +188,7 @@ async function getFriendsItems() {
         <div class="friends-row-item flex items-center justify-between" data-uid="${friend.id}">
             <span class="truncate">${user.username}</span>
             <div class="flex gap-2">
-                <button class="btn-unfriend form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded" data-uid="${friend.id}">
+                <button class="btn-unfriend form-button-base !px-1 !py-1 bg-[#444] hover:bg-[#555] rounded" data-uid="${friend.id}">
                     <!-- minus sign -->
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14"/>
