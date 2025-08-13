@@ -68,9 +68,9 @@
 
 /* General */
 .body       { @apply bg-black text-[#eee] font-mono text-sm; }
-.header     { @apply flex gap-4 justify-between p-4 border-b border-[#444] bg-[#1a1a1a]; }
+.header     { @apply flex gap-4 justify-between p-4 rounded border border-[#444] bg-[#1a1a1a]; }
 .dropdown   { @apply absolute right-0 w-40 hidden z-10 bg-[#2a2a2a] rounded shadow-lg divide-y divide-[#444] group-hover:block; }
-.sidebar    { @apply p-4 w-64 min-h-screen border-r border-[#444] bg-[#1a1a1a]; }  /* assume parent is flex */
+.sidebar    { @apply p-4 w-64 min-h-screen rounded border-r border-l border-b border-[#444] bg-[#1a1a1a]; }  /* assume parent is flex */
 
 /* Dividers: for child */
 .dividers-1 { @apply divide-y divide-[#444]; }
