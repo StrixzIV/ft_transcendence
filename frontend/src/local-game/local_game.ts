@@ -82,6 +82,7 @@ class Pong {
     }
 
     private initialize(gridSize: number, paddleHeight: number, paddleSpeed: number, ballSpeed: number, winScore: number): void {
+        
         this._gridSizeInPx = gridSize;
         this._maxPaddleY = this._gameHeight - gridSize - paddleHeight;
         this._paddleSpeed = paddleSpeed;
@@ -159,12 +160,6 @@ class Pong {
         let gridSize = this._gridSizeInPx;
         let lPaddle = this._leftPaddle;
         let rPaddle = this._rightPaddle;
-
-        // ctx.font = `${sWidth / 2}px pong-score`;
-        // ctx.textAlign = "left";
-        // ctx.fillText(`${leftScore}`, gridSize, gridSize * 5, sWidth - gridSize);
-        // ctx.textAlign = "right";
-        // ctx.fillText(`${rightScore}`, cWidth, gridSize * 5, sWidth - gridSize);
 
         ctx.font = `${topHeight * 4 / 5}px pong-score`;
         ctx.fillStyle = "white";
@@ -259,8 +254,8 @@ class Pong {
 
         // Draw walls
         ctx.fillStyle = 'lightgrey';
-        ctx.fillRect(0, 0, cWidth, gridSize);
-        ctx.fillRect(0, cHeight - gridSize, cWidth, cHeight);
+        ctx.fillRect(0, topHeight, cWidth, gridSize);
+        ctx.fillRect(0, cHeight - gridSize, cWidth, gridSize);
 
         // Draw dotted line down the middle
         for (let i = gridSize; i < cHeight - gridSize; i += gridSize * 2) {
