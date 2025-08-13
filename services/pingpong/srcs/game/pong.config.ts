@@ -4,7 +4,7 @@ export const config = {
     screen: {
         width: 1000,
         height: 800,
-        sidebar_width: 100,
+        sidebar_width: 0,
         grid_size: 20
     },
     paddle: {

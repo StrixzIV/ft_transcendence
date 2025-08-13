@@ -21,9 +21,8 @@ interface GameState {
 }
 
 const GAME_WIDTH = 1000;
-const GAME_HEIGHT = 800;
-const SIDEBAR_WIDTH = 0;
-const TOPBAR_HEIGHT = 100;
+const CANVAS_HEIGHT = 800;
+const SIDEBAR_WIDTH = 100;
 const GRID_SIZE = 20;
 const PADDLE_HEIGHT = 100;
 
@@ -35,10 +34,8 @@ class PongClient {
     private _context!: CanvasRenderingContext2D | null;
 
     private _canvasWidth!: number;
-    private _canvasHeight!: number;
-    
-    private _topbarHeight!: number;
-
+    private _cavnasHeight!: number;
+    private _sidebarWidth!: number;
     private _gridSizeInPx!: number;
 
     private _leftPaddle: Paddle;
@@ -54,19 +51,20 @@ class PongClient {
     private _assignedPlayerId: 'player1' | 'player2' | null = null;
     private _winningPlayer: string | undefined = undefined;
 
-    constructor(gameWidth: number, sideWidth: number, gameHeight: number, topbarHeight: number, gridSize: number, _gid: string, username: string) {
+    constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, _gid: string, username: string) {
 
         this._gid = _gid;
         this._username = username
     
-        this.createCanvas(gameWidth, sideWidth, gameHeight, topbarHeight);
+        this.createCanvas(gameWidth, sideWidth, cHeight);
         this._gridSizeInPx = gridSize;
-        this._topbarHeight = topbarHeight;
+        this._sidebarWidth = sideWidth;
+        this._cavnasHeight = cHeight;
 
         this.createPopup();
 
-        this._leftPaddle = new Paddle("Host", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GRID_SIZE, GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2);
-        this._rightPaddle = new Paddle("Guest", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GAME_WIDTH - GRID_SIZE * 2, GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2);
+        this._leftPaddle = new Paddle("leftPlayer", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GRID_SIZE * 2, CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
+        this._rightPaddle = new Paddle("rightPlayer", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GAME_WIDTH - GRID_SIZE * 2, CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
         this._ball = new Ball(gridSize, gridSize, 0, 0, 0, 0);
 
         this.setupWebSocket();
@@ -75,16 +73,16 @@ class PongClient {
     
     }
 
-    private createCanvas(gameWidth: number, sideWidth: number, gameHeight: number, topbarHeight: number): void {
+    private createCanvas(gameWidth: number, sideWidth: number, cHeight: number): void {
         this._canvas = document.createElement("canvas");
         document.querySelector<HTMLDivElement>('#app')!.appendChild(this._canvas);
 
         this._canvasWidth = gameWidth + sideWidth * 2;
         this._canvas.width = this._canvasWidth;
         this._canvas.style.width = `${this._canvasWidth}px`;
-        this._canvasHeight = gameHeight + topbarHeight;
-        this._canvas.height = this._canvasHeight;
-        this._canvas.style.height = `${this._canvasHeight}px`;
+        this._cavnasHeight = cHeight;
+        this._canvas.height = cHeight;
+        this._canvas.style.height = `${cHeight}px`;
 
         this._context = this._canvas.getContext('2d')!;
         if (!this._context) {
@@ -331,22 +329,16 @@ class PongClient {
 
         let ctx = this._context!;
         let cWidth = this._canvasWidth;
-        let cHeight = this._canvasHeight;
+        let cHeight = this._cavnasHeight;
         let gridSize = this._gridSizeInPx;
-
-        let topHeight = this._topbarHeight;
-
-        let ball = this._ball;
-        let leftPaddle = this._leftPaddle;
-        let rightPaddle = this._rightPaddle;
 
         // Clear canvas
         ctx.clearRect(0, 0, cWidth, cHeight);
 
         // Draw walls
         ctx.fillStyle = 'lightgrey';
-        ctx.fillRect(0, topHeight, cWidth, gridSize);
-        ctx.fillRect(0, cHeight - gridSize, cWidth, gridSize);
+        ctx.fillRect(0, 0, cWidth, gridSize);
+        ctx.fillRect(0, cHeight - gridSize, cWidth, cHeight);
 
         // Draw dotted line
         for (let i = gridSize; i < cHeight - gridSize; i += gridSize * 2) {
@@ -355,9 +347,9 @@ class PongClient {
 
         // Draw paddles and ball
         ctx.fillStyle = 'white';
-        ctx.fillRect(leftPaddle.getX(), leftPaddle.getY() + topHeight, leftPaddle.getWidth(), leftPaddle.getHeight());
-        ctx.fillRect(rightPaddle.getX(), rightPaddle.getY() + topHeight, rightPaddle.getWidth(), rightPaddle.getHeight());
-        ctx.fillRect(ball.getX(), ball.getY() + topHeight, ball.getWidth(), ball.getHeight());
+        ctx.fillRect(this._leftPaddle.getX(), this._leftPaddle.getY(), this._leftPaddle.getWidth(), this._leftPaddle.getHeight());
+        ctx.fillRect(this._rightPaddle.getX(), this._rightPaddle.getY(), this._rightPaddle.getWidth(), this._rightPaddle.getHeight());
+        ctx.fillRect(this._ball.getX(), this._ball.getY(), this._ball.getWidth(), this._ball.getHeight());
 
         // Draw scores
         this.scoreboards();
@@ -370,17 +362,14 @@ class PongClient {
     private scoreboards(): void {
         let ctx = this._context!;
         let cWidth = this._canvasWidth;
-        let topHeight = this._topbarHeight;
+        let sWidth = this._sidebarWidth;
         let gridSize = this._gridSizeInPx;
-        let lPaddle = this._leftPaddle;
-        let rPaddle = this._rightPaddle;
 
-        ctx.font = `${topHeight * 4 / 5}px pong-score`;
-        ctx.fillStyle = "white";
+        ctx.font = `${sWidth / 2}px pong-score`;
         ctx.textAlign = "left";
-        ctx.fillText(`${lPaddle.getScore()}    ${lPaddle.getPlayerId()}`, gridSize, topHeight * 4 / 5, cWidth / 2 - gridSize * 2);
+        ctx.fillText(`${this._leftPaddle.getScore()}`, gridSize, gridSize * 5, sWidth - gridSize);
         ctx.textAlign = "right";
-        ctx.fillText(`${rPaddle.getPlayerId()}    ${rPaddle.getScore()}`, cWidth - gridSize , topHeight * 4 / 5, cWidth / 2 - gridSize * 2);
+        ctx.fillText(`${this._rightPaddle.getScore()}`, cWidth, gridSize * 5, sWidth - gridSize);
     }
     
     private drawGameOverScreen(): void {
@@ -407,6 +396,6 @@ export async function loadRemoteGame() {
 
     const userData = await user.json() as User;
 
-    new PongClient(GAME_WIDTH, SIDEBAR_WIDTH, GAME_HEIGHT, TOPBAR_HEIGHT, GRID_SIZE, gid, userData.username);
+    new PongClient(1000, 100, 800, 20, gid, userData.username);
 
 }
