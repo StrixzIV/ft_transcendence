@@ -127,16 +127,16 @@ function headerSection(user: User) {
                         <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444]">
                             
                             <button id="close-qr" class="absolute top-2 right-2 text-xl">&times;</button>
-                            <h2 class="text-2xl font-semibold mb-4">2FA SETUP</h2>
-                            <p class="text-lg">Scan this QR Code to enable 2FA</p>
+                            <h2 class="text-2xl font-semibold mb-2">2FA SETUP</h2>
+                            <p class="text-lg mb-4">Scan this QR Code to enable 2FA</p>
                             
                             <div class="flex justify-center">
                                 <img id="qr-image" src="" alt="2FA QR Code" class="w-48 h-48"/>
                             </div>
                             
                             <div class="mt-4 flex items-center space-x-2">
-                                <p id="manual-code" class="text-sm mt-4 break-all"></p>
-                                <button id="copy-code" class="text-xs mt-4 px-2 py-1 border border-[#444] bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white rounded">📋</button>
+                                <p id="manual-code" class="text-sm break-all"></p>
+                                <button id="copy-code" class="text-xs px-2 py-1 border border-[#444] bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white rounded">📋</button>
                             </div>
                             
                             <button id="enable-2fa" class="font-semibold py-2 px-4 rounded transition bg-green-700 hover:bg-green-600 mt-2 mr-2">Enable 2FA</button>
