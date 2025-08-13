@@ -92,7 +92,7 @@ class Pong {
         
         this._leftPaddle = new Paddle (
             "leftPlayer", gridSize, paddleHeight,
-            this._sidebarWidth + gridSize * 2, this._gameHeight / 2 - paddleHeight / 2
+            this._sidebarWidth + gridSize, this._gameHeight / 2 - paddleHeight / 2
         );
 
         this._rightPaddle = new Paddle (
