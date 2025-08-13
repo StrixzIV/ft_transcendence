@@ -254,11 +254,25 @@ async function friendsSideBar() {
             > REQUESTS
         </h2>
 
-        <div class="dividers-2">
+        <div class="dividers-2" id="pending-requests">
             ${await pendingRequestItems()}
         </div>
     </aside>
-    `
+    `;
+}
+
+async function acceptFriend(uid: string) {
+    const res = await secureFetch(users_endpoint(`/friends/${uid}/accept`), { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Accept failed');
+    return data;
+}
+
+async function declineFriend(uid: string) {
+    const res = await secureFetch(users_endpoint(`/friends/${uid}/deny`), { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Decline failed');
+    return data;
 }
 
 async function userCard(user: User, user_image: Response) {
@@ -518,6 +532,37 @@ export async function mainPage() {
     const closeAddFriendModalBtn = document.getElementById('close-add-friend-btn') as HTMLButtonElement;
     const addFriendField = document.getElementById('add-friend-field') as HTMLInputElement;
     const addFriendBtn = document.getElementById('add-friend-btn') as HTMLInputElement;
+
+    const container = document.getElementById('pending-requests')!;
+
+    container.addEventListener('click', async (e) => {
+        const target = e.target as HTMLElement;
+
+        // find the clicked button
+        const acceptBtn = target.closest('.btn-accept') as HTMLButtonElement | null;
+        const declineBtn = target.closest('.btn-decline') as HTMLButtonElement | null;
+
+        if (!acceptBtn && !declineBtn) return;
+
+        const uid = (acceptBtn ?? declineBtn)!.dataset.uid!;
+        const row = (acceptBtn ?? declineBtn)!.closest('.friends-row-item') as HTMLDivElement;
+
+        // optimistic UI: disable buttons
+        (row.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).forEach(b => b.disabled = true);
+
+        try {
+            if (acceptBtn) {
+                await acceptFriend(uid);
+                row.outerHTML = `<div class="friends-row-item">${row.querySelector('span')!.textContent} ✓</div>`;
+            } else {
+                await declineFriend(uid);
+                row.remove();
+            }
+        } catch (err) {
+            alert('Action failed. Please try again.');
+            (row.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).forEach(b => b.disabled = false);
+        }
+    });
 
     openAddFriendModalBtn.addEventListener('click', async () => {
         addFriendModal.classList.remove('hidden');
