@@ -8,7 +8,7 @@ export function tournamentSetupPage() {
             <h2 class="mb-4 text-large font-semibold">INITIALIZE TOURNAMENT</h2>
             <div class="flex gap-4">
                 <input type="text" id="player-name-input" placeholder="Enter player name" class="form-field w-4/5">
-                <button id="add-player-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555]">ADD PLAYER</button>
+                <button id="add-player-btn" class="font-semibold py-2 px-4 rounded transition cursor-pointer !w-1/5 bg-[#444] hover:bg-[#555] disabled:bg-gray-400">ADD PLAYER</button>
             </div>
             <div id="player-list-container" class="mt-4">
                 <h3 class="text-lg font-medium mb-2">Players Added (<span id="player-count">0</span>/4):</h3>
@@ -17,7 +17,7 @@ export function tournamentSetupPage() {
                 </ul>
             </div>
             <div class="mt-6 flex justify-center">
-                <button id="start-tournament-btn" class="bg-green-600 text-white disabled:text-[#999] font-bold py-3 px-8 rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:bg-[#222] border border-[#444]" disabled>START TOURNAMENT</button>
+                <button id="start-tournament-btn" class="font-semibold py-2 px-6 rounded transition bg-green-600 hover:bg-green-500 disabled:text-[#999] disabled:bg-[#222] border border-[#444]" disabled>START TOURNAMENT</button>
             </div>
         </div>
     `;
