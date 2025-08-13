@@ -39,9 +39,11 @@ async function on_startup() {
     
     if ((!has_uid || !has_expires_at) && !is_login) {
 
-        localStorage.removeItem('uid');
-        localStorage.removeItem('is_login');
-        localStorage.removeItem('expires_at');
+        localStorage.clear()
+    
+        await secureFetch(auth_endpoint('/logout'), {
+            method: 'POST'
+        });
 
         await navigate('/login');
     
@@ -49,13 +51,10 @@ async function on_startup() {
     
     if (has_expires_at && parseInt(has_expires_at) < Math.floor(Date.now() / 1000)) {
         
-        localStorage.removeItem('uid');
-        localStorage.removeItem('is_login');
-        localStorage.removeItem('expires_at');
+        localStorage.clear()
         
-        await fetch(auth_endpoint('/logout'), {
-            method: 'POST',
-            credentials: 'include'
+        await secureFetch(auth_endpoint('/logout'), {
+            method: 'POST'
         });
         
         await navigate('/login');
@@ -607,9 +606,11 @@ export async function mainPage() {
     openAddFriendModalBtn.addEventListener('click', async () => {
         addFriendModal.classList.remove('hidden');
     });
+
     closeAddFriendModalBtn.addEventListener('click', async () => {
         addFriendModal.classList.add('hidden');
     });
+
     addFriendBtn.addEventListener('click', async () => {
         const uid = addFriendField.value;
         if (!uid) {
@@ -668,17 +669,12 @@ export async function mainPage() {
 
     loginBtn.addEventListener('click', async () => {
 
-        if (user.username) {
-            localStorage.removeItem('uid');
-            localStorage.removeItem('username');
-            localStorage.removeItem('is_login');
-            localStorage.removeItem('expires_at');
-            window.location.reload();
-        }
-        
-        else {
-            await navigate('/login');
-        }
+        localStorage.clear()
+        await secureFetch(auth_endpoint('/logout'), {
+            method: 'POST'
+        });
+
+        await navigate('/login');
         
     });
 
@@ -736,32 +732,12 @@ export async function mainPage() {
                 method: 'POST'
             });
 
-            if (!response.ok) {
-
-                if (response.status == 401 || response.status == 403) {
-
-                    await secureFetch(auth_endpoint('/logout'), {
-                        method: 'POST'
-                    });
-
-                    localStorage.removeItem('uid');
-                    localStorage.removeItem('username');
-                    localStorage.removeItem('is_login');
-                    localStorage.removeItem('expires_at');
-            
-                    await navigate('/login');
-                    return ;
-                    
-                }
-
-                throw new Error('Failed to fetch QR code.');
-            
-            }
-
             const data = await response.json();
             qrImg.src = data.qr_data_url;
+
             manualCode.textContent = `Manual code (backup): ${data.totp_token}`;
             modal.classList.remove('hidden');
+
         }
         
         catch (error) {
@@ -772,7 +748,6 @@ export async function mainPage() {
     })
 
     remoteGameBtn.addEventListener('click', async () => {
-
         remoteModal.classList.remove('hidden');
     })
 
