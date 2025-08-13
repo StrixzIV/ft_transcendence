@@ -47,12 +47,14 @@ class PongClient {
     private _isGameStarted: boolean = false;
     private _opponentJoined: boolean = false;
     private _isWaitingForHost: boolean = false;
+    private _username: string | null = null;
     private _assignedPlayerId: 'player1' | 'player2' | null = null;
     private _winningPlayer: string | undefined = undefined;
 
-    constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, _gid: string) {
+    constructor(gameWidth: number, sideWidth: number, cHeight: number, gridSize: number, _gid: string, username: string) {
 
         this._gid = _gid;
+        this._username = username
     
         this.createCanvas(gameWidth, sideWidth, cHeight);
         this._gridSizeInPx = gridSize;
@@ -65,7 +67,7 @@ class PongClient {
         this._rightPaddle = new Paddle("rightPlayer", GRID_SIZE, PADDLE_HEIGHT, SIDEBAR_WIDTH + GAME_WIDTH - GRID_SIZE * 2, CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
         this._ball = new Ball(gridSize, gridSize, 0, 0, 0, 0);
 
-        this.setupWebSocket().then();
+        this.setupWebSocket();
         this.loadFont();
         this.setupEventListeners();
     
@@ -179,15 +181,9 @@ class PongClient {
         });
     }
 
-    private async setupWebSocket(): Promise<void> {
+    private setupWebSocket(): void {
 
         this._socket = new WebSocket(websocket_endpoint('/game'));
-
-        const user = await secureFetch(users_endpoint("/data"), {
-            method: 'GET'
-        });
-
-        const userData = await user.json() as User;
 
         this._socket.onopen = () => {
 
@@ -197,7 +193,7 @@ class PongClient {
                 type: "join",
                 gid: this._gid,
                 uid: localStorage.getItem('uid'),
-                username: userData.username
+                username: this._username
             }));
             
             console.log(`Current gid: ${this._gid}`);
@@ -394,6 +390,12 @@ export async function loadRemoteGame() {
         return;
     }
 
-    new PongClient(1000, 100, 800, 20, gid);
+    const user = await secureFetch(users_endpoint("/data"), {
+        method: 'GET'
+    });
+
+    const userData = await user.json() as User;
+
+    new PongClient(1000, 100, 800, 20, gid, userData.username);
 
 }
