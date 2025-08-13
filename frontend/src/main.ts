@@ -193,34 +193,49 @@ async function getFriendsItems() {
 }
 
 async function pendingRequestItems() {
-    let res = await secureFetch(users_endpoint('/friends/requests'), { method: 'GET' });
-    let data = await res.json();
-
+    const res = await secureFetch(users_endpoint('/friends/requests'), { method: 'GET' });
+    const data = await res.json();
     if (!res.ok) {
-        alert(data.error || "Something went wrong");
-        return ;
+      alert(data.error || "Something went wrong");
+      return '';
     }
-
-    const requests = data.requests;
-    let request_items = '';
-    
-    for (const request of requests) {
-        console.log("request", request);
-
-        res = await secureFetch(users_endpoint(`/data/${request.id}`))
-        data = await res.json();
-
-        request_items += `<div class="friends-row-item"><span>${data.username}</span></div>`;
-    }
-
-    return (request_items);
+  
+    const requests: Array<User> = data.requests ?? [];
+  
+    // fetch usernames in parallel
+    const rows = await Promise.all(requests.map(async (r) => {
+      const ures = await secureFetch(users_endpoint(`/data/${r.id}`));
+      const user = await ures.json();
+      const username = user.username ?? r.id;
+      // each row has accept/decline buttons with the uid in data-uid
+      return `
+        <div class="friends-row-item flex items-center justify-between gap-2" data-uid="${r.id}">
+          <span class="truncate">${username}</span>
+          <div class="flex gap-2">
+            <button class="btn-accept form-button-base !px-1 !py-1 bg-green-800 hover:bg-green-700 rounded" data-uid="${r.id}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+            </button>
+            <button class="btn-decline form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded" data-uid="${r.id}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                </svg>
+            </button>
+          </div>
+        </div>`;
+    }));
+  
+    return rows.join('');
 }
 
 async function friendsSideBar() {
     return `
     ${addFriendModal()}
     <aside class="sidebar">
-        <header class="card-title">> FRIENDS</header>
+        <h2 class="card-title">
+            > FRIENDS
+        </h2>
 
         <div class="dividers-2">
             ${await getFriendsItems()}
@@ -234,6 +249,10 @@ async function friendsSideBar() {
             </svg>
             <span class="mr-2">ADD FRIEND</span>
         </div>
+
+        <h2 class="card-title mt-4">
+            > REQUESTS
+        </h2>
 
         <div class="dividers-2">
             ${await pendingRequestItems()}
