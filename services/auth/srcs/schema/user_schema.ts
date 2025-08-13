@@ -7,7 +7,7 @@ const user_schema: FastifySchema = {
         type: 'object',
         required: ['username', 'mail'],
         properties: {
-            username: { type: 'string', minLength: 1 },
+            username: { type: 'string', minLength: 1, maxLength: 24 },
             mail: { type: 'string', format: 'email' },
             password: { type: 'string', minLength: 6 }
         }
