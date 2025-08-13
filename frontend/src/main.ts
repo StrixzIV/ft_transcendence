@@ -153,11 +153,22 @@ function headerSection(user: User) {
 }
 
 
-// function addFriendModal() {
-//     return `
-    
-//     `
-// }
+function addFriendModal() {
+    return `
+    <div id="add-friend-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
+        <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
+            
+            <button id="close-add-friend-btn" class="absolute top-2 right-2 text-xl">&times;</button>
+            <h2 class="text-2xl mb-4 font-semibold">ADD FRIEND</h2>
+
+            <div class="flex gap-4">
+                <input type="text" id="add-friend-field" placeholder="Enter Friend's UID" class="form-field w-4/5">
+                <button id="add-friend-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">ADD FRIEND</button>
+            </div>   
+        </div>
+    </div>
+    `
+}
 
 async function friendsSideBar() {
     const friends = await secureFetch(users_endpoint('/friends'), {
@@ -165,13 +176,14 @@ async function friendsSideBar() {
     });
     const friends_data = await friends.json() as Array<User>;
     
-    console.log(friends_data);
+    console.log("friends_data", friends_data);
 
     let friendsItems = '';
     // friendsItems
     friendsItems += '<div class="friends-row-item"><span>friend1</span></div>'
 
     return `
+    ${addFriendModal()}
     <aside class="sidebar">
         <header class="card-title">> FRIENDS</header>
 
@@ -179,7 +191,7 @@ async function friendsSideBar() {
             ${friendsItems}
         </div>
 
-        <div id="add-friend-btn" class="flex gap-2 items-center justify-center card-button mt-4">
+        <div id="open-add-friend-btn" class="flex gap-2 items-center justify-center card-button mt-4">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14"/>
@@ -443,11 +455,26 @@ export async function mainPage() {
     const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
     const roomField = document.getElementById('room-field') as HTMLInputElement;
 
-    const addFriendBtn = document.getElementById('add-friend-btn') as HTMLDivElement;
+    const addFriendModal = document.getElementById('add-friend-modal')!;
+    const openAddFriendModalBtn = document.getElementById('open-add-friend-btn') as HTMLDivElement;
+    const closeAddFriendModalBtn = document.getElementById('close-add-friend-btn') as HTMLButtonElement;
+    const addFriendField = document.getElementById('add-friend-field') as HTMLInputElement;
+    const addFriendBtn = document.getElementById('add-friend-btn') as HTMLInputElement;
 
-    addFriendBtn.addEventListener('click', async () => {
-        console.log("add friend modal pop up!");
+    openAddFriendModalBtn.addEventListener('click', async () => {
+        addFriendModal.classList.remove('hidden');
     });
+    closeAddFriendModalBtn.addEventListener('click', async () => {
+        addFriendModal.classList.add('hidden');
+    });
+    addFriendBtn.addEventListener('click', async () => {
+        const uid = addFriendField.value;
+        if (!uid) {
+            return ;
+        }
+        console.log(uid);
+    });
+
     
     localGameBtn.addEventListener('click', async () => {
         await navigate('/local-game');
