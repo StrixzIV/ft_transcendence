@@ -262,16 +262,18 @@ async function friendsSideBar() {
 }
 
 async function acceptFriend(uid: string) {
-    const res = await secureFetch(users_endpoint(`/friends/${uid}/accept`), { method: 'POST' });
+    const res = await secureFetch(users_endpoint(`/friends/${uid}/accept`), { method: 'PUT' });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Accept failed');
+    window.location.reload();
     return data;
 }
 
 async function declineFriend(uid: string) {
-    const res = await secureFetch(users_endpoint(`/friends/${uid}/deny`), { method: 'POST' });
+    const res = await secureFetch(users_endpoint(`/friends/${uid}/deny`), { method: 'DELETE' });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Decline failed');
+    window.location.reload();
     return data;
 }
 
