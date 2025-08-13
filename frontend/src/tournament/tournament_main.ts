@@ -26,7 +26,7 @@ export async function tournamentMainPage() {
                         <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">[ Player B ]</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
-                        <button class="semifinals-btn disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2" data-match-id="1">START SEMI-FINAL #1</button>
+                        <button class="semifinals-btn bg-[#de8a0d] hover:bg-[#fcaa2f] font-semibold py-2 px-4 rounded transition w-2/5 disabled:text-[#999] disabled:bg-[#222] border border-[#444]" data-match-id="1">START SEMI-FINAL #1</button>
                     </div>
                 </div>
                 <!-- Match: Semi-Final 2 -->
@@ -38,7 +38,7 @@ export async function tournamentMainPage() {
                         <div class="player text-gray-800 p-2 bg-[#ddd] rounded-md w-full text-center">[ Player D ]</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
-                        <button class="semifinals-btn disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2" data-match-id="2">START SEMI-FINAL #2</button>
+                        <button class="semifinals-btn bg-[#de8a0d] hover:bg-[#fcaa2f] font-semibold py-2 px-4 rounded transition w-2/5 disabled:text-[#999] disabled:bg-[#222] border border-[#444]" data-match-id="2">START SEMI-FINAL #2</button>
                     </div>
                 </div>
             </div>
@@ -54,7 +54,7 @@ export async function tournamentMainPage() {
                         <div id="finalist-2" class="finalist p-2 text-gray-800 bg-[#ddd] rounded-md w-full text-center">[ Winner of SF2 ]</div>
                     </div>
                     <div class="mt-4 flex justify-center gap-2">
-                        <button id="start-final-btn" class="disabled:bg-gray-400 bg-yellow-600 hover:bg-yellow-700 transition-colors text-white form-button-base !w-1/2 hidden" data-match-id="3">START FINAL</button>
+                        <button id="start-final-btn" class="hidden bg-[#de8a0d] hover:bg-[#fcaa2f] font-semibold py-2 px-4 rounded transition w-2/5 disabled:text-[#999] disabled:bg-[#222] border border-[#444]" data-match-id="3">START FINAL</button>
                     </div>
                 </div>
             </div>

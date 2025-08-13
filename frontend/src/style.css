@@ -94,9 +94,9 @@
     transition-all duration-200 ease-out;
 }
 
-.form-button-base   { @apply w-full font-semibold py-2 px-4 rounded transition; }
-.form-button        { @apply w-full font-semibold py-2 px-4 rounded transition bg-[#444] hover:bg-[#555]; }
-.form-button-red    { @apply w-full font-semibold py-2 px-4 rounded transition bg-red-700  hover:bg-red-600}
+.form-button-base   { @apply w-full font-semibold py-2 px-4 rounded transition cursor-pointer; }
+.form-button        { @apply w-full font-semibold py-2 px-4 rounded transition cursor-pointer bg-[#444] hover:bg-[#555]; }
+.form-button-red    { @apply w-full font-semibold py-2 px-4 rounded transition cursor-pointer bg-red-700  hover:bg-red-600}
 
 /* [ OTHERS, Not grouped yet ] */
 .row-item           { @apply py-2; } /* might remove */
