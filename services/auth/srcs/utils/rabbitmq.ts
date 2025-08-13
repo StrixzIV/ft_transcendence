@@ -29,7 +29,7 @@ export async function connectRabbitMQ() {
 
     channel = await conn.createChannel();
 
-    await channel.assertExchange('user.events', 'fanout', { durable: true });
+    await channel.assertExchange('user.events', 'fanout', { durable: false });
     console.log('[Auth Service] RabbitMQ connected.');
 }
 
@@ -57,6 +57,26 @@ export async function publishUserCreated(user: { id: string, username: string, m
 
     channel.publish('user.events', '', payload);
     console.log('[Auth Service] Published user.created event.');
+}
+
+export async function publishNameChange(user: { id: string, username: string }) {
+
+    if (!channel) {
+        console.error('[Auth Service] RabbitMQ channel not initialized.');
+        return;
+    }
+
+    const payload = Buffer.from(JSON.stringify({
+        event: 'user.name_changed',
+        data: {
+            id: user.id,
+            username: user.username
+        }
+    }));
+
+    channel.publish('user.events', '', payload);
+    console.log('[Auth Service] Published user.name_changed event.');
+
 }
 
 export async function JWTValidationConsumer() {
