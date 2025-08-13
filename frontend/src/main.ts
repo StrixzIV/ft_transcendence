@@ -1,7 +1,7 @@
 import './style.css'
 
 import { secureFetch } from './utils/secureFetch.ts'
-import { auth_endpoint, game_endpoint, users_endpoint } from './provider/api.ts'
+import { auth_endpoint, game_endpoint, users_endpoint, websocket_endpoint } from './provider/api.ts'
 
 import { initRouter, navigate } from './router.ts'
 
@@ -505,6 +505,8 @@ async function mainPageHTML(user_image: Response, user: User) {
 
 export async function mainPage() {
 
+    const online_wss = new WebSocket(websocket_endpoint('/user/online'));
+
     const userdata = await secureFetch(users_endpoint('/data'), {
         method: 'GET'
     });
@@ -679,6 +681,8 @@ export async function mainPage() {
         else {
             await navigate('/login');
         }
+
+        online_wss.close();
         
     });
 
