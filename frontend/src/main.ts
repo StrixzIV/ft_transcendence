@@ -138,8 +138,8 @@ function headerSection(user: User) {
                                 <button id="copy-code" class="text-xs mt-4 px-2 py-1 border border-[#444] bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white rounded">📋</button>
                             </div>
                             
-                            <button id="enable-2fa" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded mt-2 mr-2">Enable 2FA</button>
-                            <button id="disable-2fa" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-2 ml-2">Disable 2FA</button>
+                            <button id="enable-2fa" class="font-semibold py-2 px-4 rounded transition bg-green-700 hover:bg-green-600 mt-2 mr-2">Enable 2FA</button>
+                            <button id="disable-2fa" class="font-semibold py-2 px-4 rounded transition bg-red-700 hover:bg-red-600 mt-2 ml-2">Disable 2FA</button>
                         
                         </div>
                     </div>
