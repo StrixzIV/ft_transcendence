@@ -36,7 +36,7 @@ export async function consumeMQData() {
     const conn = await getRabbitMQConnection();
     const channel = await conn.createChannel();
 
-    await channel.assertExchange('user.events', 'fanout', { durable: true });
+    await channel.assertExchange('user.events', 'fanout', { durable: false });
     const q = await channel.assertQueue('', { exclusive: true });
 
     await channel.bindQueue(q.queue, 'user.events', '');
