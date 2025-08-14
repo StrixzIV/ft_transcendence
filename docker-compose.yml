@@ -22,7 +22,8 @@ services:
     ports:
       - "8443:443"
     depends_on:
-      - nginx-waf
+      nginx-waf:
+        condition: service_started
 
   # WAF
   nginx-waf:
@@ -40,7 +41,8 @@ services:
     expose:
       - 8080
     depends_on:
-      - nginx-gateway
+      nginx-gateway:
+        condition: service_started
 
   # Gateway
   nginx-gateway:
@@ -61,10 +63,22 @@ services:
     expose:
       - 8080
     depends_on:
-      - frontend
-      - kibana
-      - lab
-      - auth-backend
+      frontend:
+        condition: service_started
+      kibana:
+        condition: service_started
+      minio:
+        condition: service_started
+      broker:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+      lab:
+        condition: service_started
+      auth-backend:
+        condition: service_started
+      users-backend:
+        condition: service_started
 
   # Frontend
   frontend:
@@ -82,8 +96,10 @@ services:
     expose:
       - 8080
     depends_on:
-      - auth-backend
-      - users-backend
+      auth-backend:
+        condition: service_started
+      users-backend:
+        condition: service_started
 
   # S3
   minio:
@@ -298,7 +314,7 @@ services:
       minio:
         condition: service_started
       vault:
-        condition: service_started
+        condition: service_healthy
       broker:
         condition: service_healthy
     expose:
