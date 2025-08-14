@@ -137,10 +137,17 @@ services:
       - ES_JAVA_OPTS=-Xms512m -Xmx2g
       - discovery.type=single-node
       - xpack.security.enabled=false
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:9200/_cluster/health"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
     expose:
       - 9200
     depends_on:
-      - logstash
+      logstash:
+        condition: service_healthy
 
   logstash:
     container_name: logstash
@@ -152,6 +159,12 @@ services:
       - ./logs/:/var/log/services/:ro
       - ./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - ./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:9600/_node/pipelines"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
     expose: 
       - 5044
 
@@ -164,8 +177,15 @@ services:
       - elk-net
     expose:
       - 5601
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:5601/api/status"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
 
   # HashiCorp Vault
   vault:
@@ -190,6 +210,12 @@ services:
     entrypoint: /vault_server.sh
     expose:
       - 8200
+    healthcheck:
+      test: ["CMD-SHELL", "vault status > /dev/null 2>&1"]
+      interval: 1s
+      timeout: 2s
+      retries: 20
+      start_period: 40s
 
   vault-init:
     image: hashicorp/vault:1.16
@@ -204,7 +230,8 @@ services:
       - VAULT_ADDR=http://vault:8200
     entrypoint: /vault_init.sh
     depends_on:
-      - vault
+      vault:
+        condition: service_healthy
 
   # Test Infra
   lab:
