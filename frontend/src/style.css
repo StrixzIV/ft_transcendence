@@ -83,8 +83,9 @@
 .card-button    { @apply p-4 border border-[#444] rounded bg-[#1a1a1a] text-center cursor-pointer hover:bg-[#2a2a2a] transition; }
 
 /* Avatar */
-.image      { @apply w-full h-full object-cover rounded; }
-.online-dot { @apply absolute bottom-0 right-0 block w-3 h-3 bg-green-500 rounded-full ring-2 ring-white; }
+.image              { @apply w-full h-full object-cover rounded; }
+.online-dot         { @apply absolute bottom-0 right-0 block w-3 h-3 bg-green-500 rounded-full ring-2 ring-white; }
+.online-dot-friend  { @apply inline-block w-2 h-2 ml-[0.5rem] mr-[0.3rem] mb-[0.1rem] bg-green-500 rounded-full ring-2 ring-white; }
 
 /* Form: is a card with input-able fields */
 .form       { @apply p-4 border border-[#444] rounded bg-[#1a1a1a] w-96 flex flex-col items-center space-y-4 mx-auto m-52; }

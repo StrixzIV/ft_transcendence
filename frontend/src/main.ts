@@ -169,24 +169,23 @@ function addFriendModal() {
 }
 
 async function getFriendsItems() {
+
     let res = await secureFetch(users_endpoint('/friends'), { method: 'GET' });
-    let data = await res.json();
+    let data = await res.json() as { friends: Array<User>, error?: string };
   
     if (!res.ok) {
-      alert(data.error || "Something went wrong");
-      return '';
+        alert(data.error || "Something went wrong");
+        return '';
     }
   
     const friends = data.friends;
     let friend_items = '';
   
     for (const friend of friends) {
-      res = await secureFetch(users_endpoint(`/data/${friend.id}`));
-      const user = await res.json();
-  
+
       friend_items += `
         <div class="friends-row-item flex items-center justify-between" data-uid="${friend.id}">
-            <span class="truncate">${user.username}</span>
+            <span class="truncate">${ friend.status == "ONLINE" ? "<span class=\"online-dot-friend\"></span>" : ""} ${friend.username}</span>
             <div class="flex gap-2">
                 <button class="btn-unfriend form-button-base !px-1 !py-1 bg-[#444] hover:bg-[#555] rounded cursor-pointer" data-uid="${friend.id}">
                     <!-- minus sign -->
@@ -197,6 +196,7 @@ async function getFriendsItems() {
             </div>
         </div>
       `;
+
     }
   
     return friend_items;
