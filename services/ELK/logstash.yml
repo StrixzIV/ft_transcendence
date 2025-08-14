@@ -2,3 +2,6 @@ pipeline.id: main
 path.config: /usr/share/logstash/pipeline
 config.reload.automatic: true
 xpack.monitoring.enabled: false
+
+http.host: "127.0.0.1"
+http.port: 9600
