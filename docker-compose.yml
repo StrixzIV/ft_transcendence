@@ -113,8 +113,8 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./data/minio:/data
-      - ./assets:/init-assets:ro
+      - ./data/minio/:/data/:rw
+      - ./assets/minio/:/init-assets/:ro
     command: server /data --console-address ":9001"
     expose:
       - 9000
