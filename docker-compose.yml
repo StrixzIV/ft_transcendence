@@ -153,6 +153,9 @@ services:
       - ES_JAVA_OPTS=-Xms512m -Xmx2g
       - discovery.type=single-node
       - xpack.security.enabled=false
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data:rw
+      - elasticsearch-log:/usr/share/elasticsearch/logs:rw
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://localhost:9200/_cluster/health"]
       interval: 1s
@@ -191,6 +194,8 @@ services:
     networks:
       - mainnet
       - elk-net
+    environment:
+      - console.ui.enabled=false
     expose:
       - 5601
     healthcheck:
@@ -344,6 +349,12 @@ volumes:
     driver: local
 
   rabbitmq-log:
+    driver: local
+
+  elasticsearch-data:
+    driver: local
+
+  elasticsearch-log:
     driver: local
 
 secrets:
