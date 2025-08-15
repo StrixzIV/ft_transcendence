@@ -273,8 +273,9 @@ class PongClient {
         
         };
 
-        this._socket.onclose = () => {
+        this._socket.onclose = async () => {
             console.log("Disconnected from WebSocket server.");
+            await navigate('/');
         };
 
         this._socket.onerror = (error) => {
