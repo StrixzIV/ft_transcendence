@@ -99,9 +99,13 @@
 .form-button        { @apply w-full font-semibold py-2 px-4 rounded transition cursor-pointer bg-[#444] hover:bg-[#555]; }
 .form-button-red    { @apply w-full font-semibold py-2 px-4 rounded transition cursor-pointer bg-red-700  hover:bg-red-600}
 
-/* [ OTHERS, Not grouped yet ] */
+/* Row items */
 .row-item           { @apply py-2; } /* might remove */
 .row-item-indent    { @apply py-2 flex justify-between px-4; }
 
 .friends-row-item   { @apply py-2 text-left; }
-.game-log-row-item  { @apply py-2 flex justify-between px-4; }
+
+.game-log-row         { @apply px-4 py-2 grid grid-cols-[2fr_1fr_1fr] items-center; }
+.game-log-row-left    { @apply text-left; }
+.game-log-row-middle  { @apply text-center; }
+.game-log-row-right   { @apply text-right; }

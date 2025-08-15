@@ -19,7 +19,7 @@ function winLossBarGraph(win_count: number, loss_count: number) {
 
     const win_percent = winPercent(win_count, loss_count);
     return `
-    <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden">
+    <div class="flex mx-auto mt-4 h-6 overflow-hidden">
         <div class="flex items-center justify-center text-xs font-bold bg-green-700 rounded-sm" style="width: ${win_percent}%;">${(win_count > 0) ? win_count : ""}</div>
         <div class="flex items-center justify-center text-xs font-bold bg-red-700 rounded-sm" style="width: ${100 - win_percent}%;">${(loss_count > 0) ? loss_count : ""}</div>
     </div>
