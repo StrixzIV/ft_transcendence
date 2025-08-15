@@ -16,7 +16,6 @@ import { gameLogCard } from './main-components/game_log_card.ts'
 import { userCard } from './main-components/user_card.ts'
 
 async function on_startup() {
-
     const params = new URLSearchParams(window.location.search)
 
     const uid = params.get('id')
@@ -44,35 +43,21 @@ async function on_startup() {
     window.history.replaceState({}, document.title, window.location.pathname);
     
     if ((!has_uid || !has_expires_at) && !is_login) {
-
         localStorage.clear()
-    
-        await secureFetch(auth_endpoint('/logout'), {
-            method: 'POST'
-        });
-
+        await secureFetch(auth_endpoint('/logout'), { method: 'POST' });
         await navigate('/login');
-    
     }
     
     if (has_expires_at && parseInt(has_expires_at) < Math.floor(Date.now() / 1000)) {
-        
         localStorage.clear()
-        
-        await secureFetch(auth_endpoint('/logout'), {
-            method: 'POST'
-        });
-        
+        await secureFetch(auth_endpoint('/logout'), { method: 'POST' });
         await navigate('/login');
-    
     }
 
     await initRouter();
-
 }
 
 async function mainPageHTML(user_image: Response, user: User) {
-
     const winrate = await secureFetch(game_endpoint('/stats/winrate'), {
         method: 'GET'
     });
@@ -101,57 +86,150 @@ async function mainPageHTML(user_image: Response, user: User) {
 }
 
 export async function mainPage() {
-
     const online_wss = new WebSocket(websocket_endpoint('/user/online'));
+
     const userdata = await secureFetch(users_endpoint('/data'), { method: 'GET' });
     const user_image = await secureFetch(users_endpoint('/image'), { method: 'GET' });
     const user = await userdata.json() as User;
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = await mainPageHTML(user_image, user);
-
-    const loginBtn = document.getElementById('logout') as HTMLButtonElement;
-
-
-
-    const showQrBtn = document.getElementById('show-2fa') as HTMLButtonElement;
-    const modal = document.getElementById('qr-modal')!;
-    const closeModalBtn = document.getElementById('close-qr') as HTMLButtonElement;
-    const qrImg = document.getElementById('qr-image') as HTMLImageElement;
-    const manualCode = document.getElementById('manual-code') as HTMLParagraphElement;
-    const enable2fa = document.getElementById('enable-2fa') as HTMLButtonElement;
-    const disable2fa = document.getElementById('disable-2fa') as HTMLButtonElement;
-    const copyBtn = document.getElementById('copy-code') as HTMLButtonElement;
-
-
-
-    const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
-    const uploadInput = document.getElementById('upload-input') as HTMLInputElement;
-    const profileImg = document.getElementById('profile-img') as HTMLImageElement;
-
-
-
-    const localGameBtn = document.getElementById('local-game-btn') as HTMLAnchorElement;
-    const tournamentGameBtn = document.getElementById('tournament-game-btn') as HTMLAnchorElement;
-
-
     
-    const remoteGameBtn = document.getElementById('remote-game-btn') as HTMLAnchorElement;
-    const remoteModal = document.getElementById('remote-modal')!;
-    const closeRemoteModalBtn = document.getElementById('close-remote') as HTMLButtonElement;
-    const createRoomBtn = document.getElementById('create-room-btn') as HTMLButtonElement;
-    const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
-    const roomField = document.getElementById('room-field') as HTMLInputElement;
+    // Settings
+    // - 2FA
+    const qrModal = document.getElementById('qr-modal')!;
+    const manualCode = document.getElementById('manual-code') as HTMLParagraphElement;
+    
+    const showQrBtn = document.getElementById('show-2fa') as HTMLButtonElement;
+    showQrBtn.addEventListener('click', async () => {
+        try {
+            const response = await secureFetch(auth_endpoint('/2fa/generate'), {
+                method: 'POST'
+            });
+            const data = await response.json();
+            const qrImg = document.getElementById('qr-image') as HTMLImageElement;
+            qrImg.src = data.qr_data_url;
 
-    const addFriendModal = document.getElementById('add-friend-modal')!;
-    const openAddFriendModalBtn = document.getElementById('open-add-friend-btn') as HTMLDivElement;
-    const closeAddFriendModalBtn = document.getElementById('close-add-friend-btn') as HTMLButtonElement;
-    const addFriendField = document.getElementById('add-friend-field') as HTMLInputElement;
-    const addFriendBtn = document.getElementById('add-friend-btn') as HTMLInputElement;
+            manualCode.textContent = `Manual code (backup): ${data.totp_token}`;
+            qrModal.classList.remove('hidden');
+        }
+        catch (error) {
+            console.error(error);
+            alert('Error loading QR code.');
+        }
+    })
 
-    const requestsContainer = document.getElementById('pending-requests')!;
+    const closeQrModalBtn = document.getElementById('close-qr') as HTMLButtonElement;
+    closeQrModalBtn.addEventListener('click', () => { qrModal.classList.add('hidden'); });
 
-    const friendsContainer = document.querySelector('.dividers-2')!; // container for friends list
+    const enable2fa = document.getElementById('enable-2fa') as HTMLButtonElement;
+    enable2fa.addEventListener('click', async () => {
+        try {
+            const response = await secureFetch(auth_endpoint('/2fa/enable'), {
+                method: 'POST'
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch QR code.');
+            }
+            qrModal.classList.add('hidden');
+        }
+        catch (error) {
+            console.error(error);
+            alert('Error loading QR code.');
+        }
+    })
+    
+    const disable2fa = document.getElementById('disable-2fa') as HTMLButtonElement;
+    disable2fa.addEventListener('click', async () => {
+        try {
+            const response = await secureFetch(auth_endpoint('/2fa/disable'), {
+                method: 'POST'
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch QR code.');
+            }
+            qrModal.classList.add('hidden');
+        }
+        catch (error) {
+            console.error(error);
+            alert('Error loading QR code.');
+        }
+    })
 
+    const copyManualCodeBtn = document.getElementById('copy-code') as HTMLButtonElement;
+    copyManualCodeBtn.addEventListener('click', async () => {
+        const code = manualCode.textContent?.replace("Manual code (backup): ", "").trim();
+        if (!code) {
+            return;
+        } 
+        try {
+            await navigator.clipboard.writeText(code);
+            copyManualCodeBtn.textContent = "✅";
+            setTimeout(() => copyManualCodeBtn.textContent = "📋", 1500);
+        }
+        catch (err) {
+            alert("Failed to copy");
+            console.error(err);
+        }
+    });
+
+    // - Change profile pic
+    const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+    uploadBtn.addEventListener('click', () => uploadInput.click());
+    
+    const uploadInput = document.getElementById('upload-input') as HTMLInputElement;
+    uploadInput.addEventListener('change', async () => {
+        if (!uploadInput.files || uploadInput.files.length === 0) return;
+
+        const file = uploadInput.files[0];
+
+        if (!file.type.startsWith("image/")) {
+            alert("Please upload a valid image file.");
+            return;
+        }
+
+        // 5MB limit
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Image must be smaller than 5MB.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const res = await secureFetch(users_endpoint('/image'), {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                throw new Error("Upload failed");
+            }
+
+            const newBlob = await secureFetch(users_endpoint('/image')).then(r => r.blob());
+            const newUri = URL.createObjectURL(newBlob);
+            const profileImg = document.getElementById('profile-img') as HTMLImageElement;
+            profileImg.src = newUri;
+        }
+        catch (err) {
+            alert("Failed to upload image.");
+            console.error(err);
+        }
+    });
+
+    // - Logout
+    const logoutBtn = document.getElementById('logout') as HTMLButtonElement;
+    logoutBtn.addEventListener('click', async () => {
+        online_wss.close();
+        localStorage.clear()
+
+        await secureFetch(auth_endpoint('/logout'), { method: 'POST' });
+        await navigate('/login');
+    });
+
+    // Friends sidebar
+    // - Friends
+    const friendsContainer = document.querySelector('.dividers-2')!;
     friendsContainer.addEventListener('click', async (e) => {
         const btn = (e.target as HTMLElement).closest('.btn-unfriend') as HTMLButtonElement | null;
         if (!btn) return; // clicked something else
@@ -175,6 +253,14 @@ export async function mainPage() {
         }
     });
 
+    const addFriendModal = document.getElementById('add-friend-modal')!;
+    const openAddFriendModalBtn = document.getElementById('open-add-friend-btn') as HTMLDivElement;
+    const closeAddFriendModalBtn = document.getElementById('close-add-friend-btn') as HTMLButtonElement;
+    openAddFriendModalBtn.addEventListener('click', async () => { addFriendModal.classList.remove('hidden'); });
+    closeAddFriendModalBtn.addEventListener('click', async () => { addFriendModal.classList.add('hidden'); });
+
+    // - Requests
+    const requestsContainer = document.getElementById('pending-requests')!;
     requestsContainer.addEventListener('click', async (e) => {
         const target = e.target as HTMLElement;
 
@@ -204,15 +290,9 @@ export async function mainPage() {
         }
     });
 
-    openAddFriendModalBtn.addEventListener('click', async () => {
-        addFriendModal.classList.remove('hidden');
-    });
-
-    closeAddFriendModalBtn.addEventListener('click', async () => {
-        addFriendModal.classList.add('hidden');
-    });
-
+    const addFriendBtn = document.getElementById('add-friend-btn') as HTMLInputElement;
     addFriendBtn.addEventListener('click', async () => {
+        const addFriendField = document.getElementById('add-friend-field') as HTMLInputElement;
         const uid = addFriendField.value;
         if (!uid) {
             return ;
@@ -229,206 +309,45 @@ export async function mainPage() {
         alert(data.message);
     });
 
+    // Games row
+    // - Local
+    const localGameBtn = document.getElementById('local-game-btn') as HTMLAnchorElement;
+    localGameBtn.addEventListener('click', async () => { await navigate('/local-game'); });
     
-    localGameBtn.addEventListener('click', async () => {
-        await navigate('/local-game');
+    // - Remote
+    const remoteGameBtn = document.getElementById('remote-game-btn') as HTMLAnchorElement;
+    const remoteModal = document.getElementById('remote-modal')!;
+    const closeRemoteModalBtn = document.getElementById('close-remote') as HTMLButtonElement;
+    remoteGameBtn.addEventListener('click', async () => { remoteModal.classList.remove('hidden'); })
+    closeRemoteModalBtn.addEventListener('click', () => { remoteModal.classList.add('hidden'); });
+    
+    const createRoomBtn = document.getElementById('create-room-btn') as HTMLButtonElement;
+    createRoomBtn.addEventListener('click', async () => {
+        const response = await secureFetch(game_endpoint('/room/create'), { method: 'POST' });
+        if (!response.ok) {
+            throw new Error('Failed to create new room.');
+        }
+        const data = await response.json();
+        await navigate(`/remote-game?gid=${data.gid}`);
+    });
+    
+    const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
+    joinRoomBtn.addEventListener('click', async () => {
+        const roomField = document.getElementById('room-field') as HTMLInputElement;
+        const gid = roomField.value;
+        if (!gid) {
+            return;
+        }
+        await navigate(`/remote-game?gid=${gid}`);
     });
 
+    // - Tournament
+    const tournamentGameBtn = document.getElementById('tournament-game-btn') as HTMLAnchorElement;
     tournamentGameBtn.addEventListener('click', async () => {
         localStorage.removeItem("matches");
         localStorage.removeItem("players");
         await navigate('/tournament-setup');
     });
-
-    createRoomBtn.addEventListener('click', async () => {
-        
-        const response = await secureFetch(game_endpoint('/room/create'), {
-            method: 'POST'
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to create new room.');
-        }
-
-        const data = await response.json();
-        await navigate(`/remote-game?gid=${data.gid}`);
-
-    });
-
-    joinRoomBtn.addEventListener('click', async () => {
-        
-        const gid = roomField.value;
-        
-        if (!gid) {
-            return;
-        }
-
-        await navigate(`/remote-game?gid=${gid}`);
-    
-    });
-
-
-    loginBtn.addEventListener('click', async () => {
-
-        online_wss.close();
-        localStorage.clear()
-
-        await secureFetch(auth_endpoint('/logout'), {
-            method: 'POST'
-        });
-
-        await navigate('/login');
-        
-    });
-
-    uploadBtn.addEventListener('click', () => uploadInput.click());
-
-    uploadInput.addEventListener('change', async () => {
-
-        if (!uploadInput.files || uploadInput.files.length === 0) return;
-
-        const file = uploadInput.files[0];
-
-        if (!file.type.startsWith("image/")) {
-            alert("Please upload a valid image file.");
-            return;
-        }
-
-        // 5MB limit
-        if (file.size > 5 * 1024 * 1024) {
-            alert("Image must be smaller than 5MB.");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-
-            const res = await secureFetch(users_endpoint('/image'), {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!res.ok) {
-                throw new Error("Upload failed");
-            }
-
-            const newBlob = await secureFetch(users_endpoint('/image')).then(r => r.blob());
-            const newUri = URL.createObjectURL(newBlob);
-            profileImg.src = newUri;
-
-        }
-        
-        catch (err) {
-            alert("Failed to upload image.");
-            console.error(err);
-        }
-
-    });
-
-    showQrBtn.addEventListener('click', async () => {
-
-        try {
-
-            const response = await secureFetch(auth_endpoint('/2fa/generate'), {
-                method: 'POST'
-            });
-
-            const data = await response.json();
-            qrImg.src = data.qr_data_url;
-
-            manualCode.textContent = `Manual code (backup): ${data.totp_token}`;
-            modal.classList.remove('hidden');
-
-        }
-        
-        catch (error) {
-            console.error(error);
-            alert('Error loading QR code.');
-        }
-
-    })
-
-    remoteGameBtn.addEventListener('click', async () => {
-        remoteModal.classList.remove('hidden');
-    })
-
-    enable2fa.addEventListener('click', async () => {
-
-        try {
-
-            const response = await secureFetch(auth_endpoint('/2fa/enable'), {
-                method: 'POST'
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch QR code.');
-            }
-
-            modal.classList.add('hidden');
-
-        }
-        
-        catch (error) {
-            console.error(error);
-            alert('Error loading QR code.');
-        }
-
-    })
-    
-    disable2fa.addEventListener('click', async () => {
-
-        try {
-
-            const response = await secureFetch(auth_endpoint('/2fa/disable'), {
-                method: 'POST'
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch QR code.');
-            }
-
-            modal.classList.add('hidden');
-
-        }
-        
-        catch (error) {
-            console.error(error);
-            alert('Error loading QR code.');
-        }
-
-    })
-
-    copyBtn.addEventListener('click', async () => {
-
-        const code = manualCode.textContent?.replace("Manual code (backup): ", "").trim();
-        
-        if (!code) {
-            return;
-        } 
-
-        try {
-            await navigator.clipboard.writeText(code);
-            copyBtn.textContent = "✅";
-            setTimeout(() => copyBtn.textContent = "📋", 1500);
-        }
-        
-        catch (err) {
-            alert("Failed to copy");
-            console.error(err);
-        }
-
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-    });
-
-    closeRemoteModalBtn.addEventListener('click', () => {
-        remoteModal.classList.add('hidden');
-    });
-
 }
 
 on_startup();
