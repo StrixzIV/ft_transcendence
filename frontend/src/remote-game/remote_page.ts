@@ -27,6 +27,8 @@ const TOPBAR_HEIGHT = 100;
 const GRID_SIZE = 20;
 const PADDLE_HEIGHT = 100;
 
+let currentGameInstance: PongClient | null = null;
+
 class PongClient {
     
     private _gid!: string;
@@ -53,6 +55,10 @@ class PongClient {
     private _username: string | null = null;
     private _assignedPlayerId: 'player1' | 'player2' | null = null;
     private _winningPlayer: string | undefined = undefined;
+
+    private _animationFrameId: number | null = null;
+    private _ballResetTimeoutId: number | null = null;
+    private _isDestroyed: boolean = false;
 
     constructor(gameWidth: number, sideWidth: number, gameHeight: number, topbarHeight: number, gridSize: number, _gid: string, username: string) {
 
@@ -329,6 +335,8 @@ class PongClient {
     
     private drawGame(): void {
 
+        if (this._isDestroyed) return;
+
         if (!this._isGameStarted) {
             return;
         }
@@ -390,10 +398,36 @@ class PongClient {
     private drawGameOverScreen(): void {
         this.showPopup(`${this._winningPlayer} wins!`, "Press Enter to exit");
     }
+
+    public destroy(): void {
+        this._isDestroyed = true;
+        
+        // Cancel animation frame
+        if (this._animationFrameId !== null) {
+            cancelAnimationFrame(this._animationFrameId);
+        }
+        
+        // Clear timeout
+        if (this._ballResetTimeoutId !== null) {
+            clearTimeout(this._ballResetTimeoutId);
+        }
+        
+        // Remove DOM elements
+        const canvas = document.getElementById('pongTable');
+        if (canvas) canvas.remove();
+        
+        const popup = document.getElementById('popup-overlay');
+        if (popup) popup.remove();
+    }
+
 }
 
 // Start the client
 export async function loadRemoteGame() {
+
+    if (currentGameInstance) {
+        currentGameInstance.destroy();
+    }
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = "";
     
@@ -410,7 +444,12 @@ export async function loadRemoteGame() {
     });
 
     const userData = await user.json() as User;
-
-    new PongClient(GAME_WIDTH, SIDEBAR_WIDTH, GAME_HEIGHT, TOPBAR_HEIGHT, GRID_SIZE, gid, userData.username);
+    currentGameInstance = new PongClient(GAME_WIDTH, SIDEBAR_WIDTH, GAME_HEIGHT, TOPBAR_HEIGHT, GRID_SIZE, gid, userData.username);
 
 }
+
+window.addEventListener('beforeunload', () => {
+    if (currentGameInstance) {
+        currentGameInstance.destroy();
+    }
+});
