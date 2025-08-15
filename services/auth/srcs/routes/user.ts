@@ -4,17 +4,22 @@ import jwtLib from 'jsonwebtoken';
 import { prisma } from '../db';
 import { FastifyInstance } from 'fastify';
 
+import { JWTInfo } from '../interfaces/jwt';
+import { JWT_REFRESH_TIMEOUT } from '../config/jwt';
 import { access_cookie_properties, get_JWT_secret, refresh_cookie_properties } from '../utils/jwt';
 
+import { publishUserCreated, publishNameChange } from '../utils/rabbitmq';
+
 import { type UserInfo } from '../interfaces/request_data'
-import { publishUserCreated } from '../utils/rabbitmq';
-import user_schema from '../schema/user_schema';
-import { JWTInfo } from '../interfaces/jwt';
 import { CascadeUserData } from '../interfaces/cascade_data';
-import { JWT_REFRESH_TIMEOUT } from '../config/jwt';
+
+import user_schema from '../schema/user_schema';
+import name_schema from '../schema/name_schema';
 
 export async function userRoute(fastify: FastifyInstance) {
+
     fastify.post('/user', {schema: user_schema}, async (request, response) => {
+    
         const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         const { username, mail, password } = request.body as UserInfo;
 
@@ -96,46 +101,57 @@ export async function userRoute(fastify: FastifyInstance) {
         });
     });
 
-    // TODO: delete at prod
-    // fastify.delete('/user/:id', async (request, response) => {
-    //     const access_token = request.cookies['access_token'];
+    fastify.post('/user/name', {schema: name_schema}, async (request, response) => {
 
-    //     if (!access_token) {
-    //         return response.code(403).send({ error: "Missing access token" })
-    //     }
+        const access_token = request.cookies['access_token'];
 
-    //     let decoded;
+        if (!access_token) {
+            return response.code(401).send({ error: "Missing access token" });
+        }
 
-    //     try {
-    //         decoded = fastify.jwt.verify(access_token) as JWTInfo;
-    //     }
-    //     catch (err) {
-    //         return response.code(401).send({ error: "Invalid or expired access token" })
-    //     }
+        let token_data: JWTInfo;
 
-    //     const { id } = request.params as { id: string };
+        try {
+            token_data = fastify.jwt.verify(access_token) as JWTInfo;
+        }
 
-    //     try {
-    //         const deletedUser = await prisma.users.delete({
-    //             select: {
-    //                 id: true,
-    //                 username: true,
-    //                 email: true,
-    //                 created_at: true
-    //             },
-    //             where: {
-    //                 id: id
-    //             }
-    //         });
-    //         return response.code(200).send({ message: 'User deleted', user: deletedUser });
-    //     }
-    //     catch (err: any) {
-    //         // Target record does not exist
-    //         if (err.code === 'P2025') {
-    //             return response.code(404).send({ error: 'User not found' });
-    //         }
+        catch (err) {
+            return response.code(401).send({ error: "Invalid or expired access token" });
+        }
+        
+        const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+        const { username } = request.body as { username: string };
 
-    //         return response.code(500).send({ error: 'Internal server error' });
-    //     }
-    // });
+        if (forbidden_regex.test(username)) {
+            return response.code(400).send({ error: 'Username contains special characters' });
+        }
+
+        if (username.length > 24) {
+            return response.code(400).send({ error: 'Username must not be longer than 24 characters' });
+        }
+
+        const user_existed = await prisma.users.findFirst({
+            where: {
+                username: username
+            }
+        });
+
+        if (user_existed) {
+            return response.code(409).send({ error: 'Username already exists' });
+        }
+        
+        await prisma.users.update({ 
+            data: { 
+                username: username
+            },
+            where: {
+                id: token_data.id
+            }
+        })
+
+        await publishNameChange({ id: token_data.id, username});
+        return response.code(200).send();
+
+    });
+
 }

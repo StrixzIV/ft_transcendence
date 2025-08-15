@@ -16,6 +16,7 @@ WORKDIR /app
 COPY . .
 COPY --from=tsdeps /app/node_modules node_modules
 
+RUN npm run generate
 RUN npm run build
 
 # Stage 3: installing dependentcies (javascript)
@@ -34,8 +35,12 @@ FROM node:24-alpine AS runtime
 WORKDIR /app
 
 COPY --from=jsdeps /app/node_modules node_modules
+COPY --from=build /app/package*.json .
+
+COPY --from=build /app/prisma prisma
 COPY --from=build /app/dist dist
 
 EXPOSE 3000
+EXPOSE 8080
 
-CMD [ "node", "dist/server.js" ]
+CMD ["sh", "-c", "npm run db_init && node dist/server.js"]
