@@ -387,8 +387,17 @@ export async function mainPage() {
                 row.remove();
             }
         } catch (err) {
-            alert('Action failed. Please try again.');
+
+            if ((err as Error).message == 'Accept failed') {
+                alert('Action failed. Please try again.');
+            }
+        
+            else {
+                alert((err as Error).message);
+            }
+        
             (row.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).forEach(b => b.disabled = false);
+        
         }
     });
 

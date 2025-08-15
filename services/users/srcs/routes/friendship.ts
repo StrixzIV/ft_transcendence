@@ -130,7 +130,22 @@ export async function friendshipRoute(fastify: FastifyInstance) {
         const author_uid = result.data.id;
 
         try {
-            
+
+            const record = await prisma.friendship.findMany({
+                where: {
+                    status: "accepted",
+                    OR: [{ requester_id: uid }, { addressee_id: uid }]
+                },
+                include: {
+                    requester: true,
+                    addressee: true
+                }
+            });
+
+            if (record.length > 0) {
+                return reply.status(409).send({ error: "Friend request already exists, Please denied the friendship request" });
+            }
+
             const friendship = await prisma.friendship.updateMany({
                 where: {
                     requester_id: uid,
