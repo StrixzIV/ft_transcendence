@@ -1,6 +1,8 @@
 import { Paddle, Ball } from "./pong_paddle_ball";
 import scoreFontUrl from './Pixel-UniCode.ttf?url';
 
+let currentGameInstance: Pong | null = null;
+
 class Pong {
 
     private _canvas!: HTMLCanvasElement | null;
@@ -29,6 +31,10 @@ class Pong {
 
     private _pressedKeys = new Set<string>();
     private _isGameOver!: boolean;
+
+    private _animationFrameId: number | null = null;
+    private _ballResetTimeoutId: number | null = null;
+    private _isDestroyed: boolean = false;
 
     constructor (
         gameWidth: number, sideWidth: number, gameHeight: number, topbarHeight: number, gridSize: number, paddleHeight: number,
@@ -276,6 +282,8 @@ class Pong {
     
     private gameLoop = (): void => {
 
+        if (this._isDestroyed) return;
+
         let ctx = this._context!;
         let cWidth = this._canvasWidth!;
         let gWidth = this._gameWidth;
@@ -457,10 +465,43 @@ class Pong {
 
     }
 
+    public destroy(): void {
+        this._isDestroyed = true;
+        
+        // Cancel animation frame
+        if (this._animationFrameId !== null) {
+            cancelAnimationFrame(this._animationFrameId);
+        }
+        
+        // Clear timeout
+        if (this._ballResetTimeoutId !== null) {
+            clearTimeout(this._ballResetTimeoutId);
+        }
+        
+        // Remove DOM elements
+        const canvas = document.getElementById('pongTable');
+        if (canvas) canvas.remove();
+        
+        const popup = document.getElementById('popup-overlay');
+        if (popup) popup.remove();
+    }
+
+
 }
 
 export function loadLocalGame() {
+
+    if (currentGameInstance) {
+        currentGameInstance.destroy();
+    }
+
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = "" 
-    let pong = new Pong(1000, 0, 800, 100, 20, 100, 8, 6, 5);
-    pong.startGameLoop();
+    currentGameInstance = new Pong(1000, 0, 800, 100, 20, 100, 8, 6, 5);
+    currentGameInstance.startGameLoop();
 }
+
+window.addEventListener('beforeunload', () => {
+    if (currentGameInstance) {
+        currentGameInstance.destroy();
+    }
+});
