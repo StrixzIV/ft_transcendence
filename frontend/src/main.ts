@@ -301,8 +301,37 @@ export async function mainPage() {
     // Friends sidebar
     // - Friends
     const friendsContainer = document.getElementById('friends-container')!;
+
+    const addFriendModal = document.getElementById('add-friend-modal')!;
+
+    const openAddFriendModalBtn = document.getElementById('open-add-friend-btn') as HTMLDivElement;
+    const closeAddFriendModalBtn = document.getElementById('close-add-friend-btn') as HTMLButtonElement;
+    openAddFriendModalBtn.addEventListener('click', async () => { addFriendModal.classList.remove('hidden'); });
+    closeAddFriendModalBtn.addEventListener('click', async () => { addFriendModal.classList.add('hidden'); });
+
     friendsContainer.addEventListener('click', async (e) => {
         const target = e.target as HTMLElement;
+
+        // if click 'unfriend' button, unfriend
+        const unfriendBtn = target.closest('.btn-unfriend') as HTMLButtonElement | null;
+        if (unfriendBtn)
+        {
+            const uid = unfriendBtn.dataset.uid!;
+            const row = unfriendBtn.closest('.friends-row-item') as HTMLDivElement;
+            unfriendBtn.disabled = true;
+
+            try {
+                const res = await secureFetch(users_endpoint(`/friends/${uid}`), { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok)
+                    throw new Error(data.error || 'Unfriend failed');
+                row.remove();
+            } catch (err) {
+                alert((err as Error).message);
+                unfriendBtn.disabled = false;
+            }
+            return ;
+        }
 
         // if click username, go to friend's page
         const usernameEl = target.closest('.friends-row-item') as HTMLElement | null;
@@ -311,33 +340,26 @@ export async function mainPage() {
             await navigate(`/?profile=${uid}`);
             return ;
         }
-
-        // if click 'unfriend' button, unfriend
-        const unfriendBtn = target.closest('.btn-unfriend') as HTMLButtonElement | null;
-        if (!unfriendBtn)
-            return ;
-
-        const uid = unfriendBtn.dataset.uid!;
-        const row = unfriendBtn.closest('.friends-row-item') as HTMLDivElement;
-        unfriendBtn.disabled = true;
-
-        try {
-            const res = await secureFetch(users_endpoint(`/friends/${uid}`), { method: 'DELETE' });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Unfriend failed');
-    
-            row.remove();
-        } catch (err) {
-            alert((err as Error).message);
-            unfriendBtn.disabled = false;
-        }
     });
 
-    const addFriendModal = document.getElementById('add-friend-modal')!;
-    const openAddFriendModalBtn = document.getElementById('open-add-friend-btn') as HTMLDivElement;
-    const closeAddFriendModalBtn = document.getElementById('close-add-friend-btn') as HTMLButtonElement;
-    openAddFriendModalBtn.addEventListener('click', async () => { addFriendModal.classList.remove('hidden'); });
-    closeAddFriendModalBtn.addEventListener('click', async () => { addFriendModal.classList.add('hidden'); });
+    const addFriendBtn = document.getElementById('add-friend-btn') as HTMLInputElement;
+    addFriendBtn.addEventListener('click', async () => {
+        const addFriendField = document.getElementById('add-friend-field') as HTMLInputElement;
+        const uid = addFriendField.value;
+        if (!uid) {
+            return ;
+        }
+        const res = await secureFetch(users_endpoint(`/friends/${uid}`), {
+            "method": "POST"
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data.error || "Something went wrong");
+            return ;
+        }
+        addFriendModal.classList.add('hidden');
+        alert(data.message);
+    });
 
     // - Requests
     const requestsContainer = document.getElementById('pending-requests')!;
@@ -368,25 +390,6 @@ export async function mainPage() {
             alert('Action failed. Please try again.');
             (row.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).forEach(b => b.disabled = false);
         }
-    });
-
-    const addFriendBtn = document.getElementById('add-friend-btn') as HTMLInputElement;
-    addFriendBtn.addEventListener('click', async () => {
-        const addFriendField = document.getElementById('add-friend-field') as HTMLInputElement;
-        const uid = addFriendField.value;
-        if (!uid) {
-            return ;
-        }
-        const res = await secureFetch(users_endpoint(`/friends/${uid}`), {
-            "method": "POST"
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            alert(data.error || "Something went wrong");
-            return ;
-        }
-
-        alert(data.message);
     });
 
     // Games row
