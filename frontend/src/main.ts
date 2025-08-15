@@ -135,6 +135,13 @@ export async function mainPage() {
     }
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = await mainPageHTML(user_image, user, profile_user, profile_image);
+
+    // Header text
+    const headerText = document.getElementById('header-text') as HTMLElement;
+
+    headerText.addEventListener('click', async () => {
+        await navigate('/');
+    })
     
     // Settings
     // - 2FA

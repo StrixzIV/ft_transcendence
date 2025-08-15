@@ -76,7 +76,7 @@ function rightMenu(user: User) {
 export function headerSection(user: User) {
     return `
     <div class="header">
-        <header class="tracking-widest text-xl font-bold">FT_TRANSCENDENCE</header>
+        <header id="header-text" class="tracking-widest text-xl font-bold cursor-pointer">FT_TRANSCENDENCE</header>
         ${rightMenu(user)}
     </div>
     `
