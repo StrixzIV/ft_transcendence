@@ -385,7 +385,7 @@ export async function mainPage() {
     const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
     joinRoomBtn.addEventListener('click', async () => {
         const roomField = document.getElementById('room-field') as HTMLInputElement;
-        const gid = roomField.value;
+        const gid = roomField.value.trim();
         if (!gid) {
             return;
         }
