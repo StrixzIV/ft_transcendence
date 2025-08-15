@@ -6,6 +6,7 @@ import { auth_endpoint, game_endpoint, users_endpoint, websocket_endpoint } from
 import { initRouter, navigate } from './router.ts'
 
 import { type User } from './interfaces/user.ts'
+import { type Match } from './interfaces/match.ts'
 import { type WinRateData } from './interfaces/winrate.ts'
 
 import { headerSection } from './main-components/header.ts'
@@ -57,11 +58,32 @@ async function on_startup() {
     await initRouter();
 }
 
-async function mainPageHTML(user_image: Response, user: User) {
-    const winrate = await secureFetch(game_endpoint('/stats/winrate'), {
-        method: 'GET'
-    });
+async function mainPageHTML(user_image: Response, user: User, profile: User | undefined, profile_image: Response | undefined) {
+    
+    let winrate: Response | undefined = undefined;
+    let history: Response | undefined = undefined;
 
+    if (profile && profile_image) {
+
+        winrate = await secureFetch(game_endpoint(`/stats/winrate/${profile.id}`), {
+            method: 'GET'
+        });
+
+        history = await secureFetch(game_endpoint(`/stats/history/${profile.id}`), { method: 'GET' });
+
+    }
+    
+    else {
+
+        winrate = await secureFetch(game_endpoint('/stats/winrate'), {
+            method: 'GET'
+        });
+
+        history = await secureFetch(game_endpoint('/stats/history'), { method: 'GET' });
+
+    }
+    
+    const match_data = await history.json() as Array<Match>;
     const winrate_data = await winrate.json() as WinRateData;
 
     const win_count = winrate_data.wins;
@@ -75,10 +97,10 @@ async function mainPageHTML(user_image: Response, user: User) {
 
         ${remoteGameModal()}
         <section class="flex-1 p-4 space-y-4">
-            ${await userCard(user, user_image)}
+            ${profile && profile_image ? await userCard(profile, profile_image) : await userCard(user, user_image)}
             ${gameButtonsRow()}
             ${statCard(win_count, loss_count)}
-            ${await gameLogCard()}
+            ${await gameLogCard(match_data)}
         </section>
 
     </main>
@@ -86,13 +108,36 @@ async function mainPageHTML(user_image: Response, user: User) {
 }
 
 export async function mainPage() {
+
     const online_wss = new WebSocket(websocket_endpoint('/user/online'));
 
-    const userdata = await secureFetch(users_endpoint('/data'), { method: 'GET' });
-    const user_image = await secureFetch(users_endpoint('/image'), { method: 'GET' });
-    const user = await userdata.json() as User;
+    const params = new URLSearchParams(window.location.search);
+    const query_uid = params.get('profile');
 
-    document.querySelector<HTMLDivElement>('#app')!.innerHTML = await mainPageHTML(user_image, user);
+    let userdata: Response | undefined = undefined;
+    let user_image: Response | undefined = undefined;
+
+    let profiledata: Response | undefined = undefined;
+    let profile_image: Response | undefined = undefined;
+
+    let user: User | undefined = undefined;
+    let profile_user: User | undefined = undefined;
+
+    userdata = await secureFetch(users_endpoint('/data'), { method: 'GET' });
+    user_image = await secureFetch(users_endpoint('/image'), { method: 'GET' });
+
+    if (query_uid) {
+        profiledata = await secureFetch(users_endpoint(`/data/${query_uid}`), { method: 'GET' });
+        profile_image = await secureFetch(users_endpoint(`/image/${query_uid}`), { method: 'GET' });
+    }
+
+    user = await userdata.json() as User;
+
+    if (profiledata) {
+        profile_user = await profiledata.json() as User;
+    }
+
+    document.querySelector<HTMLDivElement>('#app')!.innerHTML = await mainPageHTML(user_image, user, profile_user, profile_image);
     
     // Settings
     // - 2FA
@@ -234,11 +279,10 @@ export async function mainPage() {
         const target = e.target as HTMLElement;
 
         // if click username, go to friend's page
-        const usernameEl = target.closest('.friend-username') as HTMLElement | null;
+        const usernameEl = target.closest('.friends-row-item') as HTMLElement | null;
         if (usernameEl) {
-            console.log(usernameEl);
             const uid = usernameEl.dataset.uid!;
-            window.location.href = `/profile/${uid}`;
+            await navigate(`/?profile=${uid}`);
             return ;
         }
 
