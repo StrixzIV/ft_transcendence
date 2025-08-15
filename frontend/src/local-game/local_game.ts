@@ -181,7 +181,7 @@ class Pong {
     private createPopup(): void {
 
         const popup = document.createElement("div");
-        popup.id = "popup-overlay";
+        popup.id = "popup-overlay-local";
 
         Object.assign(popup.style, {
             position: "fixed",
@@ -205,7 +205,7 @@ class Pong {
         });
 
         const title = document.createElement("h1");
-        title.id = "popup-title";
+        title.id = "popup-title-local";
         title.style.fontSize = "2.5rem";
         title.style.fontWeight = "bold";
         title.style.marginBottom = "1rem";
@@ -213,7 +213,7 @@ class Pong {
         title.style.textShadow = "0 2px 4px rgba(0,0,0,0.6)";
 
         const message = document.createElement("p");
-        message.id = "popup-message";
+        message.id = "popup-message-local";
         message.style.fontSize = "1.2rem";
         message.style.maxWidth = "600px";
         message.style.lineHeight = "1.5";
@@ -228,9 +228,9 @@ class Pong {
 
     private showPopup(title: string, message: string) {
 
-        const popup = document.getElementById("popup-overlay") as HTMLDivElement;
-        const titleEl = document.getElementById("popup-title") as HTMLHeadingElement;
-        const msgEl = document.getElementById("popup-message") as HTMLParagraphElement;
+        const popup = document.getElementById("popup-overlay-local") as HTMLDivElement;
+        const titleEl = document.getElementById("popup-title-local") as HTMLHeadingElement;
+        const msgEl = document.getElementById("popup-message-local") as HTMLParagraphElement;
 
         if (popup && titleEl && msgEl) {
             titleEl.textContent = title;
@@ -241,7 +241,7 @@ class Pong {
     }
 
     private hidePopup() {
-        const popup = document.getElementById("popup-overlay") as HTMLDivElement;
+        const popup = document.getElementById("popup-overlay-local") as HTMLDivElement;
         if (popup) popup.style.visibility = "hidden";
     }
 
@@ -482,7 +482,7 @@ class Pong {
         const canvas = document.getElementById('pongTable');
         if (canvas) canvas.remove();
         
-        const popup = document.getElementById('popup-overlay');
+        const popup = document.getElementById('popup-overlay-local');
         if (popup) popup.remove();
     }
 

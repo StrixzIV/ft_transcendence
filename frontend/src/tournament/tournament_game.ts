@@ -192,7 +192,7 @@ export class Pong {
     private createPopup(): void {
 
         const popup = document.createElement("div");
-        popup.id = "popup-overlay";
+        popup.id = "popup-overlay-tournament";
 
         Object.assign(popup.style, {
             position: "fixed",
@@ -216,7 +216,7 @@ export class Pong {
         });
 
         const title = document.createElement("h1");
-        title.id = "popup-title";
+        title.id = "popup-title-tournament";
         title.style.fontSize = "2.5rem";
         title.style.fontWeight = "bold";
         title.style.marginBottom = "1rem";
@@ -224,7 +224,7 @@ export class Pong {
         title.style.textShadow = "0 2px 4px rgba(0,0,0,0.6)";
 
         const message = document.createElement("p");
-        message.id = "popup-message";
+        message.id = "popup-message-tournament";
         message.style.fontSize = "1.2rem";
         message.style.maxWidth = "600px";
         message.style.lineHeight = "1.5";
@@ -239,9 +239,9 @@ export class Pong {
 
     private showPopup(title: string, message: string) {
 
-        const popup = document.getElementById("popup-overlay") as HTMLDivElement;
-        const titleEl = document.getElementById("popup-title") as HTMLHeadingElement;
-        const msgEl = document.getElementById("popup-message") as HTMLParagraphElement;
+        const popup = document.getElementById("popup-overlay-tournament") as HTMLDivElement;
+        const titleEl = document.getElementById("popup-title-tournament") as HTMLHeadingElement;
+        const msgEl = document.getElementById("popup-message-tournament") as HTMLParagraphElement;
 
         if (popup && titleEl && msgEl) {
             titleEl.textContent = title;
@@ -252,7 +252,7 @@ export class Pong {
     }
 
     private hidePopup() {
-        const popup = document.getElementById("popup-overlay") as HTMLDivElement;
+        const popup = document.getElementById("popup-overlay-tournament") as HTMLDivElement;
         if (popup) popup.style.visibility = "hidden";
     }
 
@@ -512,7 +512,7 @@ export class Pong {
         const canvas = document.getElementById('pongTable');
         if (canvas) canvas.remove();
         
-        const popup = document.getElementById('popup-overlay');
+        const popup = document.getElementById('popup-overlay-tournament');
         if (popup) popup.remove();
     }
 
