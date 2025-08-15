@@ -229,27 +229,37 @@ export async function mainPage() {
 
     // Friends sidebar
     // - Friends
-    const friendsContainer = document.querySelector('.dividers-2')!;
+    const friendsContainer = document.getElementById('friends-container')!;
     friendsContainer.addEventListener('click', async (e) => {
-        const btn = (e.target as HTMLElement).closest('.btn-unfriend') as HTMLButtonElement | null;
-        if (!btn) return; // clicked something else
+        const target = e.target as HTMLElement;
 
-        const uid = btn.dataset.uid!;
-        const row = btn.closest('.friends-row-item') as HTMLDivElement;
+        // if click username, go to friend's page
+        const usernameEl = target.closest('.friend-username') as HTMLElement | null;
+        if (usernameEl) {
+            console.log(usernameEl);
+            const uid = usernameEl.dataset.uid!;
+            window.location.href = `/profile/${uid}`;
+            return ;
+        }
 
-        btn.disabled = true;
+        // if click 'unfriend' button, unfriend
+        const unfriendBtn = target.closest('.btn-unfriend') as HTMLButtonElement | null;
+        if (!unfriendBtn)
+            return ;
+
+        const uid = unfriendBtn.dataset.uid!;
+        const row = unfriendBtn.closest('.friends-row-item') as HTMLDivElement;
+        unfriendBtn.disabled = true;
 
         try {
             const res = await secureFetch(users_endpoint(`/friends/${uid}`), { method: 'DELETE' });
             const data = await res.json();
-
             if (!res.ok) throw new Error(data.error || 'Unfriend failed');
-
-            // Remove the friend from the list
+    
             row.remove();
         } catch (err) {
             alert((err as Error).message);
-            btn.disabled = false;
+            unfriendBtn.disabled = false;
         }
     });
 

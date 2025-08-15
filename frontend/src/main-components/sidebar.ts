@@ -20,7 +20,7 @@ function addFriendModal() {
     `
 }
 
-async function getFriendsItems() {
+async function FriendItems() {
 
     let res = await secureFetch(users_endpoint('/friends'), { method: 'GET' });
     let data = await res.json() as { friends: Array<User>, error?: string };
@@ -37,7 +37,7 @@ async function getFriendsItems() {
 
       friend_items += `
         <div class="friends-row-item flex items-center justify-between" data-uid="${friend.id}">
-            <span class="truncate">${ friend.status == "ONLINE" ? "<span class=\"online-dot-friend\"></span>" : ""} ${friend.username}</span>
+            <span class="friend-username cursor-pointer truncate">${ friend.status == "ONLINE" ? "<span class='online-dot-friend'></span>" : ""} ${friend.username}</span>
             <div class="flex gap-2">
                 <button class="btn-unfriend form-button-base !px-1 !py-1 bg-[#444] hover:bg-[#555] rounded cursor-pointer" data-uid="${friend.id}">
                     <!-- minus sign -->
@@ -102,7 +102,7 @@ export async function friendsSideBar() {
         </h2>
 
         <div class="dividers-2" id="friends-container">
-            ${await getFriendsItems()}
+            ${await FriendItems()}
         </div>
 
         <div id="open-add-friend-btn" class="flex gap-2 items-center justify-center card-button mt-4">
