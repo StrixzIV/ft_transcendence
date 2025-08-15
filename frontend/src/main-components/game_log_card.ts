@@ -1,12 +1,10 @@
 import { secureFetch } from '../utils/secureFetch.ts'
-import { game_endpoint, users_endpoint } from '../provider/api.ts'
+import { users_endpoint } from '../provider/api.ts'
 
 import { type User } from '../interfaces/user.ts'
 import { type Match } from '../interfaces/match.ts'
 
-export async function gameLogCard() {
-    const history = await secureFetch(game_endpoint('/stats/history'), { method: 'GET' });
-    const match_data = await history.json() as Array<Match>;
+export async function gameLogCard(match_data: Array<Match>) {
 
     let gameLogItems = '';
 
