@@ -13,7 +13,7 @@ function addFriendModal() {
 
             <div class="flex gap-4">
                 <input type="text" id="add-friend-field" placeholder="Enter Friend's UID" class="form-field w-4/5">
-                <button id="add-friend-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">REQUEST</button>
+                <button id="add-friend-btn" class="bg-[#444] hover:bg-[#555] transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">REQUEST</button>
             </div>   
         </div>
     </div>
