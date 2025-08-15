@@ -49,21 +49,27 @@ function renameModal() {
 
 function rightMenu(user: User) {
     return `
-    <div class="flex gap-4">
-        <div class="relative group inline-block p-1">
-            <span class="cursor-pointer">${user.username ? user.username : 'Guest'} ▾</span>
+    <div>
+    
+        <div class="flex gap-4">
+            <div class="relative group inline-block p-1">
+                <span class="cursor-pointer">${user.username ? user.username : 'Guest'} ▾</span>
 
-            <div class="dropdown">
-                <p id="show-2fa"   class="cursor-pointer block p-2 hover:bg-[#444]">Enable 2FA</p>
-                <p id="open-rename-modal-btn" class="cursor-pointer block p-2 hover:bg-[#444]">Rename</p>
-                <p id="upload-btn" class="cursor-pointer block p-2 hover:bg-[#444]">Change Profile Pic</p>
-                <p id="logout"     class="cursor-pointer block p-2 hover:bg-[#444] text-red">Log out</p>
-                ${renameModal()}
-                ${QrModal()}
-                ${uploadProfilePictureInput()}
+                <div class="dropdown">
+                    <p id="show-2fa"   class="cursor-pointer block p-2 hover:bg-[#444]">Enable 2FA</p>
+                    <p id="open-rename-modal-btn" class="cursor-pointer block p-2 hover:bg-[#444]">Rename</p>
+                    <p id="upload-btn" class="cursor-pointer block p-2 hover:bg-[#444]">Change Profile Pic</p>
+                    <p id="logout"     class="cursor-pointer block p-2 hover:bg-[#444] text-red">Log out</p>
+                    ${uploadProfilePictureInput()}
+                </div>
+        
             </div>
         </div>
-    </div>
+
+        ${renameModal()}
+        ${QrModal()}
+
+    </div>    
     `
 }
 
