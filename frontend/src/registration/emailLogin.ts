@@ -1,5 +1,5 @@
-import { navigate } from "./router";
-import { auth_endpoint } from "./provider/api";
+import { navigate } from "../router";
+import { auth_endpoint } from "../provider/api";
 
 export function loginPage() {
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `

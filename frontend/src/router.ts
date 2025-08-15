@@ -1,8 +1,8 @@
-import { twoFactorPage } from "./2fa";
-import { loginPage } from "./emailLogin";
+import { twoFactorPage } from "./registration/2fa";
+import { loginPage } from "./registration/emailLogin";
 import { loadLocalGame } from "./local-game/local_game";
 import { mainPage } from "./main";
-import { registerPage } from "./register";
+import { registerPage } from "./registration/register";
 import { loadRemoteGame } from "./remote-game/remote_page";
 import { loadTournamentGame } from "./tournament/tournament_game";
 import { tournamentSetupPage } from "./tournament/tournament_init";
