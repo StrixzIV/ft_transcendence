@@ -1,29 +1,27 @@
-import { twoFactorPage } from "./2fa";
-import { auth_endpoint } from "./provider/api";
-import { registerPage } from "./register";
+import { navigate } from "../router";
+import { auth_endpoint } from "../provider/api";
 
 export function loginPage() {
 
+    localStorage.clear()
+
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
-      <div class="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        <div class="form">
+            
+            <h1 class="text-large">LOGIN</h1>
+            <form id="login-form" class="space-y-4">
+                <input type="text" id="username" class="form-field" placeholder="Username"/>
+                <input type="password" id="password" class="form-field" placeholder="Password"/>
+                <button type="submit" class="form-button">Login</button>
+            </form>
+            
+            <p class="font-bold">OR</p>
 
-        <form id="login-form" class="bg-gray-800 p-8 rounded shadow-md space-y-4 w-80">
+            <button id="google-login" class="form-button-red">Login with Google</button>
+            <button id="register" class="form-button">Register</button>
+        </div>
 
-          <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
-
-          <input type="text" id="username" placeholder="Username" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          <input type="password" id="password" placeholder="Password" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          
-          <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Login</button>
-          
-          <div class="text-center my-2">or</div>
-          <button id="google-login" type="button" class="w-full bg-red-500 hover:bg-red-600 p-2 rounded">Login with Google</button>
-          <button id="register" type="button" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Register</button>
-
-        </form>
-
-      </div>
     `;
 
     // Handle email login
@@ -46,17 +44,18 @@ export function loginPage() {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            alert(`Login failed: ${errorText}`);
+            const errorText = await response.json();
+            alert(`Login failed: ${errorText.error}`);
             return;
         }
         
         if (response.status == 202) {
 
             const json = await response.json();
-            localStorage.setItem('uid', json.uid);
+            console.log(json)
+            localStorage.setItem('uid', json.user.id);
 
-            twoFactorPage();
+            navigate('/2fa');
             return;
 
         }
@@ -69,14 +68,14 @@ export function loginPage() {
         localStorage.setItem('username', json.user.username);
         localStorage.setItem('expires_at', json.expires_at);
 
-        window.location.reload();
+        await navigate('/');
 
     });
 
     const registerBtn = document.getElementById('register') as HTMLButtonElement;
 
-    registerBtn.addEventListener('click', () => {
-        registerPage();
+    registerBtn.addEventListener('click', async () => {
+        await navigate('/register');
     })
 
     // Handle Google login

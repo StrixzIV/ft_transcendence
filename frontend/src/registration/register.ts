@@ -1,55 +1,55 @@
-import { auth_endpoint } from "./provider/api";
+import { navigate } from "../router";
+import { auth_endpoint } from "../provider/api";
 
 export function registerPage() {
-
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
-      <div class="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <form id="register-form" class="form">
 
-        <form id="register-form" class="bg-gray-800 p-8 rounded shadow-md space-y-4 w-80">
+        <h2 class="text-large">REGISTER</h2>
 
-          <h2 class="text-2xl font-bold mb-4 text-center">Register</h2>
+        <input type="text" id="username" placeholder="Username" required class="form-field"/>
+        <input type="email" id="email" placeholder="Email" required class="form-field"/>
+        <input type="password" id="password" placeholder="Password" required class="form-field"/>
+        <input type="password" id="password-confirm" placeholder="Confirm Password" required class="form-field"/>
 
-          <input type="text" id="username" placeholder="Username" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          <input type="email" id="email" placeholder="Email" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          <input type="password" id="password" placeholder="Password" required class="w-full p-2 rounded bg-gray-700 text-white"/>
-          <input type="password" id="password-confirm" placeholder="Confirm Password" required class="w-full p-2 rounded bg-gray-700 text-white"/>
+        <button type="submit" class="form-button">Submit</button>
 
-          <button type="submit" class="w-full bg-green-500 hover:bg-green-600 p-2 rounded">Submit</button>
-
-        </form>
-
-      </div>
+      </form>
     `;
 
     const form = document.getElementById('register-form') as HTMLFormElement;
 
     form.addEventListener('submit', async(e) => {
-        
         e.preventDefault();
+
         const username = (document.getElementById('username') as HTMLInputElement).value;
         const email = (document.getElementById('email') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
         const password_confirm = (document.getElementById('password-confirm') as HTMLInputElement).value;
-        const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/
+        const forbidden_regex = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
 
         if (forbidden_regex.test(username)) {
-            alert('Username must not contains any special characters or whitespaces')
-            return
+            alert('Username must not contains any special characters or whitespaces');
+            return;
+        }
+
+        if (username.length > 24) {
+            alert('Username must be in 24 characters');
+            return;
         }
 
         if (password !== password_confirm) {
-            alert('Password unmatched')
-            return
+            alert('Password unmatched');
+            return;
         }
 
         if (password.length < 6) {
-            alert('Password length must be longer than 6 characters')
-            return
+            alert('Password length must be longer than 6 characters');
+            return;
         }
 
         try {
-
             const response = await fetch(auth_endpoint('/user'), {
                 method: 'POST',
                 headers: {
@@ -63,23 +63,22 @@ export function registerPage() {
             });
 
             if (!response.ok) {
-                const errorText = await response.text() as string;
-                alert(`Registration failed: ${errorText}`);
+                const errorText = await response.json();
+                alert(`Registration failed: ${errorText.error}`);
                 return;
             }
 
-            const json = await response.json()
+            const json = await response.json();
+
             localStorage.setItem('is_login', 'true');
             localStorage.setItem('uid', json.user.id);
             localStorage.setItem('username', json.user.username);
             localStorage.setItem('expires_at', json.expires_at);
-            window.location.reload();
-
+            await navigate('/');
         }
         catch (err) {
             console.error(err);
             alert('An error occurred while registering. Please try again.');
         }
-
     });
 }

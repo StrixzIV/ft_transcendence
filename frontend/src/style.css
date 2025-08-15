@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -42,3 +46,66 @@
 .read-the-docs {
   color: #888;
 }
+
+
+/* [ UTILS ] */
+/* Texts */
+.text-normal { @apply font-normal; }
+.text-large { @apply text-3xl font-bold; }
+
+/* Colors */
+.text-gray      { @apply text-gray-400; }
+.text-red       { @apply text-red-400; }
+.text-green     { @apply text-green-400; }
+.text-yellow    { @apply text-yellow-400; }
+.text-blue      { @apply text-blue-400; }
+.text-purple    { @apply text-purple-400; }
+.text-cyan      { @apply text-cyan-400; }
+
+/* [ COMPONENTS ] */
+
+/* Dividers: for child */
+
+/* General */
+.body       { @apply bg-black text-[#eee] font-mono text-sm; }
+.header     { @apply flex gap-4 justify-between p-4 rounded border border-[#444] bg-[#1a1a1a]; }
+.dropdown   { @apply absolute right-0 w-40 hidden z-10 bg-[#2a2a2a] rounded shadow-lg divide-y divide-[#444] group-hover:block; }
+.sidebar    { @apply p-4 w-64 min-h-screen rounded border-r border-l border-b border-[#444] bg-[#1a1a1a]; }  /* assume parent is flex */
+
+/* Dividers: for child */
+.dividers-1 { @apply divide-y divide-[#444]; }
+.dividers-2 { @apply divide-y divide-[#333]; }
+
+/* Card, part of the bento-box-type page */
+.card           { @apply p-4 border border-[#444] rounded bg-[#1a1a1a]; }
+.card-title     { @apply pb-2 border-b border-[#444] font-bold text-lg text-left; }
+.card-field     { @apply p-2 border border-[#444] text-left; }
+.card-button    { @apply p-4 border border-[#444] rounded bg-[#1a1a1a] text-center cursor-pointer hover:bg-[#2a2a2a] transition; }
+
+/* Avatar */
+.image              { @apply w-full h-full object-cover rounded; }
+.online-dot         { @apply absolute bottom-0 right-0 block w-3 h-3 bg-green-500 rounded-full ring-2 ring-white; }
+.online-dot-friend  { @apply inline-block w-2 h-2 ml-[0.5rem] mr-[0.3rem] mb-[0.1rem] bg-green-500 rounded-full ring-2 ring-white; }
+
+/* Form: is a card with input-able fields */
+.form       { @apply p-4 border border-[#444] rounded bg-[#1a1a1a] w-96 flex flex-col items-center space-y-4 mx-auto m-52; }
+.form-field {
+    @apply bg-[#ddd] rounded-sm p-2 w-full text-black placeholder-[#555]
+    focus:outline-none focus:ring-4 focus:ring-blue-600
+    transition-all duration-200 ease-out;
+}
+
+.form-button-base   { @apply w-full font-semibold py-2 px-4 rounded transition cursor-pointer; }
+.form-button        { @apply w-full font-semibold py-2 px-4 rounded transition cursor-pointer bg-[#444] hover:bg-[#555]; }
+.form-button-red    { @apply w-full font-semibold py-2 px-4 rounded transition cursor-pointer bg-red-700  hover:bg-red-600}
+
+/* Row items */
+.row-item           { @apply py-2; } /* might remove */
+.row-item-indent    { @apply py-2 flex justify-between px-4; }
+
+.friends-row-item   { @apply py-2 text-left; }
+
+.game-log-row         { @apply px-4 py-2 grid grid-cols-[2fr_1fr_1fr] items-center; }
+.game-log-row-left    { @apply text-left; }
+.game-log-row-middle  { @apply text-left; }
+.game-log-row-right   { @apply text-right; }

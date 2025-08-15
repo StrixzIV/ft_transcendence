@@ -81,6 +81,7 @@ services:
     depends_on:
       - auth-backend
       - users-backend
+      - game-backend
 
   # S3
   minio:
@@ -274,6 +275,31 @@ services:
         condition: service_healthy
     expose:
       - 3000
+  
+  game-backend:
+    container_name: game-backend
+    build:
+      context: ./services/pingpong
+      dockerfile: Dockerfile
+    env_file:
+      - env/.broker.env
+      - env/.no_sensitive.env
+    restart: always
+    networks:
+      - mainnet
+    volumes:
+      - ./logs/game-backend/:/app/logs/:rw
+      - ./data/game-backend/:/app/prisma/db/:rw
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      auth-backend:
+        condition: service_started
+      broker:
+        condition: service_healthy
+    expose:
+      - 3000
+      - 8080
 
 networks:
   dmz-net:
