@@ -11,7 +11,7 @@ import { type WinRateData } from './interfaces/winrate.ts'
 
 import { headerSection } from './main-components/header.ts'
 import { friendsSideBar, acceptFriend, declineFriend } from './main-components/sidebar.ts'
-import { gameButtonsRow, remoteGameModal } from './main-components/games_row.ts'
+import { gameButtonsRow } from './main-components/games_row.ts'
 import { statCard } from './main-components/stat_card.ts'
 import { gameLogCard } from './main-components/game_log_card.ts'
 import { userCard } from './main-components/user_card.ts'
@@ -94,15 +94,12 @@ async function mainPageHTML(user_image: Response, user: User, profile: User | un
     ${headerSection(user)}
     <main class="flex">
         ${await friendsSideBar()}
-
-        ${remoteGameModal()}
         <section class="flex-1 p-4 space-y-4">
             ${profile && profile_image ? await userCard(profile, profile_image) : await userCard(user, user_image)}
             ${profile && profile_image ? "" : gameButtonsRow()}
             ${statCard(win_count, loss_count)}
             ${await gameLogCard(match_data)}
         </section>
-
     </main>
     `
 }
