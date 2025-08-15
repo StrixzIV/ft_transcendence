@@ -1,4 +1,4 @@
-export function remoteGameModal() {
+function remoteGameModal() {
     return `
     <div id="remote-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
         <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
@@ -22,6 +22,7 @@ export function remoteGameModal() {
 
 export function gameButtonsRow() {
     return `
+    ${remoteGameModal()}
     <section class="grid grid-cols-3">
         <a id="local-game-btn" class="card-button mr-1.5">
             <div>
