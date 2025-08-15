@@ -6,8 +6,14 @@ import { auth_endpoint, game_endpoint, users_endpoint, websocket_endpoint } from
 import { initRouter, navigate } from './router.ts'
 
 import { type User } from './interfaces/user.ts'
-import { type Match } from './interfaces/match.ts'
 import { type WinRateData } from './interfaces/winrate.ts'
+
+import { headerSection } from './main-components/header.ts'
+import { friendsSideBar, acceptFriend, declineFriend } from './main-components/sidebar.ts'
+import { gameButtonsRow, remoteGameModal } from './main-components/games_row.ts'
+import { statCard } from './main-components/stat_card.ts'
+import { gameLogCard } from './main-components/game_log_card.ts'
+import { userCard } from './main-components/user_card.ts'
 
 async function on_startup() {
 
@@ -65,414 +71,6 @@ async function on_startup() {
 
 }
 
-
-function gamesCount(win_count: number, loss_count: number) {
-    return win_count + loss_count;
-}
-
-function winPercent(win_count: number, loss_count: number) {
-    const games_count = gamesCount(win_count, loss_count);
-    if (games_count == 0)
-            return 0;
-    return Math.round((win_count / games_count) * 100 * 100) / 100;
-}
-
-function winLossBarGraph(win_count: number, loss_count: number) {
-    const games_count = gamesCount(win_count, loss_count);
-    if (games_count == 0) {
-        return `
-        <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden bg-[#444] rounded-sm items-center justify-center text-xs font-bold text-white">0</div>
-        `;
-    }
-
-    const win_percent = winPercent(win_count, loss_count);
-    return `
-    <div class="flex mx-auto mt-4 w-11/12 h-6 overflow-hidden">
-        <div class="flex items-center justify-center text-xs font-bold bg-green-700 rounded-sm" style="width: ${win_percent}%;">${(win_count > 0) ? win_count : ""}</div>
-        <div class="flex items-center justify-center text-xs font-bold bg-red-700 rounded-sm" style="width: ${100 - win_percent}%;">${(loss_count > 0) ? loss_count : ""}</div>
-    </div>
-    `
-}
-
-
-// COMPONENTS
-
-function headerSection(user: User) {
-    return `
-    <div class="header">
-        <!-- Site name -->
-        <header class="tracking-widest text-xl font-bold">FT_TRANSCENDENCE</header>
-
-        <!-- Right side -->
-        <div class="flex gap-4">
-            <!-- Login name, dropdown menu -->
-             <div class="relative group inline-block p-1">
-                <span class="cursor-pointer">${user.username ? user.username : 'Guest'} ▾</span>
-
-                <!-- Dropdown menu -->
-                <div class="dropdown">
-                    <p id="show-2fa" class="cursor-pointer block p-2 hover:bg-[#444]">Enable 2FA</p>
-                    <p id="upload-btn" class="cursor-pointer block p-2 hover:bg-[#444]">Update Profile</p>
-                    <p id="logout" class="cursor-pointer block p-2 hover:bg-[#444] text-red">Log out</p>
-
-                    <input 
-                        type="file" 
-                        id="upload-input" 
-                        accept="image/*" 
-                        class="hidden"
-                    />
-
-                    <div id="qr-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-                        <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444]">
-                            
-                            <button id="close-qr" class="absolute top-2 right-2 text-xl">&times;</button>
-                            <h2 class="text-2xl font-semibold mb-2">2FA SETUP</h2>
-                            <p class="text-lg mb-4">Scan this QR Code to enable 2FA</p>
-                            
-                            <div class="flex justify-center">
-                                <img id="qr-image" src="" alt="2FA QR Code" class="w-48 h-48"/>
-                            </div>
-                            
-                            <div class="mt-4 mb-2 flex items-center space-x-2">
-                                <p id="manual-code" class="text-sm break-all"></p>
-                                <button id="copy-code" class="text-xs px-2 py-1 border border-[#444] bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white rounded">📋</button>
-                            </div>
-                            
-                            <button id="enable-2fa" class="font-semibold py-2 px-4 rounded transition bg-green-700 hover:bg-green-600 mt-2 mr-2 cursor-pointer">Enable 2FA</button>
-                            <button id="disable-2fa" class="font-semibold py-2 px-4 rounded transition bg-red-700 hover:bg-red-600 mt-2 ml-2 cursor-pointer">Disable 2FA</button>
-                        
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    `
-}
-
-
-function addFriendModal() {
-    return `
-    <div id="add-friend-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-        <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
-            
-            <button id="close-add-friend-btn" class="absolute top-2 right-2 text-xl">&times;</button>
-            <h2 class="text-2xl mb-4 font-semibold">ADD FRIEND</h2>
-
-            <div class="flex gap-4">
-                <input type="text" id="add-friend-field" placeholder="Enter Friend's UID" class="form-field w-4/5">
-                <button id="add-friend-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">REQUEST</button>
-            </div>   
-        </div>
-    </div>
-    `
-}
-
-async function getFriendsItems() {
-
-    let res = await secureFetch(users_endpoint('/friends'), { method: 'GET' });
-    let data = await res.json() as { friends: Array<User>, error?: string };
-  
-    if (!res.ok) {
-        alert(data.error || "Something went wrong");
-        return '';
-    }
-  
-    const friends = data.friends;
-    let friend_items = '';
-  
-    for (const friend of friends) {
-
-      friend_items += `
-        <div class="friends-row-item flex items-center justify-between" data-uid="${friend.id}">
-            <span class="truncate">${ friend.status == "ONLINE" ? "<span class=\"online-dot-friend\"></span>" : ""} ${friend.username}</span>
-            <div class="flex gap-2">
-                <button class="btn-unfriend form-button-base !px-1 !py-1 bg-[#444] hover:bg-[#555] rounded cursor-pointer" data-uid="${friend.id}">
-                    <!-- minus sign -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-      `;
-
-    }
-  
-    return friend_items;
-}  
-
-async function pendingRequestItems() {
-    const res = await secureFetch(users_endpoint('/friends/requests'), { method: 'GET' });
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.error || "Something went wrong");
-      return '';
-    }
-  
-    const requests: Array<User> = data.requests ?? [];
-  
-    // fetch usernames in parallel
-    const rows = await Promise.all(requests.map(async (r) => {
-      const ures = await secureFetch(users_endpoint(`/data/${r.id}`));
-      const user = await ures.json();
-      const username = user.username ?? r.id;
-      // each row has accept/decline buttons with the uid in data-uid
-      return `
-        <div class="friends-row-item flex items-center justify-between gap-2" data-uid="${r.id}">
-            <span class="truncate">${username}</span>
-            <div class="flex gap-2">
-                <button class="btn-accept form-button-base !px-1 !py-1 bg-green-800 hover:bg-green-700 rounded cursor-pointer" data-uid="${r.id}">
-                    <!-- tick sign -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 6 9 17l-5-5"/>
-                    </svg>
-                </button>
-                <button class="btn-decline form-button-base !px-1 !py-1 bg-red-800 hover:bg-red-700 rounded cursor-pointer" data-uid="${r.id}">
-                    <!-- cross sign -->    
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                    </svg>
-                </button>
-            </div>
-        </div>`;
-    }));
-  
-    return rows.join('');
-}
-
-async function friendsSideBar() {
-    return `
-    ${addFriendModal()}
-    <aside class="sidebar">
-        <h2 class="card-title">
-            > FRIENDS
-        </h2>
-
-        <div class="dividers-2" id="friends-container">
-            ${await getFriendsItems()}
-        </div>
-
-        <div id="open-add-friend-btn" class="flex gap-2 items-center justify-center card-button mt-4">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12h14"/>
-                <path d="M12 5v14"/>
-            </svg>
-            <span class="mr-2">ADD FRIEND</span>
-        </div>
-
-        <h2 class="card-title mt-4">
-            > REQUESTS
-        </h2>
-
-        <div class="dividers-2" id="pending-requests">
-            ${await pendingRequestItems()}
-        </div>
-    </aside>
-    `;
-}
-
-async function acceptFriend(uid: string) {
-    const res = await secureFetch(users_endpoint(`/friends/${uid}/accept`), { method: 'PUT' });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Accept failed');
-    window.location.reload();
-    return data;
-}
-
-async function declineFriend(uid: string) {
-    const res = await secureFetch(users_endpoint(`/friends/${uid}/deny`), { method: 'DELETE' });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Decline failed');
-    window.location.reload();
-    return data;
-}
-
-async function userCard(user: User, user_image: Response) {
-    const blob = await user_image.blob()
-    const image_uri = URL.createObjectURL(blob)
-    return `
-    <section class="card space-y-4">
-        <header class="card-title">> USER</header>
-
-        <div class="flex gap-3">
-            <!-- Picture -->
-            <div class="relative inline-block w-32 h-32 flex-shrink-0">
-                <img id="profile-img" class="image" src="${image_uri}" alt="User avatar">
-                <span class="online-dot"></span>
-            </div>
-            
-            <!-- Info -->
-            <div class="flex-1 space-y-2">
-                <div class="card-field">
-                    <p class="text-gray">USERNAME</p>
-                    <p>${user.username ? user.username : 'Guest'}</p>
-                </div>
-                
-                <div class="card-field">
-                    <p class="text-gray">UID</p>
-                    <p>${user.username ? `<p>${user.id}</p>` : ''}</p>
-                </div>
-            </div>
-
-        </div>
-    </section>
-    `
-}
-
-function remoteGameModal() {
-    return `
-    <div id="remote-modal" class="hidden fixed inset-0 bg-opacity-60 backdrop-blur-md flex items-center justify-center z-50">
-        <div class="bg-[#1a1a1a] p-6 rounded shadow-md text-white relative border border-[#444] w-4xl">
-            
-            <button id="close-remote" class="absolute top-2 right-2 text-xl">&times;</button>
-            <h2 class="text-2xl mb-4 font-semibold">REMOTE GAME</h2>
-
-            <div class="flex gap-4">
-                <input type="text" id="room-field" placeholder="Enter Room ID" class="form-field w-4/5">
-                <button id="join-room-btn" class="bg-[#444] hover:bg-[#555] disabled:bg-gray-400 transition font-semibold py-2 rounded w-1/5 border border-[#555] cursor-pointer">JOIN ROOM</button>
-            </div>
-            <p class="text-l m-4">OR</p>
-            <div class="flex justify-center">
-                <button id="create-room-btn" class="form-button cursor-pointer">CREATE ROOM</button>
-            </div>
-        
-        </div>
-    </div>
-    `
-}
-
-function gameButtonsRow() {
-    return `
-    <section class="grid grid-cols-3">
-        <a id="local-game-btn" class="card-button mr-1.5">
-            <div>
-                <span>LOCAL</span>
-                <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 8h.01"/>
-                    <path d="M12 12h.01"/>
-                    <path d="M14 8h.01"/>
-                    <path d="M16 12h.01"/>
-                    <path d="M18 8h.01"/>
-                    <path d="M6 8h.01"/>
-                    <path d="M7 16h10"/>
-                    <path d="M8 12h.01"/>
-                    <rect width="20" height="16" x="2" y="4" rx="2"/>
-                </svg>
-            </div>
-        </a>
-        <a id="remote-game-btn" class="card-button text-center mx-1.5">
-            <div>
-                <span>REMOTE</span>
-                <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                    <path d="M2 12h20"/>
-                </svg>
-            </div>
-        </a>
-        <a id="tournament-game-btn" class="card-button text-center ml-1.5">
-            <div>
-                <span>TOURNAMENT</span>
-                <svg class="mx-auto h-10" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/>
-                    <path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/>
-                    <path d="M18 9h1.5a1 1 0 0 0 0-5H18"/>
-                    <path d="M4 22h16"/>
-                    <path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/>
-                    <path d="M6 9H4.5a1 1 0 0 1 0-5H6"/>
-                </svg>
-            </div>
-        </a>
-    </section>
-    `
-}
-
-function statCard(win_count: number, loss_count: number) {
-    return `
-    <section class="card">
-        <header class="card-title">> STATS</header>
-
-        <div class="dividers-2">
-            <div class="row-item-indent">
-                <span>GAMES PLAYED</span>
-                <span>${gamesCount(win_count, loss_count)}</span>
-            </div>
-            <div class="row-item-indent">
-                <span>WIN</span>
-                <span>${win_count}</span>
-            </div>
-            <div class="row-item-indent">
-                <span>LOSS</span>
-                <span>${loss_count}</span>
-            </div>
-            <div class="row-item-indent">
-                <span>WIN RATE</span>
-                <span>${winPercent(win_count, loss_count)}%</span>
-            </div>
-
-            ${winLossBarGraph(win_count, loss_count)}
-        </div>
-    </section>
-    `
-}
-
-async function gameLogCard() {
-
-    const history = await secureFetch(game_endpoint('/stats/history'), {
-        method: 'GET'
-    });
-
-    const match_data = await history.json() as Array<Match>;
-
-    let gameLogItems = '';
-
-    for (const match_item of match_data) {
-
-        const isWinner = match_item.uid === match_item.match.winner_id;
-        const resultClass = isWinner ? 'text-green' : 'text-red';
-        const resultText = isWinner ? 'WIN' : 'LOSS';
-        const score = `${match_item.match.left_score}-${match_item.match.right_score}`;
-
-        const leftPlayer = match_item.match.players.find(player => player.side === 'leftPlayer')!;
-        const rightPlayer = match_item.match.players.find(player => player.side === 'rightPlayer')!;
-
-        const leftOpponent = await secureFetch(users_endpoint(`/data/${leftPlayer?.uid}`), {
-            method: 'GET'
-        });
-
-        const rightOpponent = await secureFetch(users_endpoint(`/data/${rightPlayer?.uid}`), {
-            method: 'GET'
-        });
-
-        const leftOpponentData = await leftOpponent.json() as User;
-        const rightOpponentData = await rightOpponent.json() as User;
-
-        gameLogItems += `
-            <div class="game-log-row-item">
-            <span>${leftOpponentData.username} vs ${rightOpponentData.username}</span>
-            <span class="${resultClass}">${resultText}</span>
-            <span>${score}</span>
-            </div>
-        `;
-
-    }
-
-    return `
-      <section class="card">
-        <header class="card-title">> GAME LOG</header>
-        <div class="dividers-2">
-          ${gameLogItems}
-        </div>
-      </section>
-    `;
-
-}
-
 async function mainPageHTML(user_image: Response, user: User) {
 
     const winrate = await secureFetch(game_endpoint('/stats/winrate'), {
@@ -505,20 +103,15 @@ async function mainPageHTML(user_image: Response, user: User) {
 export async function mainPage() {
 
     const online_wss = new WebSocket(websocket_endpoint('/user/online'));
-
-    const userdata = await secureFetch(users_endpoint('/data'), {
-        method: 'GET'
-    });
-
-    const user_image = await secureFetch(users_endpoint('/image'), {
-        method: 'GET'
-    });
-
+    const userdata = await secureFetch(users_endpoint('/data'), { method: 'GET' });
+    const user_image = await secureFetch(users_endpoint('/image'), { method: 'GET' });
     const user = await userdata.json() as User;
 
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = await mainPageHTML(user_image, user);
 
     const loginBtn = document.getElementById('logout') as HTMLButtonElement;
+
+
 
     const showQrBtn = document.getElementById('show-2fa') as HTMLButtonElement;
     const modal = document.getElementById('qr-modal')!;
@@ -529,13 +122,19 @@ export async function mainPage() {
     const disable2fa = document.getElementById('disable-2fa') as HTMLButtonElement;
     const copyBtn = document.getElementById('copy-code') as HTMLButtonElement;
 
+
+
     const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
     const uploadInput = document.getElementById('upload-input') as HTMLInputElement;
     const profileImg = document.getElementById('profile-img') as HTMLImageElement;
 
+
+
     const localGameBtn = document.getElementById('local-game-btn') as HTMLAnchorElement;
     const tournamentGameBtn = document.getElementById('tournament-game-btn') as HTMLAnchorElement;
 
+
+    
     const remoteGameBtn = document.getElementById('remote-game-btn') as HTMLAnchorElement;
     const remoteModal = document.getElementById('remote-modal')!;
     const closeRemoteModalBtn = document.getElementById('close-remote') as HTMLButtonElement;
