@@ -107,5 +107,5 @@
 
 .game-log-row         { @apply px-4 py-2 grid grid-cols-[2fr_1fr_1fr] items-center; }
 .game-log-row-left    { @apply text-left; }
-.game-log-row-middle  { @apply text-center; }
+.game-log-row-middle  { @apply text-left; }
 .game-log-row-right   { @apply text-right; }
