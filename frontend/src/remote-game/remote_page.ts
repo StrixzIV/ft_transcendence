@@ -104,7 +104,7 @@ class PongClient {
     private createPopup(): void {
 
         const popup = document.createElement("div");
-        popup.id = "popup-overlay";
+        popup.id = "popup-overlay-remote";
 
         Object.assign(popup.style, {
             position: "fixed",
@@ -125,10 +125,10 @@ class PongClient {
         });
 
         const title = document.createElement("h1");
-        title.id = "popup-title";
+        title.id = "popup-title-remote";
 
         const message = document.createElement("p");
-        message.id = "popup-message";
+        message.id = "popup-message-remote";
 
         popup.appendChild(title);
         popup.appendChild(message);
@@ -138,9 +138,9 @@ class PongClient {
 
     private showPopup(title: string, message: string) {
 
-        const popup = document.getElementById("popup-overlay") as HTMLDivElement;
-        const titleEl = document.getElementById("popup-title") as HTMLHeadingElement;
-        const msgEl = document.getElementById("popup-message") as HTMLParagraphElement;
+        const popup = document.getElementById("popup-overlay-remote") as HTMLDivElement;
+        const titleEl = document.getElementById("popup-title-remote") as HTMLHeadingElement;
+        const msgEl = document.getElementById("popup-message-remote") as HTMLParagraphElement;
 
         if (popup && titleEl && msgEl) {
             titleEl.textContent = title;
@@ -151,7 +151,7 @@ class PongClient {
     }
 
     private hidePopup() {
-        const popup = document.getElementById("popup-overlay") as HTMLDivElement;
+        const popup = document.getElementById("popup-overlay-remote") as HTMLDivElement;
         if (popup) popup.style.visibility = "hidden";
     }
 
@@ -416,7 +416,7 @@ class PongClient {
         const canvas = document.getElementById('pongTable');
         if (canvas) canvas.remove();
         
-        const popup = document.getElementById('popup-overlay');
+        const popup = document.getElementById('popup-overlay-remote');
         if (popup) popup.remove();
     }
 
