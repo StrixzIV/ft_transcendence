@@ -98,7 +98,7 @@ async function mainPageHTML(user_image: Response, user: User, profile: User | un
         ${remoteGameModal()}
         <section class="flex-1 p-4 space-y-4">
             ${profile && profile_image ? await userCard(profile, profile_image) : await userCard(user, user_image)}
-            ${gameButtonsRow()}
+            ${profile && profile_image ? "" : gameButtonsRow()}
             ${statCard(win_count, loss_count)}
             ${await gameLogCard(match_data)}
         </section>
