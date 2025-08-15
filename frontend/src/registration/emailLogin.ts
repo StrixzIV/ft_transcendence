@@ -2,6 +2,9 @@ import { navigate } from "../router";
 import { auth_endpoint } from "../provider/api";
 
 export function loginPage() {
+
+    localStorage.clear()
+
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
         <div class="form">
@@ -49,7 +52,8 @@ export function loginPage() {
         if (response.status == 202) {
 
             const json = await response.json();
-            localStorage.setItem('uid', json.uid);
+            console.log(json)
+            localStorage.setItem('uid', json.user.id);
 
             navigate('/2fa');
             return;
