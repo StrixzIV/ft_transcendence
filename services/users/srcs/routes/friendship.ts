@@ -85,6 +85,12 @@ export async function friendshipRoute(fastify: FastifyInstance) {
             return reply.status(400).send({ error: "You cannot add yourself" });
         }
 
+        const user = await prisma.users.findUnique({ where: { id: uid } });
+
+        if (!user) {
+            return reply.status(404).send({ error: "Invalid friend UID. User not found." });
+        }
+
         try {
 
             const friendship = await prisma.friendship.create({
