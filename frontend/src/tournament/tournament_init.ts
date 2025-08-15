@@ -61,6 +61,11 @@ export function tournamentSetupPage() {
             alert('Player name cannot contain special characters.');
             return;
         }
+
+        if (players.includes(playerName)) {
+            alert("Players' name cannot be the same.");
+            return;
+        }
         
         if (playerName && players.length < 4) {
             players.push(playerName);
