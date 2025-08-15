@@ -26,8 +26,8 @@ export async function gameLogCard() {
         gameLogItems += `
             <div class="game-log-row">
               <span class="game-log-row-left">${leftPlayerData.username} vs ${rightPlayerData.username}</span>
-              <span class="game-log-row-middle ${resultTextColor}">${resultText}</span>
-              <span class="game-log-row-right">${resultScores}</span>
+              <span class="game-log-row-middle">${resultScores}</span>
+              <span class="game-log-row-right ${resultTextColor}">${resultText}</span>
             </div>
         `;
     }
