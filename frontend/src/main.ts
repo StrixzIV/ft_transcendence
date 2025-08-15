@@ -214,6 +214,35 @@ export async function mainPage() {
         }
     });
 
+    // - Rename
+    const renameModal = document.getElementById('rename-modal') as HTMLDivElement;
+
+    const openRenameModalBtn = document.getElementById('open-rename-modal-btn') as HTMLParagraphElement;
+    const closeRenameModalBtn = document.getElementById('close-rename-modal-btn') as HTMLButtonElement;
+    openRenameModalBtn.addEventListener('click', async () => { renameModal.classList.remove('hidden'); });
+    closeRenameModalBtn.addEventListener('click', async () => { renameModal.classList.add('hidden'); });
+
+    const renameBtn = document.getElementById('rename-btn') as HTMLParagraphElement;
+    renameBtn.addEventListener('click', async () => {
+        const renameField = document.getElementById('rename-field') as HTMLInputElement;
+        const new_name = renameField.value.trim();
+        const res = await secureFetch(auth_endpoint(`/user/name`), { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: new_name })
+        })
+        if (!res.ok)
+        {   
+            const data = await res.json();
+            alert(data.error || "Something went wrong");
+            return ;
+        }
+        renameModal.classList.remove('hidden');
+        window.location.reload();
+    });
+
     // - Change profile pic
     const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
     uploadBtn.addEventListener('click', () => uploadInput.click());
@@ -361,44 +390,46 @@ export async function mainPage() {
     });
 
     // Games row
-    // - Local
-    const localGameBtn = document.getElementById('local-game-btn') as HTMLAnchorElement;
-    localGameBtn.addEventListener('click', async () => { await navigate('/local-game'); });
-    
-    // - Remote
-    const remoteGameBtn = document.getElementById('remote-game-btn') as HTMLAnchorElement;
-    const remoteModal = document.getElementById('remote-modal')!;
-    const closeRemoteModalBtn = document.getElementById('close-remote') as HTMLButtonElement;
-    remoteGameBtn.addEventListener('click', async () => { remoteModal.classList.remove('hidden'); })
-    closeRemoteModalBtn.addEventListener('click', () => { remoteModal.classList.add('hidden'); });
-    
-    const createRoomBtn = document.getElementById('create-room-btn') as HTMLButtonElement;
-    createRoomBtn.addEventListener('click', async () => {
-        const response = await secureFetch(game_endpoint('/room/create'), { method: 'POST' });
-        if (!response.ok) {
-            throw new Error('Failed to create new room.');
-        }
-        const data = await response.json();
-        await navigate(`/remote-game?gid=${data.gid}`);
-    });
-    
-    const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
-    joinRoomBtn.addEventListener('click', async () => {
-        const roomField = document.getElementById('room-field') as HTMLInputElement;
-        const gid = roomField.value.trim();
-        if (!gid) {
-            return;
-        }
-        await navigate(`/remote-game?gid=${gid}`);
-    });
+    if (!(profile_user && profile_image)) {
+        // - Local
+        const localGameBtn = document.getElementById('local-game-btn') as HTMLAnchorElement;
+        localGameBtn.addEventListener('click', async () => { await navigate('/local-game'); });
+        
+        // - Remote
+        const remoteGameBtn = document.getElementById('remote-game-btn') as HTMLAnchorElement;
+        const remoteModal = document.getElementById('remote-modal')!;
+        const closeRemoteModalBtn = document.getElementById('close-remote') as HTMLButtonElement;
+        remoteGameBtn.addEventListener('click', async () => { remoteModal.classList.remove('hidden'); })
+        closeRemoteModalBtn.addEventListener('click', () => { remoteModal.classList.add('hidden'); });
+        
+        const createRoomBtn = document.getElementById('create-room-btn') as HTMLButtonElement;
+        createRoomBtn.addEventListener('click', async () => {
+            const response = await secureFetch(game_endpoint('/room/create'), { method: 'POST' });
+            if (!response.ok) {
+                throw new Error('Failed to create new room.');
+            }
+            const data = await response.json();
+            await navigate(`/remote-game?gid=${data.gid}`);
+        });
+        
+        const joinRoomBtn = document.getElementById('join-room-btn') as HTMLButtonElement;
+        joinRoomBtn.addEventListener('click', async () => {
+            const roomField = document.getElementById('room-field') as HTMLInputElement;
+            const gid = roomField.value.trim();
+            if (!gid) {
+                return;
+            }
+            await navigate(`/remote-game?gid=${gid}`);
+        });
 
-    // - Tournament
-    const tournamentGameBtn = document.getElementById('tournament-game-btn') as HTMLAnchorElement;
-    tournamentGameBtn.addEventListener('click', async () => {
-        localStorage.removeItem("matches");
-        localStorage.removeItem("players");
-        await navigate('/tournament-setup');
-    });
+        // - Tournament
+        const tournamentGameBtn = document.getElementById('tournament-game-btn') as HTMLAnchorElement;
+        tournamentGameBtn.addEventListener('click', async () => {
+            localStorage.removeItem("matches");
+            localStorage.removeItem("players");
+            await navigate('/tournament-setup');
+        });
+    }
 }
 
 on_startup();
