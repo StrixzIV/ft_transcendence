@@ -134,7 +134,11 @@ export async function friendshipRoute(fastify: FastifyInstance) {
             const record = await prisma.friendship.findMany({
                 where: {
                     status: "accepted",
-                    OR: [{ requester_id: uid }, { addressee_id: uid }]
+                    // only block if both are already friends.
+                    OR: [
+                        { requester_id: uid, addressee_id: author_uid },
+                        { requester_id: author_uid, addressee_id: uid }
+                    ]
                 },
                 include: {
                     requester: true,
