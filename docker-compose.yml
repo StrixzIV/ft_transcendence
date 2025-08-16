@@ -150,7 +150,7 @@ services:
     networks:
       - elk-net
     environment:
-      - ES_JAVA_OPTS=-Xms512m -Xmx2g
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
       - discovery.type=single-node
       - xpack.security.enabled=false
     volumes:
