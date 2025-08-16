@@ -62,8 +62,13 @@ export function tournamentSetupPage() {
             return;
         }
 
+        if (playerName.length > 24) {
+            alert('Player name must be shorter than 24 characters');
+            return;
+        }
+
         if (players.includes(playerName)) {
-            alert("Players' name cannot be the same.");
+            alert("Player names cannot be the same.");
             return;
         }
         
