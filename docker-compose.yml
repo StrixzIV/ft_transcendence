@@ -128,8 +128,8 @@ services:
     networks:
       - mainnet
     volumes:
-      - rabbitmq-lib:/var/lib/rabbitmq
-      - rabbitmq-log:/var/log/rabbitmq
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia/
+      - rabbitmq-log:/var/log/rabbitmq/
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 1s
@@ -365,7 +365,7 @@ networks:
     internal: true
 
 volumes:
-  rabbitmq-lib:
+  rabbitmq-data:
     driver: local
 
   rabbitmq-log:
