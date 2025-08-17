@@ -145,14 +145,17 @@ services:
   # ELK
   elasticsearch:
     container_name: elasticsearch
-    image: elasticsearch:8.12.0
+    build:
+      context: ./services/ELK/elasticsearch/
+      dockerfile: Dockerfile
     restart: always
     networks:
       - elk-net
+    env_file:
+      - env/.elastic.env
+      - env/.kibana.env
     environment:
       - ES_JAVA_OPTS=-Xms2g -Xmx2g
-      - discovery.type=single-node
-      - xpack.security.enabled=false
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data:rw
       - elasticsearch-log:/usr/share/elasticsearch/logs:rw
@@ -164,9 +167,6 @@ services:
       start_period: 30s
     expose:
       - 9200
-    depends_on:
-      logstash:
-        condition: service_healthy
 
   logstash:
     container_name: logstash
@@ -174,10 +174,12 @@ services:
     restart: always
     networks:
       - elk-net
+    env_file:
+      - env/.elastic.env
     volumes: 
       - ./logs/:/var/log/services/:ro
-      - ./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
-      - ./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./services/ELK/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./services/ELK/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://localhost:9600/_node/pipelines"]
       interval: 1s
@@ -189,13 +191,16 @@ services:
 
   kibana:
     container_name: kibana
-    image: kibana:8.12.0
+    build:
+      context: ./services/ELK/kibana
+      dockerfile: Dockerfile
     restart: always
     networks:
       - mainnet
       - elk-net
-    environment:
-      - console.ui.enabled=false
+    env_file:
+      - env/.no_sensitive.env
+      - env/.kibana.env
     expose:
       - 5601
     healthcheck:
@@ -204,9 +209,9 @@ services:
       timeout: 2s
       retries: 10
       start_period: 30s
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
+    # depends_on:
+    #   elasticsearch:
+    #     condition: service_healthy
 
   # HashiCorp Vault
   vault:
@@ -240,6 +245,7 @@ services:
 
   vault-init:
     image: hashicorp/vault:1.16
+    restart: 'no'
     env_file:
       - env/.vault.env
       - env/.token.env
