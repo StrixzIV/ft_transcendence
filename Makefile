@@ -37,11 +37,18 @@ list:
 fclean: down prune
 	@echo "Cleaning..."
 	@rm -rf $(SSL_DIRS)
+	@rm -rf env/*
 	@docker stop $(docker ps -qa) 2>/dev/null || true
 	@docker rm $(docker ps -qa) 2>/dev/null || true
 	@docker rmi -f $(docker images -qa) 2>/dev/null || true
 	@docker volume rm $(docker volume ls -q) 2>/dev/null || true
 	@docker network rm $(docker network ls -q) 2>/dev/null || true
+
+wipe: down
+	@echo "Delete volume + data/ & logs/"
+	@docker volume rm $(docker volume ls -q) 2>/dev/null || true
+	@rm -rf data/*
+	@rm -rf logs/*
 
 re: down up
 
