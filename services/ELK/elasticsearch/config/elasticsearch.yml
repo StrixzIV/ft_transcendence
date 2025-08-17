@@ -1,0 +1,16 @@
+# Network
+network.host: 0.0.0.0
+
+# Node
+discovery.type: single-node 
+cluster.name: "docker-cluster"
+node.name: elasticsearch
+
+# Security
+xpack.security.enabled: true
+xpack.security.enrollment.enabled: false
+xpack.license.self_generated.type: basic
+
+# SSL/TLS
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
