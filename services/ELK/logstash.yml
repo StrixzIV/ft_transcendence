@@ -1,4 +1,0 @@
-pipeline.id: main
-path.config: /usr/share/logstash/pipeline
-config.reload.automatic: true
-xpack.monitoring.enabled: false

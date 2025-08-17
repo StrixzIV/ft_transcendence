@@ -12,22 +12,25 @@ services:
     environment:
       - WAF_ADDR=http://nginx-waf:8080
     volumes:
-      - ./services/nginx_ssl/templates/:/etc/nginx/templates/:ro
-      - ./services/nginx_ssl/rules.d/:/etc/nginx/rules.d/:ro
+      - ./services/nginx/shared/rules.d/:/etc/nginx/rules.d/:ro
+      - ./services/nginx/ssl/templates/:/etc/nginx/templates/:ro
+      - ./services/nginx/ssl/includes/:/etc/nginx/includes/:ro
+      - ./logs/nginx_ssl/:/var/log/nginx:rw
     secrets:
       - ssl-cert
       - ssl-key
     ports:
       - "8443:443"
     depends_on:
-      - nginx-waf
+      nginx-waf:
+        condition: service_started
 
   # WAF
   nginx-waf:
     container_name: nginx-waf
     build:
-      context: ./services/nginx_waf
-      dockerfile: Dockerfile
+      context: ./services/nginx/
+      dockerfile: ./waf/Dockerfile
     restart: always
     env_file:
       - env/.no_sensitive.env
@@ -38,7 +41,8 @@ services:
     expose:
       - 8080
     depends_on:
-      - nginx-gateway
+      nginx-gateway:
+        condition: service_started
 
   # Gateway
   nginx-gateway:
@@ -52,16 +56,29 @@ services:
       - dmz-net
       - vault-net
     volumes:
-      - ./services/nginx_gateway/templates/:/etc/nginx/templates/:ro
-      - ./services/nginx_gateway/rules.d/:/etc/nginx/rules.d/:ro
+      - ./services/nginx/shared/rules.d/:/etc/nginx/rules.d/:ro
+      - ./services/nginx/gateway/routes.d/:/etc/nginx/routes.d/:ro
+      - ./services/nginx/gateway/templates/:/etc/nginx/templates/:ro
       - ./logs/nginx_gateway/:/var/log/nginx/:rw
     expose:
       - 8080
     depends_on:
-      - frontend
-      - kibana
-      - lab
-      - auth-backend
+      frontend:
+        condition: service_started
+      kibana:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      broker:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+      lab:
+        condition: service_started
+      auth-backend:
+        condition: service_started
+      users-backend:
+        condition: service_started
 
   # Frontend
   frontend:
@@ -79,9 +96,10 @@ services:
     expose:
       - 8080
     depends_on:
-      - auth-backend
-      - users-backend
-      - game-backend
+      auth-backend:
+        condition: service_started
+      users-backend:
+        condition: service_started
 
   # S3
   minio:
@@ -95,8 +113,8 @@ services:
     networks:
       - mainnet
     volumes:
-      - ./data/minio:/data
-      - ./assets:/init-assets:ro
+      - ./data/minio/:/data/:rw
+      - ./assets/minio/:/init-assets/:ro
     command: server /data --console-address ":9001"
     expose:
       - 9000
@@ -127,18 +145,28 @@ services:
   # ELK
   elasticsearch:
     container_name: elasticsearch
-    image: elasticsearch:8.12.0
+    build:
+      context: ./services/ELK/elasticsearch/
+      dockerfile: Dockerfile
     restart: always
     networks:
       - elk-net
+    env_file:
+      - env/.elastic.env
+      - env/.kibana.env
     environment:
-      - ES_JAVA_OPTS=-Xms4g -Xmx4g
-      - discovery.type=single-node
-      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data:rw
+      - elasticsearch-log:/usr/share/elasticsearch/logs:rw
+    healthcheck:
+      test: ["CMD", "/usr/share/elasticsearch/bin/healthcheck-wrapper.sh"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
     expose:
       - 9200
-    depends_on:
-      - logstash
 
   logstash:
     container_name: logstash
@@ -146,24 +174,47 @@ services:
     restart: always
     networks:
       - elk-net
+    env_file:
+      - env/.elastic.env
     volumes: 
       - ./logs/:/var/log/services/:ro
-      - ./services/ELK/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
-      - ./services/ELK/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-    expose: 
+      - ./services/ELK/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./services/ELK/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    expose:
       - 5044
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:9600/_node/pipelines"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
   kibana:
     container_name: kibana
-    image: kibana:8.12.0
+    build:
+      context: ./services/ELK/kibana
+      dockerfile: Dockerfile
     restart: always
     networks:
       - mainnet
       - elk-net
-    ports: 
+    env_file:
+      - env/.no_sensitive.env
+      - env/.kibana.env
+    expose:
       - 5601
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://kibana:5601/api/status"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
 
   # HashiCorp Vault
   vault:
@@ -188,9 +239,16 @@ services:
     entrypoint: /vault_server.sh
     expose:
       - 8200
+    healthcheck:
+      test: ["CMD-SHELL", "vault status > /dev/null 2>&1"]
+      interval: 1s
+      timeout: 2s
+      retries: 20
+      start_period: 40s
 
   vault-init:
     image: hashicorp/vault:1.16
+    restart: 'no'
     env_file:
       - env/.vault.env
       - env/.token.env
@@ -204,7 +262,8 @@ services:
       - VAULT_ADDR=http://vault:8200
     entrypoint: /vault_init.sh
     depends_on:
-      - vault
+      vault:
+        condition: service_healthy
 
   # Test Infra
   lab:
@@ -236,7 +295,7 @@ services:
       - vault-net
     volumes:
       - ./logs/auth-backend/:/logs/:rw
-      - ./data/auth/:/prisma/db/:rw
+      - ./data/auth-backend/:/prisma/db/:rw
     environment:
       - NODE_ENV=production
     depends_on:
@@ -270,12 +329,12 @@ services:
       minio:
         condition: service_started
       vault:
-        condition: service_started
+        condition: service_healthy
       broker:
         condition: service_healthy
     expose:
       - 3000
-  
+
   game-backend:
     container_name: game-backend
     build:
@@ -325,6 +384,12 @@ volumes:
     driver: local
 
   rabbitmq-log:
+    driver: local
+
+  elasticsearch-data:
+    driver: local
+
+  elasticsearch-log:
     driver: local
 
 secrets:
