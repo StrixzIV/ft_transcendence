@@ -73,8 +73,6 @@ services:
         condition: service_healthy
       vault:
         condition: service_healthy
-      lab:
-        condition: service_started
       auth-backend:
         condition: service_started
       users-backend:
@@ -264,21 +262,6 @@ services:
     depends_on:
       vault:
         condition: service_healthy
-
-  # Test Infra
-  lab:
-    container_name: lab
-    build:
-      context: ./services/lab
-      dockerfile: Dockerfile
-    networks:
-      - mainnet
-    volumes:
-      - ./logs/lab:/logs/:rw
-    environment:
-      - NODE_ENV=production
-    expose:
-      - 3000
 
   # Backend
   auth-backend:
