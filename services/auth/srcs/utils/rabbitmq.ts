@@ -34,7 +34,6 @@ export async function connectRabbitMQ() {
 }
 
 export async function publishUserCreated(user: { id: string, username: string, mail: string, created_at: Date }) {
-
     if (!channel) {
         console.error('[Auth Service] RabbitMQ channel not initialized.');
         return;
@@ -60,7 +59,6 @@ export async function publishUserCreated(user: { id: string, username: string, m
 }
 
 export async function publishNameChange(user: { id: string, username: string }) {
-
     if (!channel) {
         console.error('[Auth Service] RabbitMQ channel not initialized.');
         return;
@@ -76,7 +74,6 @@ export async function publishNameChange(user: { id: string, username: string }) 
 
     channel.publish('user.events', '', payload);
     console.log('[Auth Service] Published user.name_changed event.');
-
 }
 
 export async function JWTValidationConsumer() {

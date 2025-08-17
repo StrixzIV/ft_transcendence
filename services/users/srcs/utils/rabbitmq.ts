@@ -1,20 +1,37 @@
 import path from "path";
 import amqp from 'amqplib';
-import mime from "mime-types"; 
+import mime from "mime-types";
+
 import { v4 as uuidv4 } from "uuid";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 import { s3 } from './s3';
 import { prisma } from '../db';
+import { vault } from "./vault_client";
 
+let rabbit_url: string | null = null;
 let conn: amqp.ChannelModel | null = null;
 
+export async function get_rabbit_url() {
+    if (rabbit_url) {
+        return rabbit_url;
+    }
+
+    const rabbit_secret = await vault.read('secret/data/broker');
+    const rabbit_user = rabbit_secret.data.data.rabbit_user;
+    const rabbit_password = rabbit_secret.data.data.rabbit_password;
+
+    // create url
+    rabbit_url = `amqp://${rabbit_user!}:${rabbit_password!}@broker:5672`;
+
+    return rabbit_url;
+}
+
 export async function getRabbitMQConnection() {
-
     if (!conn) {
+        const url = await get_rabbit_url();
 
-        conn = await amqp.connect(`amqp://${process.env.RABBITMQ_DEFAULT_USER ?? ''}:${process.env.RABBITMQ_DEFAULT_PASS ?? ''}@broker:5672`);
-        
+        conn = await amqp.connect(url);
         conn.on('error', (err) => {
             console.error('RabbitMQ connection error:', err);
             conn = null;
@@ -24,23 +41,20 @@ export async function getRabbitMQConnection() {
             console.warn('RabbitMQ connection closed. Reconnecting...');
             conn = null;
         });
-
     }
 
     return conn;
-
 }
 
 export async function consumeMQData() {
-
     const conn = await getRabbitMQConnection();
     const channel = await conn.createChannel();
 
     await channel.assertExchange('user.events', 'fanout', { durable: false });
+
     const q = await channel.assertQueue('', { exclusive: true });
 
     await channel.bindQueue(q.queue, 'user.events', '');
-
     console.log('[User Data Service] Waiting for user.created events...');
 
     channel.consume(q.queue, async (msg) => {
@@ -48,11 +62,9 @@ export async function consumeMQData() {
         if (!msg?.content) return;
 
         try {
-
             const event = JSON.parse(msg.content.toString());
 
             if (event.event === 'user.created') {
-
                 const { id, username, mail, created_at, profile_url } = event.data;
 
                 if (profile_url) {
@@ -91,9 +103,7 @@ export async function consumeMQData() {
                             profile_url: s3_key.split('/').slice(-1)[0]
                         }
                     });
-
                 }
-
                 else {
                     await prisma.users.upsert({
                         where: { id: id },
@@ -106,13 +116,9 @@ export async function consumeMQData() {
                         }
                     });
                 }
-
                 console.log(`[User Data Service] User ${username} saved.`);
-
             }
-
             else if (event.event === 'user.name_changed') {
-
                 const { id, username } = event.data;
 
                 await prisma.users.update({ 
@@ -122,21 +128,16 @@ export async function consumeMQData() {
                     where: {
                         id: id
                     }
-                })
-
+                });
             }
-
         }
-        
         catch (error) {
             console.error('[Consumer Error]', error);
         }
-
     }, { noAck: true });
 }
 
 export async function JWTValidate(token: string) {
-
     const conn = await getRabbitMQConnection();
     const channel = await conn.createChannel();
 
@@ -144,7 +145,6 @@ export async function JWTValidate(token: string) {
     const replyQueue = await channel.assertQueue('', { exclusive: true });
 
     return new Promise<any>((resolve, reject) => {
-
         let settled = false;
 
         // Consume the reply
@@ -185,9 +185,9 @@ export async function JWTValidate(token: string) {
 
             // Cancel consumer and delete queue (but DO NOT close channel or connection)
             const { consumerTag } = await consumerTagPromise;
+
             channel.cancel(consumerTag).catch(console.error);
             channel.deleteQueue(replyQueue.queue).catch(console.error);
         }, 3000);
-
     });
 }

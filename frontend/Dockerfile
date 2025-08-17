@@ -13,6 +13,9 @@ FROM node:24-alpine AS build
 
 WORKDIR /app
 
+ARG DOMAIN_NAME
+ENV VITE_DOMAIN_NAME=${DOMAIN_NAME}
+
 COPY . .
 COPY --from=deps /app/node_modules/ node_modules/
 

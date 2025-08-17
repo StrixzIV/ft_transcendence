@@ -1,14 +1,30 @@
 import amqp from 'amqplib';
 import { v4 as uuidv4 } from "uuid";
+import { vault } from './vault_client';
 
+let rabbit_url: string | null = null;
 let conn: amqp.ChannelModel | null = null;
 
+export async function get_rabbit_url() {
+    if (rabbit_url) {
+        return rabbit_url;
+    }
+
+    const rabbit_secret = await vault.read('secret/data/broker');
+    const rabbit_user = rabbit_secret.data.data.rabbit_user;
+    const rabbit_password = rabbit_secret.data.data.rabbit_password;
+
+    // create url
+    rabbit_url = `amqp://${rabbit_user}:${rabbit_password}@broker:5672`;
+
+    return rabbit_url;
+}
+
 export async function getRabbitMQConnection() {
-
     if (!conn) {
+        const url = await get_rabbit_url();
 
-        conn = await amqp.connect(`amqp://${process.env['RABBITMQ_DEFAULT_USER'] ?? ''}:${process.env['RABBITMQ_DEFAULT_PASS'] ?? ''}@broker:5672`);
-        
+        conn = await amqp.connect(url);
         conn.on('error', (err) => {
             console.error('RabbitMQ connection error:', err);
             conn = null;
@@ -18,23 +34,18 @@ export async function getRabbitMQConnection() {
             console.warn('RabbitMQ connection closed. Reconnecting...');
             conn = null;
         });
-
     }
 
     return conn;
-
 }
 
 export async function JWTValidate(token: string) {
-
+    const correlationId = uuidv4();
     const conn = await getRabbitMQConnection();
     const channel = await conn.createChannel();
-
-    const correlationId = uuidv4();
     const replyQueue = await channel.assertQueue('', { exclusive: true });
 
     return new Promise<any>((resolve, reject) => {
-
         let settled = false;
 
         // Consume the reply
@@ -78,6 +89,5 @@ export async function JWTValidate(token: string) {
             channel.cancel(consumerTag).catch(console.error);
             channel.deleteQueue(replyQueue.queue).catch(console.error);
         }, 3000);
-
     });
 }

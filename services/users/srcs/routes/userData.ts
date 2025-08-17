@@ -6,7 +6,6 @@ import { JWTValidate } from '../utils/rabbitmq';
 export async function userRoute(fastify: FastifyInstance) {
 
     fastify.get('/data', async (request, response) => {
-
         const token = request.cookies["access_token"];
 
         if (!token) {
@@ -14,9 +13,8 @@ export async function userRoute(fastify: FastifyInstance) {
         }
 
         try {
-
             const result = await JWTValidate(token);
-            
+
             if (!result.valid) {
                 return response.status(401).send({ error: "Invalid token" });
             }
@@ -30,17 +28,13 @@ export async function userRoute(fastify: FastifyInstance) {
             }
 
             return response.status(404).send({ error: "User not found" });
-        
-        } 
-        
+        }
         catch (err) {
             response.status(500).send({ error: "JWT validation failed" });
         }
-
-    })
+    });
 
     fastify.get('/data/:uid', async (request, response) => {
-
         const { uid } = request.params as { uid: string };
         const token = request.cookies["access_token"];
 
@@ -53,9 +47,8 @@ export async function userRoute(fastify: FastifyInstance) {
         }
 
         try {
-
             const result = await JWTValidate(token);
-            
+
             if (!result.valid) {
                 return response.status(401).send({ error: "Invalid token" });
             }
@@ -67,13 +60,9 @@ export async function userRoute(fastify: FastifyInstance) {
             }
 
             return null;
-        
         } 
-        
         catch (err) {
             response.status(500).send({ error: "JWT validation failed" });
         }
-
-    })
-
+    });
 }

@@ -6,7 +6,7 @@ services:
     image: nginx:1.29-alpine-slim
     restart: always
     env_file:
-      - env/.no_sensitive.env
+      - .env
     networks:
       - dmz-net
     environment:
@@ -33,7 +33,7 @@ services:
       dockerfile: ./waf/Dockerfile
     restart: always
     env_file:
-      - env/.no_sensitive.env
+      - .env
     networks:
       - dmz-net
     environment:
@@ -50,7 +50,7 @@ services:
     image: nginx:1.29-alpine-slim
     restart: always
     env_file:
-      - env/.no_sensitive.env
+      - .env
     networks:
       - mainnet
       - dmz-net
@@ -84,9 +84,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - DOMAIN_NAME=$DOMAIN_NAME
     restart: always
-    env_file:
-      - env/.no_sensitive.env
     networks:
       - mainnet
     volumes:
@@ -200,7 +200,7 @@ services:
       - mainnet
       - elk-net
     env_file:
-      - env/.no_sensitive.env
+      - .env
       - env/.kibana.env
     expose:
       - 5601
@@ -270,7 +270,7 @@ services:
       context: ./services/auth
       dockerfile: Dockerfile
     env_file:
-      - env/.no_sensitive.env
+      - .env
       - env/.vault.env
     restart: always
     networks:
@@ -295,12 +295,13 @@ services:
       context: ./services/users
       dockerfile: Dockerfile
     env_file:
+      - .env
       - env/.s3.env
-      - env/.broker.env
-      - env/.no_sensitive.env
+      - env/.vault.env
     restart: always
     networks:
       - mainnet
+      - vault-net
     volumes:
       - ./logs/users-backend/:/logs/:rw
       - ./data/users-backend/:/prisma/db/:rw
@@ -324,11 +325,12 @@ services:
       context: ./services/pingpong
       dockerfile: Dockerfile
     env_file:
-      - env/.broker.env
-      - env/.no_sensitive.env
+      - .env
+      - env/.vault.env
     restart: always
     networks:
       - mainnet
+      - vault-net
     volumes:
       - ./logs/game-backend/:/app/logs/:rw
       - ./data/game-backend/:/app/prisma/db/:rw
