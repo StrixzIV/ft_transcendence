@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = "file:db/game.db"
+}
+
+model Match {
+
+    id           String         @id @default(uuid())
+    gid          String
+
+    created_at   DateTime       @default(now())
+    ended_at     DateTime?
+
+    left_score   Int
+    right_score  Int
+
+    players      MatchPlayer[]
+    winner_id    String?
+    status       String         // e.g. "in_progress", "completed", "abandoned"
+
+    @@map("matches")
+
+}
+
+model MatchPlayer {
+
+    id         String   @id @default(uuid())
+    
+    match_id   String
+    match      Match    @relation(fields: [match_id], references: [id])
+    
+    uid        String
+    side       String   // e.g. "leftPlayer" or "rightPlayer"
+
+    @@map("match_players")
+
+}

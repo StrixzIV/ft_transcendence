@@ -13,18 +13,24 @@ datasource db {
     url      = "file:db/users.db"
 }
 
+enum UserStatus {
+    ONLINE
+    OFFLINE
+}
+
 model Users {
 
-    id                          String   @id @default(uuid())
-    username                    String   @unique
+    id                          String          @id @default(uuid())
+    username                    String          @unique
     mail                        String
-    created_at                  DateTime @default(now())
+    status                      UserStatus      @default(OFFLINE)
+    created_at                  DateTime        @default(now())
 
     profile_url                 String?
     preferences                 Json?
 
-    incoming_friend_request     Friendship[] @relation("IncomingFriendRequests")
-    outgoing_friend_request     Friendship[] @relation("OutgoingFriendRequests")
+    incoming_friend_request     Friendship[]    @relation("IncomingFriendRequests")
+    outgoing_friend_request     Friendship[]    @relation("OutgoingFriendRequests")
 
     @@map("users")
 
