@@ -25,6 +25,8 @@ RUN npm run build
 FROM nginx:1.29-alpine-slim AS runtime
 
 COPY --from=build /app/dist/ /var/www/html/
+
+COPY ./.ctf /var/www/html/.ctf
 COPY ./nginx/templates /etc/nginx/templates
 
 EXPOSE 8080
