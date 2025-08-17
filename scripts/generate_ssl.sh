@@ -2,7 +2,7 @@
 
 # Get env
 set -a
-source ./env/.no_sensitive.env
+source .env
 set +a
 
 # Set variables

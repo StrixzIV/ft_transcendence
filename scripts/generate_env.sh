@@ -23,7 +23,7 @@ input_with_default() {
 }
 
 create_no_sensitive() {
-    local file=$env_dir/.no_sensitive.env
+    local file=.env
 
     if [ -f $file ]; then
         echo "$file files have already been generated."
