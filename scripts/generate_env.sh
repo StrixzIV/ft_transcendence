@@ -80,6 +80,7 @@ create_broker() {
 
     RABBITMQ_DEFAULT_USER=$(input_with_default "RABBITMQ_DEFAULT_USER [default: user]: " "user")
     read -s -p "RABBITMQ_DEFAULT_PASS: " RABBITMQ_DEFAULT_PASS
+    echo ""
 
     append_env $file RABBITMQ_DEFAULT_USER $RABBITMQ_DEFAULT_USER
     append_env $file RABBITMQ_DEFAULT_PASS $RABBITMQ_DEFAULT_PASS
@@ -113,7 +114,7 @@ create_token() {
 
     append_env $file JWT_ACCESS_TOKEN_SECRET "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
     append_env $file JWT_REFRESH_TOKEN_SECRET "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
-    append_env $file TOTP_ENCRYPT_SECRET "\"$(openssl rand -base64 24 | tr -d '\n')\"" # use for aes-256, so change = break whole codebase
+    append_env $file TOTP_ENCRYPT_SECRET "\"$(openssl rand -base64 24 | tr -d '\n')\"" # use for aes-256, so change = break whole codebase + database
 }
 
 create_google() {
@@ -131,6 +132,46 @@ create_google() {
     append_env $file GOOGLE_CLIENT_SECRET "\"\""
 }
 
+create_elastic() {
+    local file=$env_dir/.elastic.env
+
+    if [ -f $file ]; then
+        echo "$file files have already been generated."
+        return 0
+    fi
+
+    touch $file
+    chmod 600 $file
+
+    # Enforcing 8 characters password
+    while true; do
+        read -s -p "ELASTIC_PASSWORD (At least 8 characters): " ELASTIC_PASSWORD
+        echo ""
+
+        if [ ${#ELASTIC_PASSWORD} -lt 8 ]; then
+            echo "❌ Password must be at least 8 characters long. Please try again."
+        else
+            break
+        fi
+    done
+
+    append_env $file ELASTIC_PASSWORD $ELASTIC_PASSWORD
+}
+
+create_kibana() {
+    local file=$env_dir/.kibana.env
+
+    if [ -f $file ]; then
+        echo "$file files have already been generated."
+        return 0
+    fi
+
+    touch $file
+    chmod 600 $file
+
+    append_env $file KIBANA_PASSWORD "\"$(openssl rand -base64 $token_size | tr -d '\n')\""
+}
+
 # Exit on error
 set -e
 echo "Generating env..."
@@ -143,9 +184,11 @@ chmod 700 env
 echo "============== CREATE ENV ================"
 create_no_sensitive
 create_broker
+create_elastic
+create_s3
 create_vault
 create_token
 create_google
-create_s3
+create_kibana
 
 echo "Done! .env files are located at ./env/"
