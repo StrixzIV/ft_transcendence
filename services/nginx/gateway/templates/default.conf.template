@@ -8,6 +8,34 @@ server {
     # Route to backend services
     include /etc/nginx/routes.d/*.conf;
 
+    # Route to auth service
+    location /auth/ {
+        proxy_pass http://auth-backend:3000;
+        include /etc/nginx/rules.d/restful-proxy-rule.conf;
+    }
+    
+    # Route to user service
+    location /user/ {
+        proxy_pass http://users-backend:3000;
+        include /etc/nginx/rules.d/restful-proxy-rule.conf;
+    }
+    
+    location /ws/user {
+        proxy_pass http://users-backend:3000;
+        include /etc/nginx/rules.d/ws-proxy-rule.conf;
+    }
+    
+    # Route to game service
+    location /game/ {
+        proxy_pass http://game-backend:3000;
+        include /etc/nginx/rules.d/restful-proxy-rule.conf;
+    }
+    
+    location /ws/game {
+        proxy_pass http://game-backend:8080;
+        include /etc/nginx/rules.d/ws-proxy-rule.conf;
+    }
+
     # Route to frontend service
     location / {
         proxy_pass http://frontend:8080;
