@@ -66,7 +66,7 @@ services:
       frontend:
         condition: service_started
       kibana:
-        condition: service_started
+        condition: service_healthy
       minio:
         condition: service_started
       broker:
@@ -160,7 +160,7 @@ services:
       - elasticsearch-data:/usr/share/elasticsearch/data:rw
       - elasticsearch-log:/usr/share/elasticsearch/logs:rw
     healthcheck:
-      test: ["CMD", "curl", "-fs", "http://localhost:9200/_cluster/health"]
+      test: ["CMD", "/usr/share/elasticsearch/bin/healthcheck-wrapper.sh"]
       interval: 1s
       timeout: 2s
       retries: 10
@@ -180,14 +180,17 @@ services:
       - ./logs/:/var/log/services/:ro
       - ./services/ELK/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - ./services/ELK/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    expose:
+      - 5044
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://localhost:9600/_node/pipelines"]
       interval: 1s
       timeout: 2s
       retries: 10
       start_period: 30s
-    expose: 
-      - 5044
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
   kibana:
     container_name: kibana
@@ -204,14 +207,14 @@ services:
     expose:
       - 5601
     healthcheck:
-      test: ["CMD", "curl", "-fs", "http://localhost:5601/api/status"]
+      test: ["CMD", "curl", "-fs", "http://kibana:5601/api/status"]
       interval: 1s
       timeout: 2s
       retries: 10
       start_period: 30s
-    # depends_on:
-    #   elasticsearch:
-    #     condition: service_healthy
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
   # HashiCorp Vault
   vault:
